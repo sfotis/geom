@@ -8,9 +8,15 @@ n NMTDS
 n NMTTools
 n ShHealOper
 n Sketcher
+p XBooleanOperations
+p XBOP
+p XBOPTColStd
+p XBOPTools
+p XIntTools
 r GEOMResources
 t TKGeom
 t TKGeomDF
+t TKXBO
 n Exchange3DS
 n ExchangeBREP
 n ExchangeCSFDB

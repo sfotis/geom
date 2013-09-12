@@ -1,0 +1,252 @@
+-- Created on: 2000-05-18
+-- Created by: Peter KURNEV
+-- Copyright (c) 2000-2012 OPEN CASCADE SAS
+--
+-- The content of this file is subject to the Open CASCADE Technology Public
+-- License Version 6.5 (the "License"). You may not use the content of this file
+-- except in compliance with the License. Please obtain a copy of the License
+-- at http://www.opencascade.org and read it completely before using this file.
+--
+-- The Initial Developer of the Original Code is Open CASCADE S.A.S., having its
+-- main offices at: 1, place des Freres Montgolfier, 78280 Guyancourt, France.
+--
+-- The Original Code and all software distributed under the License is
+-- distributed on an "AS IS" basis, without warranty of any kind, and the
+-- Initial Developer hereby disclaims all such warranties, including without
+-- limitation, any warranties of merchantability, fitness for a particular
+-- purpose or non-infringement. Please see the License for the specific terms
+-- and conditions governing the rights and limitations under the License.
+
+
+package XIntTools
+
+	---Purpose: Contains classes for intersection and classification
+	---         purposes and accompanying classes
+uses
+    
+    TCollection, 
+    TopoDS, 
+    TopAbs, 
+    TColStd, 
+    BRepAdaptor, 
+    BRepTopAdaptor,
+    SortTools, 
+    TopTools, 
+    math,
+    gp, 
+    Bnd,
+    Adaptor3d,
+    GeomAdaptor,
+    Geom,
+    Geom2d,
+    GeomInt,  
+    GeomAbs,
+    GeomAPI,
+    Extrema,
+    IntPatch, 
+    IntSurf, 
+    BRepClass3d, 
+    TColgp, 
+    MMgt, 
+    Geom2dHatch
+
+is
+    	
+    class  Range;	       	
+    class  CommonPrt; 
+    class  Root; 
+    class  Compare; 
+    class  CompareRange;     
+
+    class  EdgeEdge;
+    	---Purpose: class provides the Edge/Edge algorithm 
+
+    class  EdgeFace;
+    	---Purpose: class provides the Edge/Face algorithm 
+
+    class  FClass2d;
+    	---Purpose: class provides classification of a point in a face
+
+    class  LineConstructor;
+    	---Purpose: class provides post-processing of results of 
+	---         surfaces intersection
+
+    -----
+    class MarkedRangeSet;
+    	---Purpose: auxiliary class for range management
+
+    class BaseRangeSample;
+    	---Purpose: base class for range index management
+    
+    class CurveRangeSample;
+    	---Purpose: class for range index management of curve
+    
+    class SurfaceRangeSample;
+	---Purpose: class for range index management of surface
+
+    class CurveRangeLocalizeData;
+    
+    class SurfaceRangeLocalizeData;
+   
+    class BeanFaceIntersector;
+    	---Purpose: class provides computing ranges of parameters
+	---         of edge/face intersection.
+
+    class BeanBeanIntersector;
+    	---Purpose: class provides computing ranges of parameters
+	---         of edge/edge intersection.
+
+    -----
+    class  Curve;
+    	---Purpose: class is a container of
+	---         one 3d curve
+	---         two 2d curves
+    -----
+
+    class  PntOnFace;
+    class  PntOn2Faces; 
+      
+    class  TopolTool;
+    	---Purpose: class redefines TopolTool from Adaptor3d
+
+    class  FaceFace;
+    	---Purpose: class provides the Face/Face algorithm
+    --- 
+
+    class  ShrunkRange;
+    	---Purpose: class provides computing and storage of shrunk range
+	---         for an edge bounded by two vertices
+    
+    class  Context;
+    	---Purpose: class is a container of a large number of reusable
+	---         projection and classification algorithms
+	
+    class  Tools; 
+    	---Purpose: class is a container of usefull geometrical and
+	---         topological algorithms
+    
+    generic class CArray1;   
+    ---
+    ---                          P  o  i  n  t  e  r  s  	        
+    --- 
+    --pointer PContext to Context from XIntTools;  
+    ---
+    ---                 I  n  s  t  a  n  t  i  a  t  i  o  n  s  
+    ---   
+    class SequenceOfPntOn2Faces instantiates  
+    	Sequence from TCollection(PntOn2Faces from XIntTools); 
+    --
+    class SequenceOfCurves instantiates  
+    	Sequence from TCollection(Curve from XIntTools); 
+	
+    
+    class  SequenceOfRanges  instantiates  
+    	Sequence from TCollection(Range from XIntTools); 
+
+    class  CArray1OfInteger  instantiates  
+    	CArray1(Integer from Standard); 
+  
+    class  CArray1OfReal  instantiates  
+    	CArray1(Real from Standard); 
+	 
+    class  SequenceOfRoots   instantiates  
+    	Sequence from TCollection(Root  from XIntTools); 
+	 
+    class  Array1OfRoots     instantiates  
+    	Array1    from TCollection  (Root from XIntTools);  
+     
+    class  Array1OfRange     instantiates  
+    	Array1    from TCollection  (Range from XIntTools); 
+	 
+    class  QuickSort         instantiates  
+    	QuickSort from SortTools   (Root from XIntTools, 
+	    	    	    	    Array1OfRoots from XIntTools, 
+	    	    	    	    Compare from XIntTools); 
+				    
+    class  QuickSortRange    instantiates  
+    	QuickSort from SortTools   (Range from XIntTools, 
+	    	    	    	    Array1OfRange from XIntTools, 
+	    	    	    	    CompareRange from XIntTools); 
+    class  SequenceOfCommonPrts   instantiates  
+    	Sequence from TCollection(CommonPrt from XIntTools); 			    
+	 
+    class  IndexedDataMapOfTransientAddress instantiates
+    	IndexedDataMap from TCollection(Transient      from Standard,
+	    	    	    	    	Address        from Standard,
+                                        MapTransientHasher from TColStd);	
+    
+--modified by NIZHNY-MKK  Wed Oct  5 18:06:39 2005
+    class  ListOfCurveRangeSample  instantiates  
+    	List from TCollection(CurveRangeSample from XIntTools);
+
+    class  ListOfSurfaceRangeSample  instantiates  
+    	List from TCollection(SurfaceRangeSample from XIntTools);
+
+    class  ListOfBox  instantiates  
+    	List from TCollection(Box from Bnd);
+	
+    class CurveRangeSampleMapHasher;
+    	---Purpose: class for range index management of curve
+    
+    class SurfaceRangeSampleMapHasher;
+    
+    class MapOfCurveSample instantiates 
+    	Map from TCollection(CurveRangeSample from XIntTools,
+                             CurveRangeSampleMapHasher from XIntTools);
+			     
+    class MapOfSurfaceSample instantiates 
+    	Map from TCollection(SurfaceRangeSample from XIntTools,
+    	    	    	     SurfaceRangeSampleMapHasher from XIntTools);
+    
+    class DataMapOfCurveSampleBox instantiates 
+    	DataMap from TCollection(CurveRangeSample from XIntTools,
+	    	    	    	 Box              from Bnd,
+				 CurveRangeSampleMapHasher from XIntTools);
+
+    class DataMapOfSurfaceSampleBox instantiates 
+    	DataMap from TCollection(SurfaceRangeSample from XIntTools,
+	    	    	    	 Box              from Bnd,
+				 SurfaceRangeSampleMapHasher from XIntTools);
+    -----------------------------------------------------
+    --  Block  of  static  functions  
+    -----------------------------------------------------  
+    Length  (E : Edge from TopoDS) 
+    	returns  Real  from  Standard; 
+    ---Purpose:  returns the length of the edge;	 
+
+    RemoveIdenticalRoots  (aSeq  :out SequenceOfRoots from XIntTools; 
+    	    	    	   anEpsT:    Real from Standard); 
+    ---Purpose: Remove from  the  sequence aSeq the Roots  that  have  
+    --          values ti and tj such as  |ti-tj]  <  anEpsT.     
+
+    SortRoots (aSeq  :out SequenceOfRoots from XIntTools; 
+    	       anEpsT:    Real from Standard);	 
+    ---Purpose: Sort the sequence aSeq of the Roots to arrange the 
+    --          Roons  in  increasing  order 
+    FindRootStates  (aSeq  :out SequenceOfRoots from XIntTools; 
+                     anEpsNull:    Real from Standard);
+    ---Purpose: Find the states (before  and  after) for  each  Root  
+    --          from  the sequence aSeq 
+     
+    Parameter (P          : Pnt   from gp; 
+   	       Curve      : Curve from Geom; 
+               aParm      : out Real  from  Standard) 
+	returns  Integer from Standard; 	        
+ 
+    GetRadius(C:  Curve  from  BRepAdaptor; 
+    	      t1,t3:Real  from  Standard; 
+	      R:out Real  from  Standard) 
+        returns  Integer from Standard;    
+	 
+
+    PrepareArgs(C:  in out Curve  from  BRepAdaptor;  
+                tMax,tMin:  Real  from  Standard; 
+		Discret  :  Integer from Standard;    
+		Deflect  :  Real  from  Standard;  
+	        anArgs   :  out  CArray1OfReal  from XIntTools) 
+        returns  Integer from Standard; 
+
+end XIntTools; 
+
+
+

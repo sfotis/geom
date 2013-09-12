@@ -1,0 +1,147 @@
+-- Created on: 2000-05-26
+-- Created by: Peter KURNEV
+-- Copyright (c) 2000-2012 OPEN CASCADE SAS
+--
+-- The content of this file is subject to the Open CASCADE Technology Public
+-- License Version 6.5 (the "License"). You may not use the content of this file
+-- except in compliance with the License. Please obtain a copy of the License
+-- at http://www.opencascade.org and read it completely before using this file.
+--
+-- The Initial Developer of the Original Code is Open CASCADE S.A.S., having its
+-- main offices at: 1, place des Freres Montgolfier, 78280 Guyancourt, France.
+--
+-- The Original Code and all software distributed under the License is
+-- distributed on an "AS IS" basis, without warranty of any kind, and the
+-- Initial Developer hereby disclaims all such warranties, including without
+-- limitation, any warranties of merchantability, fitness for a particular
+-- purpose or non-infringement. Please see the License for the specific terms
+-- and conditions governing the rights and limitations under the License.
+
+
+
+---Purpose: 
+
+generic class CArray1 from XIntTools (Array1Item as any)
+
+	---Purpose: The class CArray1 represents unidimensionnal arrays
+	--          of fixed size known at run time. Run-time boundary
+	--          check is performed
+	--          
+	--          The range of the index is user defined from 0 to Length
+
+raises
+
+    ConstructionError from Standard,
+    OutOfRange from Standard,
+    OutOfMemory from Standard 
+
+is
+
+    Create (Length: Integer from Standard = 0)
+    	returns CArray1 from XIntTools
+      	---Purpose: 
+    	--- Creates an array  of given Length. 
+	---
+    	raises 
+            ConstructionError  from Standard,  -- when Length < 0
+            OutOfMemory from Standard;         -- when not enough memory
+
+    Create (AnArray : CArray1 from XIntTools) 
+    	returns CArray1 from  XIntTools 
+     	---Purpose: 
+    	--- Prohibits the creator by copy
+	---
+    	is private;
+
+    Create(Item: Array1Item;
+    	   Length: Integer from Standard)
+    	---Purpose: 
+    	--- Creates an array sharing datas with an other.
+    	--  Example:
+    	---  Item tab[100];
+    	---  CArray1OfItem thetab (tab[0],100);
+    	---            
+    	---  CArray1OfItem aArray1(100);
+    	---  CArray1OfItem anSharedArray1(aArray1.ChangeValue(0),aArray1.Length());
+    	---            
+    	--  Warning: 
+    	--- The validity of length are under the responsability
+    	--- of the user.
+    	--- The sahred array must have a valid address during the life of
+    	--- the Array1.
+	---
+    	returns CArray1 from XIntTools
+    	raises  ConstructionError  from Standard; -- when Length < 0
+    	   
+    Init (me: in out; V: Array1Item);
+    	---Purpose: 
+    	--- Initializes the array with a given value.
+	---
+
+
+    Resize(me: in out;
+    	   theNewLength: Integer from Standard);
+    	---Purpose: 
+    	--- destroy current content and realloc the new size
+    	--- does nothing if Length() == theLength
+	---
+	   
+    Destroy (me: in out);
+    	---Purpose: 
+    	--- Frees the  allocated   area  corresponding  to the
+    	--- array.
+	---
+    	---C++: alias ~
+
+    Length (me) returns Integer from Standard;
+    	---Purpose: 
+    	--- Returns the number of elements of <me>.
+    	---           
+        ---C++: inline 
+	
+    Append (me:out; Value: Array1Item); 
+    	---Purpose: 
+
+    SetValue (me : out; Index: Integer from Standard; Value: Array1Item)  
+    	raises OutOfRange from Standard;
+    	---Purpose: 
+    	--- Sets  the   <Index>th  element  of   the  array to
+    	--- <Value>.
+	---
+    	
+
+    Value (me; Index:Integer from Standard) returns any Array1Item
+    	---Purpose: 
+    	--- Returns the value of  the  <Index>th element of the
+    	--- array.
+    	---          
+    	---C++: alias operator ()
+    	---C++: return const &
+	raises OutOfRange from Standard;
+    
+    ChangeValue (me: in out; Index:Integer from Standard) returns any Array1Item
+    	---Purpose: 
+	--- Returns the value  of the <Index>th element  of the
+    	--- array.
+    	---
+    	---C++: alias operator ()
+    	---C++: return & 
+    	raises OutOfRange from Standard;
+
+    IsEqual(me; Other: CArray1 from XIntTools) 
+    	returns Boolean from Standard;
+    	---Purpose: 
+    	--- Applys the == operator on each array item
+	---
+    	---C++: alias operator ==
+   
+fields
+
+    myStart: Address;
+    myLength: Integer;
+    myIsAllocated: Boolean;
+
+end CArray1;
+
+
+
