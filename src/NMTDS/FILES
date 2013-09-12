@@ -1,12 +1,9 @@
-Basics_OCCTVersion.hxx
-
 NMTDS_BoxBndTree.cxx
 NMTDS_BoxBndTree.hxx
 NMTDS_BndSphereTree.cxx
 NMTDS_BndSphereTree.hxx
 NMTDS_BndSphere.hxx
 NMTDS_BndSphere.cxx
-NMTDS_BndSphere.lxx
 NMTDS_IndexRange.hxx
 NMTDS_IndexRange.cxx
 NMTDS_InterfPool.hxx

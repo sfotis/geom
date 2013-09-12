@@ -68,6 +68,90 @@ class NMTDS_BndSphere  {
   Standard_Real myGap;
 };
 
-#include <NMTDS_BndSphere.lxx>
+//=======================================================================
+//function : SetCenter
+//purpose  : 
+//=======================================================================
+  inline void NMTDS_BndSphere::SetCenter(const gp_Pnt& theP)
+//
+{
+  myCenter=theP;
+}
+//=======================================================================
+//function : Center
+//purpose  : 
+//=======================================================================
+  inline const gp_Pnt& NMTDS_BndSphere::Center()const
+{
+  return myCenter;
+}
+//=======================================================================
+//function : SetRadius
+//purpose  : 
+//=======================================================================
+  inline void NMTDS_BndSphere::SetRadius(const Standard_Real theR)
+{
+  myRadius=theR;
+}
+//=======================================================================
+//function : Radius
+//purpose  : 
+//=======================================================================
+  inline Standard_Real NMTDS_BndSphere::Radius()const
+{
+  return myRadius;
+}
+//=======================================================================
+//function : SetGap
+//purpose  : 
+//=======================================================================
+  inline void NMTDS_BndSphere::SetGap(const Standard_Real theGap)
+{
+  myGap=theGap;
+}
+//=======================================================================
+//function : Gap
+//purpose  : 
+//=======================================================================
+  inline Standard_Real NMTDS_BndSphere::Gap()const
+{
+  return myGap;
+}
+//=======================================================================
+//function : Add
+//purpose  : 
+//=======================================================================
+  inline void NMTDS_BndSphere::Add(const NMTDS_BndSphere& theOther)
+{
+  Standard_Real aTmax, aR, aT, aTOther;
+  gp_Pnt aPc;
+  //
+  aPc.SetXYZ(0.5*(myCenter.XYZ()+theOther.myCenter.XYZ()));
+  //
+  aR=aPc.Distance(myCenter);
+  //
+  aT=myRadius+myGap;
+  aTOther=theOther.myRadius+theOther.myGap;
+  aTmax=(aT>aTOther) ? aT: aTOther;
+  //
+  aR=aR+aTmax;
+  //
+  myCenter=aPc;
+  myRadius=aR;
+}
+//=======================================================================
+//function : SquareExtent
+//purpose  : 
+//=======================================================================
+  inline Standard_Real NMTDS_BndSphere::SquareExtent()const
+{
+  Standard_Real aD;
+  //
+  aD=myRadius+myGap;
+  aD=aD+aD;
+  aD=aD*aD;
+  //
+  return aD;
+}
 
 #endif
