@@ -28,5 +28,3 @@ GEOM_BaseDriver.cxx
 GEOM_BaseDriver.hxx
 Handle_GEOM_Application.hxx
 Handle_GEOM_DataMapNodeOfDataMapOfAsciiStringTransient.hxx
-utilities.h
-GEOM_OCCTVersion.hxx
