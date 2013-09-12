@@ -46,8 +46,7 @@
 
 extern "C"
 {
-SALOME_WNT_EXPORT
-  int Export( const TopoDS_Shape& theShape,
+  SALOME_WNT_EXPORT int Export (const TopoDS_Shape& theShape,
               const TCollection_AsciiString& theFileName,
               const TCollection_AsciiString& theFormatName)
   {
@@ -55,11 +54,15 @@ SALOME_WNT_EXPORT
 
   try 
     {
+        // Set "C" numeric locale to save numbers correctly
+        Kernel_Utils::Localizer loc;
+
       IFSelect_ReturnStatus status ;
       //VRV: OCC 4.0 migration
       STEPControl_Writer aWriter;
       //VSR: 16/09/09: Convert to METERS
       Interface_Static::SetCVal("xstep.cascade.unit","M");
+        Interface_Static::SetCVal("write.step.unit", "M");
       Interface_Static::SetIVal("write.step.nonmanifold", 1);
       //JFA: PAL6162      status = aWriter.Transfer( theShape, STEPControl_ManifoldSolidBrep );
       status = aWriter.Transfer( theShape, STEPControl_AsIs );
@@ -71,8 +74,9 @@ SALOME_WNT_EXPORT
       if ( status == IFSelect_RetDone )
         return 1;
     }
-    catch(Standard_Failure) {
-      Standard_Failure::Raise("Could not export in STEP format");
+    catch (Standard_Failure) 
+      {
+        //THROW_SALOME_CORBA_EXCEPTION("Exception catched in STEPExport", SALOME::BAD_PARAM);
     }
     return 0;
   }

@@ -28,14 +28,75 @@
 #include <IGESControl_Writer.hxx>
 #include <Interface_Static.hxx>
 
-#include <TCollection_AsciiString.hxx>
 #include <TopoDS_Shape.hxx>
+#include <TopoDS_Iterator.hxx>
+
+#include <TCollection_AsciiString.hxx>
+
+#include <Standard_Failure.hxx>
 
 #ifdef WNT
 #define SALOME_WNT_EXPORT __declspec(dllexport)
 #else
 #define SALOME_WNT_EXPORT
 #endif
+
+//=============================================================================
+/*!
+ *  KindOfBRep
+ *  \return 0 if theShape contains only simple entities (wires, edges and vertices),
+ *          1 if theShape contains only complex entities (shells, solids and compsolids)
+ *          2 if theShape contains only indifferent entities (faces)
+ *         -1 if theShape contains both simple and complex entities (and in this case it
+ *            cannot be saved without any loss neither in BRepMode == 0 nor in BRepMode == 1)
+ */
+//=============================================================================
+int KindOfBRep (const TopoDS_Shape& theShape)
+{
+  int aKind = 2;
+
+  switch (theShape.ShapeType())
+  {
+  case TopAbs_COMPOUND:
+    {
+      bool isSimple = false;
+      bool isComplex = false;
+      TopoDS_Iterator anIt (theShape, Standard_True, Standard_True);
+      for (; anIt.More(); anIt.Next()) {
+        TopoDS_Shape aS = anIt.Value();
+        int aKindSub = KindOfBRep(aS);
+        if (aKindSub == 0)
+          isSimple = true;
+        else if (aKindSub == 1)
+          isComplex = true;
+        else if (aKindSub == -1) {
+          return -1; // heterogeneous
+        }
+      }
+      if (isSimple && isComplex)
+        aKind = -1; // heterogeneous
+      else if (isSimple)
+        aKind = 0;
+      else if (isComplex)
+        aKind = 1;
+    }
+    break;
+  case TopAbs_COMPSOLID:
+  case TopAbs_SOLID:
+  case TopAbs_SHELL:
+    aKind = 1;
+    break;
+  case TopAbs_WIRE:
+  case TopAbs_EDGE:
+  case TopAbs_VERTEX:
+    aKind = 0;
+    break;
+  default:
+    aKind = 2;
+  }
+
+  return aKind;
+}
 
 //=============================================================================
 /*!
@@ -50,22 +111,39 @@ SALOME_WNT_EXPORT
              const TCollection_AsciiString& theFileName,
              const TCollection_AsciiString& theFormatName)
   {
-    MESSAGE("Export IGES into file " << theFileName.ToCString());
-    try
-    {
+    bool ok = false;
+
       // define, whether to write only faces (5.1 IGES format)
       // or shells and solids also (5.3 IGES format)
       int aBrepMode = 0;
       if (theFormatName.IsEqual("IGES_5_3"))
         aBrepMode = 1;
 
+    MESSAGE("Export IGES into file " << theFileName.ToCString());
+
+    // Mantis issue 0021350: check being exported shape, as some standalone
+    // entities (edges, wires and vertices) cannot be saved in BRepMode
+    if (aBrepMode == 1) {
+      int aKind = KindOfBRep(theShape);
+      if (aKind == -1)
+        Standard_Failure::Raise("EXPORT_IGES_HETEROGENEOUS_COMPOUND");
+      else if (aKind == 2)
+        aBrepMode = 1;
+      else
+        aBrepMode = aKind;
+    }
+
+    // commented for 0021350: Please don't catch exceptions silently and send an
+    // inappropriate error message instead, it is disturbing for the user and for us
+    //try
+    {
+      // Set "C" numeric locale to save numbers correctly
+      Kernel_Utils::Localizer loc;
+
       // initialize writer
       IGESControl_Controller::Init();
       //IGESControl_Writer ICW (Interface_Static::CVal("write.iges.unit"),
       //			Interface_Static::IVal("write.iges.brep.mode"));
-
-      //IGESControl_Writer ICW (Interface_Static::CVal("write.iges.unit"), aBrepMode);
-
       IGESControl_Writer ICW ("M", aBrepMode); // "write.iges.unit" ->> VSR 15.09.09: export explicitly in meters
       Interface_Static::SetCVal("xstep.cascade.unit","M");
 
@@ -74,17 +152,14 @@ SALOME_WNT_EXPORT
       Interface_Static::SetCVal("write.precision.mode","Max");
 
       // perform shape writing
-      ICW.AddShape( theShape );
+      if (ICW.AddShape( theShape )) {
       ICW.ComputeModel();
-      bool ok = ICW.Write( theFileName.ToCString() );
-  
-      // Return previous locale
-      if ( ok )
-        return 1;
+        ok = ICW.Write( theFileName.ToCString() );
     }
-    catch(Standard_Failure) {
-      Standard_Failure::Raise("Could not export in IGES format");
     }
-    return 0;
+    //catch(Standard_Failure)
+    //{
+    //}
+    return ok;
   }
 }
