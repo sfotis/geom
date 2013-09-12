@@ -845,7 +845,7 @@ Standard_Integer GEOMImpl_ShapeDriver::Execute(TFunction_Logbook& log) const
 
     // Length
     Standard_Real aLength = aVI.GetParameter();
-    //Standard_Real aCurveLength = IntTools::Length(aRefEdge);
+    //Standard_Real aCurveLength = XIntTools::Length(aRefEdge);
     //if (aLength > aCurveLength) {
     //  Standard_ConstructionError::Raise
     //    ("Edge On Curve creation aborted : given length is greater than edges length");

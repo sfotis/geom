@@ -30,7 +30,7 @@
 #include <BlockFix_UnionFaces.hxx>
 #include <BlockFix_UnionEdges.hxx>
 
-#include <Basics_OCCTVersion.hxx>
+#include <GEOM_OCCTVersion.hxx>
 
 #include <ShapeUpgrade_RemoveLocations.hxx>
 

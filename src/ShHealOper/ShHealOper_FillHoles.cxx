@@ -24,7 +24,7 @@
 // Created:   26.04.04 17:35:30
 // Author:    Galina KULIKOVA
 
-#include <Basics_OCCTVersion.hxx>
+#include <GEOM_OCCTVersion.hxx>
 
 #include <ShapeFix_Shell.hxx>
 #include <ShapeFix_Face.hxx>

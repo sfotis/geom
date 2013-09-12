@@ -24,6 +24,9 @@ GEOM_Solver.cxx
 GEOM_Solver.hxx
 GEOM_SubShapeDriver.cxx
 GEOM_SubShapeDriver.hxx
+GEOM_BaseDriver.cxx
+GEOM_BaseDriver.hxx
 Handle_GEOM_Application.hxx
 Handle_GEOM_DataMapNodeOfDataMapOfAsciiStringTransient.hxx
 utilities.h
+GEOM_OCCTVersion.hxx

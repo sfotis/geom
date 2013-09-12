@@ -44,7 +44,7 @@
 #include <TopoDS_Compound.hxx>
 
 #include <GCPnts_AbscissaPoint.hxx>
-#include <IntTools.hxx>
+#include <XIntTools.hxx>
 
 #include <Geom_Curve.hxx>
 #include <Geom_Surface.hxx>
@@ -193,7 +193,7 @@ Standard_Integer GEOMImpl_PointDriver::Execute(TFunction_Logbook& log) const
 
     // Length
     Standard_Real aLength = aPI.GetLength();
-    //Standard_Real theCurveLength = IntTools::Length(aRefEdge);
+    //Standard_Real theCurveLength = XIntTools::Length(aRefEdge);
     //if (aLength > theCurveLength) {
     //  Standard_ConstructionError::Raise
     //    ("Point On Curve creation aborted : given length is greater than edges length");
