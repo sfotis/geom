@@ -1,4 +1,0 @@
-geom
-====
-
-SALOME Geometry Module
