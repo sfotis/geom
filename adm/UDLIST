@@ -6,7 +6,6 @@ n GEOMAlgo
 n GEOMImpl
 n NMTDS
 n NMTTools
-n Partition
 n ShHealOper
 n Sketcher
 r GEOMResources
