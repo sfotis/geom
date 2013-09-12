@@ -26,9 +26,9 @@
 #define NMTDS_ListOfIndexedDataMapOfShapeAncestorsSuccessors_HeaderFile
 
 #include <NCollection_List.hxx>   
-#include <BooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors.hxx>
+#include <XBooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors.hxx>
 
-typedef NCollection_List<BooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors> NMTDS_ListOfIndexedDataMapOfShapeAncestorsSuccessors; 
+typedef NCollection_List<XBooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors> NMTDS_ListOfIndexedDataMapOfShapeAncestorsSuccessors; 
 typedef NMTDS_ListOfIndexedDataMapOfShapeAncestorsSuccessors::Iterator NMTDS_ListIteratorOfListOfIndexedDataMapOfShapeAncestorsSuccessors;  
 
 #endif

@@ -29,7 +29,7 @@
 #include <NMTTools_PaveFiller.hxx>
 #include <NMTTools_Tools.hxx>
 
-#include <Basics_OCCTVersion.hxx>
+#include <GEOM_OCCTVersion.hxx>
 
 #include <Precision.hxx>
 
@@ -47,23 +47,23 @@
 #include <BRep_Builder.hxx>
 #include <BRep_Tool.hxx>
 
-#include <BOPTools_Pave.hxx>
-#include <BOPTools_PaveSet.hxx>
-#include <BOPTools_CArray1OfVEInterference.hxx>
-#include <BOPTools_VEInterference.hxx>
+#include <XBOPTools_Pave.hxx>
+#include <XBOPTools_PaveSet.hxx>
+#include <XBOPTools_CArray1OfVEInterference.hxx>
+#include <XBOPTools_VEInterference.hxx>
 
-#include <BooleanOperations_AncestorsSeqAndSuccessorsSeq.hxx>
+#include <XBooleanOperations_AncestorsSeqAndSuccessorsSeq.hxx>
 
 #include <NMTDS_Iterator.hxx>
 #include <NMTDS_ShapesDataStructure.hxx>
 #include <NMTDS_InterfPool.hxx>
 
 
-#include <BOPTools_IndexedMapOfCoupleOfInteger.hxx>
-#include <BOPTools_CoupleOfInteger.hxx>
-#include <BooleanOperations_OnceExplorer.hxx>
+#include <XBOPTools_IndexedMapOfCoupleOfInteger.hxx>
+#include <XBOPTools_CoupleOfInteger.hxx>
+#include <XBooleanOperations_OnceExplorer.hxx>
 
-#include <IntTools_Context.hxx>
+#include <XIntTools_Context.hxx>
 
 static
   Standard_Boolean Contains(const TopoDS_Edge& aE,
@@ -82,16 +82,16 @@ void NMTTools_PaveFiller::PerformVE()
   Standard_Integer aWith, aNbVEs, aBlockLength, iSDV, nV1;
   Standard_Real aT;
 #if OCC_VERSION_LARGE > 0x06030008
-  // In OCCT6.3.0sp9 is changed a signature of IntTools_Context::ComputeVE() method
+  // In OCCT6.3.0sp9 is changed a signature of XIntTools_Context::ComputeVE() method
   Standard_Boolean bToUpdateVertex;
   Standard_Real aDist;
 #endif
   TopoDS_Vertex aV1;
   TopoDS_Edge aE2;
-  BOPTools_IndexedMapOfCoupleOfInteger aSnareMap;
-  BOPTools_CoupleOfInteger aCouple;
+  XBOPTools_IndexedMapOfCoupleOfInteger aSnareMap;
+  XBOPTools_CoupleOfInteger aCouple;
   //
-  BOPTools_CArray1OfVEInterference& aVEs=myIP->VEInterferences();
+  XBOPTools_CArray1OfVEInterference& aVEs=myIP->VEInterferences();
   //
   myDSIt->Initialize (TopAbs_VERTEX, TopAbs_EDGE);
   //
@@ -133,7 +133,7 @@ void NMTTools_PaveFiller::PerformVE()
         // Contribution of Samtech www.samcef.com BEGIN
         Standard_Integer nVE, iSDVE, iRet;
         //
-        BooleanOperations_OnceExplorer aExp(*myDS);
+        XBooleanOperations_OnceExplorer aExp(*myDS);
         iRet=0;
         aExp.Init(aWith, TopAbs_VERTEX);
         for (; aExp.More(); aExp.Next()) {
@@ -157,7 +157,7 @@ void NMTTools_PaveFiller::PerformVE()
       //
       //modified by NIZNHY-PKV Mon Dec 28 08:58:05 2009f
 #if OCC_VERSION_LARGE > 0x06030008
-      // In OCCT6.3.0sp9 is changed a signature of IntTools_Context::ComputeVE() method
+      // In OCCT6.3.0sp9 is changed a signature of XIntTools_Context::ComputeVE() method
       aFlag = myContext->ComputeVE (aV1, aE2, aT, bToUpdateVertex, aDist);
 #else
       aFlag = myContext->ComputeVE (aV1, aE2, aT);
@@ -166,7 +166,7 @@ void NMTTools_PaveFiller::PerformVE()
       //
       if (!aFlag) {
         // Add Interference to the Pool
-        BOPTools_VEInterference anInterf (aWhat, aWith, aT);
+        XBOPTools_VEInterference anInterf (aWhat, aWith, aT);
         anIndexIn=aVEs.Append(anInterf);
         //
         // Add Pave to the Edge's myPavePool
@@ -174,23 +174,23 @@ void NMTTools_PaveFiller::PerformVE()
         if (!aSnareMap.Contains(aCouple)){
           aSnareMap.Add(aCouple);
           //
-          BOPTools_Pave aPave(nV1, aT, BooleanOperations_VertexEdge);
+          XBOPTools_Pave aPave(nV1, aT, XBooleanOperations_VertexEdge);
           aPave.SetInterference(anIndexIn);
-          BOPTools_PaveSet& aPaveSet= myPavePool(myDS->RefEdge(aWith));
+          XBOPTools_PaveSet& aPaveSet= myPavePool(myDS->RefEdge(aWith));
           aPaveSet.Append(aPave);
         }
         //
         // State for the Vertex in DS;
-        myDS->SetState (aWhat, BooleanOperations_ON);
+        myDS->SetState (aWhat, XBooleanOperations_ON);
         // Insert Vertex in Interference Object
-        BOPTools_VEInterference& aVE=aVEs(anIndexIn);
+        XBOPTools_VEInterference& aVE=aVEs(anIndexIn);
         aVE.SetNewShape(aWhat);
         //
         myIP->Add(aWhat, aWith, Standard_True, NMTDS_TI_VE);
         //
         //modified by NIZNHY-PKV Mon Dec 28 09:00:54 2009f
 #if OCC_VERSION_LARGE > 0x06030008
-        // In OCCT6.3.0sp9 is changed a signature of IntTools_Context::ComputeVE() method
+        // In OCCT6.3.0sp9 is changed a signature of XIntTools_Context::ComputeVE() method
         if (bToUpdateVertex) {
           BRep_Builder aBB;
           //
@@ -226,7 +226,7 @@ void NMTTools_PaveFiller::PrepareEdges()
         continue;
       }
       //
-      BOPTools_PaveSet& aPaveSet=myPavePool(myDS->RefEdge(i));
+      XBOPTools_PaveSet& aPaveSet=myPavePool(myDS->RefEdge(i));
       //
       // A <-
       aNBSuc=myDS->NumberOfSuccessors(i);
@@ -244,7 +244,7 @@ void NMTTools_PaveFiller::PrepareEdges()
           nV=ip;
         }
         //
-        BOPTools_Pave aPave(nV, aT);
+        XBOPTools_Pave aPave(nV, aT);
         aPaveSet.Append (aPave);
       }
     }

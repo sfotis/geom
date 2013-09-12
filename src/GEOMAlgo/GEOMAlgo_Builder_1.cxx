@@ -43,10 +43,10 @@
 #include <BRep_Tool.hxx>
 #include <BRep_Builder.hxx>
 //
-#include <IntTools_Context.hxx>
-#include <BOPTools_ListIteratorOfListOfPaveBlock.hxx>
-#include <BOPTools_ListOfPaveBlock.hxx>
-#include <BOPTools_PaveBlock.hxx>
+#include <XIntTools_Context.hxx>
+#include <XBOPTools_ListIteratorOfListOfPaveBlock.hxx>
+#include <XBOPTools_ListOfPaveBlock.hxx>
+#include <XBOPTools_PaveBlock.hxx>
 //
 #include <NMTDS_ShapesDataStructure.hxx>
 //
@@ -111,8 +111,8 @@ static
   //
   const NMTDS_ShapesDataStructure& aDS=*myPaveFiller->DS();
   NMTTools_PaveFiller* pPF=myPaveFiller;
-  const BOPTools_SplitShapesPool& aSSP=pPF->SplitShapesPool();
-  const Handle(IntTools_Context)& aCtx=pPF->Context();
+  const XBOPTools_SplitShapesPool& aSSP=pPF->SplitShapesPool();
+  const Handle(XIntTools_Context)& aCtx=pPF->Context();
   //
   Standard_Boolean bToReverse;
   Standard_Integer i, aNb, aNbSp, nSp, nSpR, nSpx, aIsCB, aNbLB;
@@ -122,7 +122,7 @@ static
   TopTools_MapOfShape aMFence;
   TopTools_ListOfShape aLSp;
   TopTools_ListIteratorOfListOfShape aIt1;
-  BOPTools_ListIteratorOfListOfPaveBlock aIt;
+  XBOPTools_ListIteratorOfListOfPaveBlock aIt;
   //
   aNb=aDS.NumberOfShapesOfTheObject();
   for (i=1; i<=aNb; ++i) {
@@ -135,7 +135,7 @@ static
       continue;
     }
     //
-    const BOPTools_ListOfPaveBlock& aLPB=aSSP(aDS.RefEdge(i));
+    const XBOPTools_ListOfPaveBlock& aLPB=aSSP(aDS.RefEdge(i));
     aNbSp=aLPB.Extent();
     if (!aNbSp) {
       continue;
@@ -145,11 +145,11 @@ static
     aLSp.Clear();
     //
     if (aNbSp==1) {
-      const BOPTools_PaveBlock& aPB=aLPB.First();
+      const XBOPTools_PaveBlock& aPB=aLPB.First();
       nSp=aPB.Edge();
       const TopoDS_Shape& aSp=aDS.Shape(nSp);
       //
-      const BOPTools_PaveBlock& aPBR=pPF->RealPaveBlock(aPB, aLB, aIsCB);
+      const XBOPTools_PaveBlock& aPBR=pPF->RealPaveBlock(aPB, aLB, aIsCB);
       //modified by NIZNHY-PKV Wed Oct 27 11:19:30 2010f
       aNbLB=aLB.Extent();
       if (aIsCB && aNbLB<2) {
@@ -182,8 +182,8 @@ static
     else {
       aIt.Initialize(aLPB);
       for (; aIt.More(); aIt.Next()) {
-        const BOPTools_PaveBlock& aPB=aIt.Value();
-        const BOPTools_PaveBlock& aPBR=pPF->RealPaveBlock(aPB, aLB, aIsCB);
+        const XBOPTools_PaveBlock& aPB=aIt.Value();
+        const XBOPTools_PaveBlock& aPBR=pPF->RealPaveBlock(aPB, aLB, aIsCB);
         nSpR=aPBR.Edge();
         const TopoDS_Shape& aSpR=aDS.Shape(nSpR);
         //
@@ -226,7 +226,7 @@ static
   //
   const NMTDS_ShapesDataStructure& aDS=*myPaveFiller->DS();
   NMTTools_PaveFiller* pPF=myPaveFiller;
-  const Handle(IntTools_Context)& aCtx= pPF->Context();
+  const Handle(XIntTools_Context)& aCtx= pPF->Context();
   //
   aNbS=aDS.NumberOfShapesOfTheObject();
   for (i=1; i<=aNbS; ++i) {

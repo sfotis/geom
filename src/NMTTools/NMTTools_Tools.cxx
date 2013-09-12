@@ -50,14 +50,14 @@
 #include <BRep_Builder.hxx>
 #include <BRepTools.hxx>
 
-#include <BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger.hxx>
-#include <BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger.hxx>
+#include <XBOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger.hxx>
+#include <XBOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger.hxx>
 
-#include <BOPTools_VVInterference.hxx>
-#include <BOPTools_SSInterference.hxx>
+#include <XBOPTools_VVInterference.hxx>
+#include <XBOPTools_SSInterference.hxx>
 
-#include <BOPTools_Tools2D.hxx>
-#include <BOPTools_Tools.hxx>
+#include <XBOPTools_Tools2D.hxx>
+#include <XBOPTools_Tools.hxx>
 #include <NMTTools_ListIteratorOfListOfCoupleOfShape.hxx>
 #include <NMTTools_IndexedDataMapOfShapeIndexedMapOfShape.hxx>
 #include <NMTTools_CoupleOfShape.hxx>
@@ -65,9 +65,9 @@
 #include <Geom2d_Curve.hxx>
 #include <Geom_Curve.hxx>
 #include <Geom_TrimmedCurve.hxx>
-#include <BOPTools_Tools2D.hxx>
+#include <XBOPTools_Tools2D.hxx>
 #include <BRepLib.hxx>
-#include <BOPTools_Tools3D.hxx>
+#include <XBOPTools_Tools3D.hxx>
 #include <TopExp_Explorer.hxx>
 //
 #include <TopTools_MapOfShape.hxx>
@@ -77,7 +77,7 @@
 
 static
   void ProcessBlock(const Standard_Integer iV,
-                    const BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCV,
+                    const XBOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCV,
                     TColStd_IndexedMapOfInteger& aProcessed,
                     TColStd_IndexedMapOfInteger& aChain);
 static
@@ -135,15 +135,15 @@ static
   //
   aC2D=aC2Dx1;
   if (aC2D.IsNull()) { // ?
-    BOPTools_Tools2D::BuildPCurveForEdgeOnFace(aE, aFFWD);
-    BOPTools_Tools2D::CurveOnSurface(aE, aFFWD, aC2D, aOutFirst, aOutLast, aOutTol, Standard_True);
+    XBOPTools_Tools2D::BuildPCurveForEdgeOnFace(aE, aFFWD);
+    XBOPTools_Tools2D::CurveOnSurface(aE, aFFWD, aC2D, aOutFirst, aOutLast, aOutTol, Standard_True);
   }
   //
   if (aC3DE->IsPeriodic()) {
-    BOPTools_Tools2D::AdjustPCurveOnFace(aFFWD, aT1, aT2,  aC2D, aC2DA);
+    XBOPTools_Tools2D::AdjustPCurveOnFace(aFFWD, aT1, aT2,  aC2D, aC2DA);
   }
   else {
-    BOPTools_Tools2D::AdjustPCurveOnFace(aFFWD, aC3DETrim, aC2D, aC2DA);
+    XBOPTools_Tools2D::AdjustPCurveOnFace(aFFWD, aC3DETrim, aC2D, aC2DA);
   }
   //
   aBB.UpdateEdge(aE, aC2DA, aFFWD, aTolE);
@@ -195,14 +195,14 @@ static
   //
   aC2D=aC2Dx;
   if (aC2D.IsNull()) {
-    BOPTools_Tools2D::BuildPCurveForEdgeOnFace(aE, aFFWD);
-    BOPTools_Tools2D::CurveOnSurface(aE, aFFWD, aC2D, aOutFirst, aOutLast, aOutTol, Standard_True);
+    XBOPTools_Tools2D::BuildPCurveForEdgeOnFace(aE, aFFWD);
+    XBOPTools_Tools2D::CurveOnSurface(aE, aFFWD, aC2D, aOutFirst, aOutLast, aOutTol, Standard_True);
   }
   if (aC3DE->IsPeriodic()) {
-    BOPTools_Tools2D::AdjustPCurveOnFace(aFFWD, aTFirst, aTLast,  aC2D, aC2DA);
+    XBOPTools_Tools2D::AdjustPCurveOnFace(aFFWD, aTFirst, aTLast,  aC2D, aC2DA);
   }
   else {
-    BOPTools_Tools2D::AdjustPCurveOnFace(aFFWD, aC3DETrim, aC2D, aC2DA);
+    XBOPTools_Tools2D::AdjustPCurveOnFace(aFFWD, aC3DETrim, aC2D, aC2DA);
   }
   //
   aBB.UpdateEdge(aE, aC2DA, aFFWD, aTolFact);
@@ -216,7 +216,7 @@ static
 //=======================================================================
   Standard_Boolean NMTTools_Tools::IsSplitInOnFace(const TopoDS_Edge& aE,
                                                    const TopoDS_Face& aF,
-                                                   const Handle(IntTools_Context)& aContext)
+                                                   const Handle(XIntTools_Context)& aContext)
 {
   Standard_Boolean bFlag;
   Standard_Real aT, aTolE, aTolF, aTol, aDist, aU, aV;
@@ -229,8 +229,8 @@ static
   //
   GeomAPI_ProjectPointOnSurf& aProjector=aContext->ProjPS(aF);
   //
-  aT=BOPTools_Tools2D::IntermediatePoint(aE);
-  BOPTools_Tools::PointOnEdge(aE, aT, aP);
+  aT=XBOPTools_Tools2D::IntermediatePoint(aE);
+  XBOPTools_Tools::PointOnEdge(aE, aT, aP);
   //
   aProjector.Perform(aP);
   bFlag=aProjector.IsDone();
@@ -296,16 +296,16 @@ static
 // function: FindChains
 // purpose :
 //=======================================================================
-  void NMTTools_Tools::FindChains(const BOPTools_CArray1OfSSInterference& FFs,
-                                  BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMapChains)
+  void NMTTools_Tools::FindChains(const XBOPTools_CArray1OfSSInterference& FFs,
+                                  XBOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMapChains)
 {
   Standard_Boolean bIsTangentFaces;
   Standard_Integer j, aNb, anIndex1, anIndex2;
-  BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger aMCV;
+  XBOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger aMCV;
   //
   aNb=FFs.Extent();
   for (j=1; j<=aNb; ++j) {
-    const BOPTools_SSInterference& aFF=FFs(j);
+    const XBOPTools_SSInterference& aFF=FFs(j);
     //
     bIsTangentFaces=aFF.IsTangentFaces();
     if (!bIsTangentFaces) {
@@ -344,15 +344,15 @@ static
 // function: FindChains
 // purpose :
 //=======================================================================
-  void NMTTools_Tools::FindChains(const BOPTools_CArray1OfVVInterference& VVs,
-                                  BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMapChains)
+  void NMTTools_Tools::FindChains(const XBOPTools_CArray1OfVVInterference& VVs,
+                                  XBOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMapChains)
 {
   Standard_Integer j, aNb, anIndex1, anIndex2;
-  BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger aMCV;
+  XBOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger aMCV;
   //
   aNb=VVs.Extent();
   for (j=1; j<=aNb; ++j) {
-    const BOPTools_VVInterference& VV=VVs(j);
+    const XBOPTools_VVInterference& VV=VVs(j);
     VV.Indices(anIndex1, anIndex2);
     //
     if (aMCV.Contains(anIndex1)) {
@@ -386,8 +386,8 @@ static
 // function: FindChains
 // purpose :
 //=======================================================================
-  void NMTTools_Tools::FindChains(const BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCV,
-                                  BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMapChains)
+  void NMTTools_Tools::FindChains(const XBOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCV,
+                                  XBOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMapChains)
 {
   Standard_Integer  i, j, aNbCV, aNbV, iV, iVx;
   TColStd_IndexedMapOfInteger aProcessed, aChain;
@@ -417,7 +417,7 @@ static
 // purpose:
 //=======================================================================
 void ProcessBlock(const Standard_Integer iV,
-                  const BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCV,
+                  const XBOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCV,
                   TColStd_IndexedMapOfInteger& aProcessed,
                   TColStd_IndexedMapOfInteger& aChain)
 {
@@ -442,7 +442,7 @@ void ProcessBlock(const Standard_Integer iV,
 //=======================================================================
   Standard_Boolean NMTTools_Tools::AreFacesSameDomain(const TopoDS_Face& aF1x,
                                                       const TopoDS_Face& aF2y,
-                                                      const Handle(IntTools_Context)& aCtx)
+                                                      const Handle(XIntTools_Context)& aCtx)
 {
   Standard_Boolean bFlag;
   // Modified  Thu Sep 14 14:35:18 2006
@@ -508,7 +508,7 @@ void ProcessBlock(const Standard_Integer iV,
   aIt.Initialize(aME1);
   for (; aIt.More(); aIt.Next()) {
     const TopoDS_Edge& aE=TopoDS::Edge(aIt.Key());
-    BOPTools_Tools3D::PointNearEdge(aE, aF1, aP2D, aP);
+    XBOPTools_Tools3D::PointNearEdge(aE, aF1, aP2D, aP);
     bFlag=aCtx->IsValidPointForFace(aP, aF2, aTol);
     break;
   }

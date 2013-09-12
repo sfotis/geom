@@ -77,7 +77,7 @@
   Standard_Real aCfPredict=.5;
   // Modified  Thu Sep 14 14:35:18 2006
   // Contribution of Samtech www.samcef.com BEGIN
-  //const BOPTools_ListOfCoupleOfInteger& aLC=myDSIt.ListOfCouple();
+  //const XBOPTools_ListOfCoupleOfInteger& aLC=myDSIt.ListOfCouple();
   //aNbIIs=aLC.Extent();
   aNbIIs=myDSIt->ExpectedLength();
   // Contribution of Samtech www.samcef.com END

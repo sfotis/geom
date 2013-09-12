@@ -57,27 +57,27 @@
 #include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
 #include <TopTools_IndexedMapOfShape.hxx>
 
-#include <BOPTColStd_ListOfListOfShape.hxx>
-#include <BOPTColStd_ListIteratorOfListOfListOfShape.hxx>
+#include <XBOPTColStd_ListOfListOfShape.hxx>
+#include <XBOPTColStd_ListIteratorOfListOfListOfShape.hxx>
 
-#include <BOPTools_Tools2D.hxx>
+#include <XBOPTools_Tools2D.hxx>
 
-#include <BOP_EdgeInfo.hxx>
-#include <BOP_ListOfEdgeInfo.hxx>
-#include <BOP_ListIteratorOfListOfEdgeInfo.hxx>
-#include <BOP_IndexedDataMapOfVertexListEdgeInfo.hxx>
+#include <XBOP_EdgeInfo.hxx>
+#include <XBOP_ListOfEdgeInfo.hxx>
+#include <XBOP_ListIteratorOfListOfEdgeInfo.hxx>
+#include <XBOP_IndexedDataMapOfVertexListEdgeInfo.hxx>
 
 static
   void Path (const GeomAdaptor_Surface& aGAS,
              const TopoDS_Face& myFace,
              const TopoDS_Vertex& aVa,
              const TopoDS_Edge& aEOuta,
-             BOP_EdgeInfo& anEdgeInfo,
+             XBOP_EdgeInfo& anEdgeInfo,
              TopTools_SequenceOfShape& aLS,
              TopTools_SequenceOfShape& aVertVa,
              TColgp_SequenceOfPnt2d& aCoordVa,
-             BOPTColStd_ListOfListOfShape& myShapes,
-             BOP_IndexedDataMapOfVertexListEdgeInfo& mySmartMap);
+             XBOPTColStd_ListOfListOfShape& myShapes,
+             XBOP_IndexedDataMapOfVertexListEdgeInfo& mySmartMap);
 
 
 static
@@ -94,7 +94,7 @@ static
 
 static
   Standard_Real AngleIn(const TopoDS_Edge& aEIn,
-                        const BOP_ListOfEdgeInfo& aLEInfo);
+                        const XBOP_ListOfEdgeInfo& aLEInfo);
 
 static
   Standard_Real Angle2D (const TopoDS_Vertex& aV,
@@ -117,9 +117,9 @@ static
 //modified by NIZNHY-PKV Thu Apr 19 09:04:59 2012f
 static
   Standard_Integer NbWaysOut(const TopoDS_Edge& aEOuta,
-                             const BOP_ListOfEdgeInfo& aLEInfo);
+                             const XBOP_ListOfEdgeInfo& aLEInfo);
 //static
-//  Standard_Integer NbWaysOut(const BOP_ListOfEdgeInfo& );
+//  Standard_Integer NbWaysOut(const XBOP_ListOfEdgeInfo& );
 //modified by NIZNHY-PKV Thu Apr 19 09:04:53 2012t
 
 //=======================================================================
@@ -195,7 +195,7 @@ static
 // function: Shapes
 // purpose:
 //=======================================================================
-  const BOPTColStd_ListOfListOfShape& GEOMAlgo_WireSplitter::Shapes()const
+  const XBOPTColStd_ListOfListOfShape& GEOMAlgo_WireSplitter::Shapes()const
 {
   return myShapes;
 }
@@ -212,7 +212,7 @@ static
   Standard_Boolean anIsIn;
   Standard_Real anAngle;
 
-  BOP_ListOfEdgeInfo emptyInfo;
+  XBOP_ListOfEdgeInfo emptyInfo;
   TopTools_ListIteratorOfListOfShape anItList;
   //
   // 1.Filling mySmartMap
@@ -222,7 +222,7 @@ static
   for (; anItList.More(); anItList.Next()) {
     const TopoDS_Edge& anEdge = TopoDS::Edge(anItList.Value());
     //
-    if (!BOPTools_Tools2D::HasCurveOnSurface (anEdge, myFace)) {
+    if (!XBOPTools_Tools2D::HasCurveOnSurface (anEdge, myFace)) {
       continue;
     }
     //
@@ -235,9 +235,9 @@ static
         index=mySmartMap.Add(aVertex, emptyInfo);
       }
 
-      BOP_ListOfEdgeInfo& aListOfEInfo=mySmartMap(index);
+      XBOP_ListOfEdgeInfo& aListOfEInfo=mySmartMap(index);
 
-      BOP_EdgeInfo aEInfo;
+      XBOP_EdgeInfo aEInfo;
       aEInfo.SetEdge(anEdge);
 
       TopAbs_Orientation anOr=aVertex.Orientation();
@@ -262,10 +262,10 @@ static
   for (i=1; i<=aNb; i++) {
     aCntIn=0;
     aCntOut=0;
-    const BOP_ListOfEdgeInfo& aLEInfo= mySmartMap(i);
-    BOP_ListIteratorOfListOfEdgeInfo anIt(aLEInfo);
+    const XBOP_ListOfEdgeInfo& aLEInfo= mySmartMap(i);
+    XBOP_ListIteratorOfListOfEdgeInfo anIt(aLEInfo);
     for (; anIt.More(); anIt.Next()) {
-      const BOP_EdgeInfo& anEdgeInfo=anIt.Value();
+      const XBOP_EdgeInfo& anEdgeInfo=anIt.Value();
       anIsIn=anEdgeInfo.IsIn();
       if (anIsIn) {
         aCntIn++;
@@ -341,11 +341,11 @@ static
   const GeomAdaptor_Surface& aGAS=aBAS.Surface();
   for (i=1; i<=aNb; i++) {
     const TopoDS_Vertex& aV=TopoDS::Vertex (mySmartMap.FindKey(i));
-    const BOP_ListOfEdgeInfo& aLEInfo= mySmartMap(i);
+    const XBOP_ListOfEdgeInfo& aLEInfo= mySmartMap(i);
 
-    BOP_ListIteratorOfListOfEdgeInfo anIt(aLEInfo);
+    XBOP_ListIteratorOfListOfEdgeInfo anIt(aLEInfo);
     for (; anIt.More(); anIt.Next()) {
-      BOP_EdgeInfo& anEdgeInfo=anIt.Value();
+      XBOP_EdgeInfo& anEdgeInfo=anIt.Value();
       const TopoDS_Edge& aE=anEdgeInfo.Edge();
       //
       TopoDS_Vertex aVV=aV;
@@ -374,15 +374,15 @@ static
   TopTools_SequenceOfShape aLS, aVertVa;
   TColgp_SequenceOfPnt2d aCoordVa;
 
-  BOP_ListIteratorOfListOfEdgeInfo anIt;
+  XBOP_ListIteratorOfListOfEdgeInfo anIt;
 
   for (i=1; i<=aNb; i++) {
     const TopoDS_Vertex aVa=TopoDS::Vertex (mySmartMap.FindKey(i));
-    const BOP_ListOfEdgeInfo& aLEInfo=mySmartMap(i);
+    const XBOP_ListOfEdgeInfo& aLEInfo=mySmartMap(i);
 
     anIt.Initialize(aLEInfo);
     for (; anIt.More(); anIt.Next()) {
-      BOP_EdgeInfo& anEdgeInfo=anIt.Value();
+      XBOP_EdgeInfo& anEdgeInfo=anIt.Value();
       const TopoDS_Edge& aEOuta=anEdgeInfo.Edge();
 
       anIsOut=!anEdgeInfo.IsIn();
@@ -403,8 +403,8 @@ static
   {
     Standard_Integer aNbV, aNbE;
     TopoDS_Vertex aV1, aV2;
-    BOPTColStd_ListOfListOfShape aShapes;
-    BOPTColStd_ListIteratorOfListOfListOfShape anItW(myShapes);
+    XBOPTColStd_ListOfListOfShape aShapes;
+    XBOPTColStd_ListIteratorOfListOfListOfShape anItW(myShapes);
 
     for (; anItW.More(); anItW.Next()) {
       TopTools_IndexedMapOfShape aMV, aME;
@@ -442,19 +442,19 @@ static
              const TopoDS_Face& myFace,
              const TopoDS_Vertex& aVa,
              const TopoDS_Edge& aEOuta,
-             BOP_EdgeInfo& anEdgeInfo,
+             XBOP_EdgeInfo& anEdgeInfo,
              TopTools_SequenceOfShape& aLS,
              TopTools_SequenceOfShape& aVertVa,
              TColgp_SequenceOfPnt2d& aCoordVa,
-             BOPTColStd_ListOfListOfShape& myShapes,
-             BOP_IndexedDataMapOfVertexListEdgeInfo& mySmartMap)
+             XBOPTColStd_ListOfListOfShape& myShapes,
+             XBOP_IndexedDataMapOfVertexListEdgeInfo& mySmartMap)
 {
   Standard_Integer i,j, aNb, aNbj, iCnt;
   Standard_Real aTol, anAngleIn, anAngleOut, anAngle, aMinAngle;
   Standard_Real aTol2D, aTol2D2;
   Standard_Real aTol2, aD2;
   Standard_Boolean anIsSameV2d, anIsSameV, anIsFound, anIsOut, anIsNotPassed;
-  BOP_ListIteratorOfListOfEdgeInfo anIt;
+  XBOP_ListIteratorOfListOfEdgeInfo anIt;
   TopoDS_Vertex aVb;
   TopoDS_Edge aEOutb;
   //
@@ -551,12 +551,12 @@ static
   aTol2D2=100.*aTol2D*aTol2D;
   //
   // anAngleIn in Vb from edge aEOuta
-  const BOP_ListOfEdgeInfo& aLEInfo=mySmartMap.FindFromKey(aVb);
+  const XBOP_ListOfEdgeInfo& aLEInfo=mySmartMap.FindFromKey(aVb);
   //
   anAngleIn=AngleIn(aEOuta, aLEInfo);
   //
   // aEOutb
-  BOP_EdgeInfo *pEdgeInfo=NULL;
+  XBOP_EdgeInfo *pEdgeInfo=NULL;
 
   aMinAngle=100.;
   anIsFound=Standard_False;
@@ -571,7 +571,7 @@ static
   //
   anIt.Initialize(aLEInfo);
   for (; anIt.More(); anIt.Next()) {
-    BOP_EdgeInfo& anEI=anIt.Value();
+    XBOP_EdgeInfo& anEI=anIt.Value();
     const TopoDS_Edge& aE=anEI.Edge();
     anIsOut=!anEI.IsIn();
     anIsNotPassed=!anEI.Passed();
@@ -695,15 +695,15 @@ static
 // purpose:
 //=======================================================================
  Standard_Real AngleIn(const TopoDS_Edge& aEIn,
-                       const BOP_ListOfEdgeInfo& aLEInfo)
+                       const XBOP_ListOfEdgeInfo& aLEInfo)
 {
   Standard_Real anAngleIn;
   Standard_Boolean anIsIn;
-  BOP_ListIteratorOfListOfEdgeInfo anIt;
+  XBOP_ListIteratorOfListOfEdgeInfo anIt;
 
   anIt.Initialize(aLEInfo);
   for (; anIt.More(); anIt.Next()) {
-    BOP_EdgeInfo& anEdgeInfo=anIt.Value();
+    XBOP_EdgeInfo& anEdgeInfo=anIt.Value();
     const TopoDS_Edge& aE=anEdgeInfo.Edge();
     anIsIn=anEdgeInfo.IsIn();
     //
@@ -796,7 +796,7 @@ static
     return 0.;
   }
   //
-  BOPTools_Tools2D::CurveOnSurface (anEdge, myFace, aC2D,
+  XBOPTools_Tools2D::CurveOnSurface (anEdge, myFace, aC2D,
                                     aFirst, aLast, aToler, Standard_True);
   //dt=1.e-7;
   dt=2.*Tolerance2D(aV, aGAS);
@@ -852,15 +852,15 @@ Standard_Real Angle (const gp_Dir2d& aDir2D)
 // purpose:
 //=======================================================================
 Standard_Integer NbWaysOut(const TopoDS_Edge& aEOuta,
-                           const BOP_ListOfEdgeInfo& aLEInfo)
+                           const XBOP_ListOfEdgeInfo& aLEInfo)
 {
   Standard_Boolean bIsOut, bIsNotPassed;
   Standard_Integer iCnt=0;
-  BOP_ListIteratorOfListOfEdgeInfo anIt;
+  XBOP_ListIteratorOfListOfEdgeInfo anIt;
   //
   anIt.Initialize(aLEInfo);
   for (; anIt.More(); anIt.Next()) {
-    BOP_EdgeInfo& aEI=anIt.Value();
+    XBOP_EdgeInfo& aEI=anIt.Value();
     const TopoDS_Edge& aE=aEI.Edge();
     bIsOut=!aEI.IsIn();
     bIsNotPassed=!aEI.Passed();
@@ -877,15 +877,15 @@ Standard_Integer NbWaysOut(const TopoDS_Edge& aEOuta,
 // function: NbWaysOut
 // purpose:
 //=======================================================================
-Standard_Integer NbWaysOut(const BOP_ListOfEdgeInfo& aLEInfo)
+Standard_Integer NbWaysOut(const XBOP_ListOfEdgeInfo& aLEInfo)
 {
   Standard_Boolean bIsOut, bIsNotPassed;
   Standard_Integer iCnt=0;
-  BOP_ListIteratorOfListOfEdgeInfo anIt;
+  XBOP_ListIteratorOfListOfEdgeInfo anIt;
   //
   anIt.Initialize(aLEInfo);
   for (; anIt.More(); anIt.Next()) {
-    BOP_EdgeInfo& anEI=anIt.Value();
+    XBOP_EdgeInfo& anEI=anIt.Value();
     //
     bIsOut=!anEI.IsIn();
     bIsNotPassed=!anEI.Passed();

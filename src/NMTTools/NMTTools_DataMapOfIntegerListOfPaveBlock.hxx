@@ -27,12 +27,12 @@
 
 
 #include <TColStd_MapIntegerHasher.hxx>
-#include <BOPTools_ListOfPaveBlock.hxx>
+#include <XBOPTools_ListOfPaveBlock.hxx>
 
 #define _NCollection_MapHasher
 #include <NCollection_DataMap.hxx>
 
-typedef NCollection_DataMap<Standard_Integer, BOPTools_ListOfPaveBlock, TColStd_MapIntegerHasher> NMTTools_DataMapOfIntegerListOfPaveBlock;
+typedef NCollection_DataMap<Standard_Integer, XBOPTools_ListOfPaveBlock, TColStd_MapIntegerHasher> NMTTools_DataMapOfIntegerListOfPaveBlock;
 typedef NMTTools_DataMapOfIntegerListOfPaveBlock::Iterator NMTTools_DataMapIteratorOfDataMapOfIntegerListOfPaveBlock;
 
 #undef _NCollection_MapHasher

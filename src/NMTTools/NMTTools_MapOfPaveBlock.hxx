@@ -26,13 +26,13 @@
 #ifndef NMTTools_MapOfPaveBlock_HeaderFile
 #define NMTTools_MapOfPaveBlock_HeaderFile
 
-#include <BOPTools_PaveBlock.hxx>
-#include <BOPTools_PaveBlockMapHasher.hxx>
+#include <XBOPTools_PaveBlock.hxx>
+#include <XBOPTools_PaveBlockMapHasher.hxx>
 
 #define _NCollection_MapHasher
 #include <NCollection_Map.hxx>
 
-typedef NCollection_Map<BOPTools_PaveBlock, BOPTools_PaveBlockMapHasher> NMTTools_MapOfPaveBlock;
+typedef NCollection_Map<XBOPTools_PaveBlock, XBOPTools_PaveBlockMapHasher> NMTTools_MapOfPaveBlock;
 typedef NMTTools_MapOfPaveBlock::Iterator NMTTools_MapIteratorOfMapOfPaveBlock;
 
 #undef _NCollection_MapHasher

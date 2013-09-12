@@ -32,7 +32,7 @@
 #include <Standard_Macro.hxx>
 #include <GEOMAlgo_PWireEdgeSet.hxx>
 #include <GEOMAlgo_WireEdgeSet.hxx>
-#include <BOP_ListOfConnexityBlock.hxx>
+#include <XBOP_ListOfConnexityBlock.hxx>
 #include <GEOMAlgo_Algo.hxx>
 
 
@@ -81,7 +81,7 @@ protected:
 
   GEOMAlgo_PWireEdgeSet myWES;
   GEOMAlgo_WireEdgeSet myNewWES;
-  BOP_ListOfConnexityBlock myConnexityBlocks;
+  XBOP_ListOfConnexityBlock myConnexityBlocks;
 };
 
 #endif

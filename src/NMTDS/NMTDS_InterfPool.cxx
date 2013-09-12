@@ -27,7 +27,7 @@
 #include <NMTDS_MapIteratorOfMapOfPairBoolean.hxx>
 #include <NMTDS_ListIteratorOfListOfPairBoolean.hxx>
 
-#include <Basics_OCCTVersion.hxx>
+#include <GEOM_OCCTVersion.hxx>
 
 static
   Standard_Integer TypeToInteger(const NMTDS_InterfType aType);
@@ -229,7 +229,7 @@ const NMTDS_ListOfPairBoolean& NMTDS_InterfPool::Get
 //function : SSInterferences
 //purpose  : 
 //===========================================================================
-BOPTools_CArray1OfSSInterference&  NMTDS_InterfPool::SSInterferences()
+XBOPTools_CArray1OfSSInterference&  NMTDS_InterfPool::SSInterferences()
 {
   return mySSInterferences;
 }
@@ -237,7 +237,7 @@ BOPTools_CArray1OfSSInterference&  NMTDS_InterfPool::SSInterferences()
 //function : ESInterferences
 //purpose  : 
 //===========================================================================
-BOPTools_CArray1OfESInterference&  NMTDS_InterfPool::ESInterferences()
+XBOPTools_CArray1OfESInterference&  NMTDS_InterfPool::ESInterferences()
 {
   return myESInterferences;
 }
@@ -245,7 +245,7 @@ BOPTools_CArray1OfESInterference&  NMTDS_InterfPool::ESInterferences()
 //function : VSInterferences
 //purpose  : 
 //===========================================================================
-BOPTools_CArray1OfVSInterference&  NMTDS_InterfPool::VSInterferences()
+XBOPTools_CArray1OfVSInterference&  NMTDS_InterfPool::VSInterferences()
 {
   return myVSInterferences;
 }
@@ -253,7 +253,7 @@ BOPTools_CArray1OfVSInterference&  NMTDS_InterfPool::VSInterferences()
 //function : EEInterferences
 //purpose  : 
 //===========================================================================
-BOPTools_CArray1OfEEInterference&  NMTDS_InterfPool::EEInterferences()
+XBOPTools_CArray1OfEEInterference&  NMTDS_InterfPool::EEInterferences()
 {
   return myEEInterferences;
 }
@@ -261,7 +261,7 @@ BOPTools_CArray1OfEEInterference&  NMTDS_InterfPool::EEInterferences()
 //function : VEInterferences
 //purpose  : 
 //===========================================================================
-BOPTools_CArray1OfVEInterference&  NMTDS_InterfPool::VEInterferences()
+XBOPTools_CArray1OfVEInterference&  NMTDS_InterfPool::VEInterferences()
 {
   return myVEInterferences;
 }
@@ -269,7 +269,7 @@ BOPTools_CArray1OfVEInterference&  NMTDS_InterfPool::VEInterferences()
 //function : VVInterferences
 //purpose  : 
 //===========================================================================
-BOPTools_CArray1OfVVInterference&  NMTDS_InterfPool::VVInterferences()
+XBOPTools_CArray1OfVVInterference&  NMTDS_InterfPool::VVInterferences()
 {
   return myVVInterferences;
 }

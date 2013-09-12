@@ -38,12 +38,12 @@ uses
     TopAbs,
     TopoDS,
     TopTools,
-    IntTools,
-    BOPTools,
-    BOP,
+    XIntTools,
+    XBOPTools,
+    XBOP,
 
     TColStd,
-    BOPTColStd,
+    XBOPTColStd,
     BRepAlgo,
     NMTDS,
     NMTTools

@@ -28,12 +28,12 @@
 #include <Standard_Macro.hxx>
 
 #include <Standard_Integer.hxx>
-#include <BOPTools_CArray1OfSSInterference.hxx>
-#include <BOPTools_CArray1OfESInterference.hxx>
-#include <BOPTools_CArray1OfVSInterference.hxx>
-#include <BOPTools_CArray1OfEEInterference.hxx>
-#include <BOPTools_CArray1OfVEInterference.hxx>
-#include <BOPTools_CArray1OfVVInterference.hxx>
+#include <XBOPTools_CArray1OfSSInterference.hxx>
+#include <XBOPTools_CArray1OfESInterference.hxx>
+#include <XBOPTools_CArray1OfVSInterference.hxx>
+#include <XBOPTools_CArray1OfEEInterference.hxx>
+#include <XBOPTools_CArray1OfVEInterference.hxx>
+#include <XBOPTools_CArray1OfVVInterference.hxx>
 #include <Standard_Boolean.hxx>
 #include <NMTDS_InterfType.hxx>
 #include <NMTDS_PairBoolean.hxx>
@@ -87,22 +87,22 @@ class NMTDS_InterfPool  {
                                        const NMTDS_InterfType aType) const;
   
   //! Returns the reference to array Of F/F interferences <br>
-  Standard_EXPORT     BOPTools_CArray1OfSSInterference& SSInterferences() ;
+  Standard_EXPORT     XBOPTools_CArray1OfSSInterference& SSInterferences() ;
   
   //! Returns the reference to array Of E/F interferences <br>
-  Standard_EXPORT     BOPTools_CArray1OfESInterference& ESInterferences() ;
+  Standard_EXPORT     XBOPTools_CArray1OfESInterference& ESInterferences() ;
   
   //! Returns the reference to array Of V/F interferences <br>
-  Standard_EXPORT     BOPTools_CArray1OfVSInterference& VSInterferences() ;
+  Standard_EXPORT     XBOPTools_CArray1OfVSInterference& VSInterferences() ;
   
   //! Returns the reference to arrray Of E/E interferences <br>
-  Standard_EXPORT     BOPTools_CArray1OfEEInterference& EEInterferences() ;
+  Standard_EXPORT     XBOPTools_CArray1OfEEInterference& EEInterferences() ;
   
   //! Returns the reference to arrray Of  V/E interferences <br>
-  Standard_EXPORT     BOPTools_CArray1OfVEInterference& VEInterferences() ;
+  Standard_EXPORT     XBOPTools_CArray1OfVEInterference& VEInterferences() ;
   
   //! Returns the reference to arrray Of  V/V interferences <br>
-  Standard_EXPORT     BOPTools_CArray1OfVVInterference& VVInterferences() ;
+  Standard_EXPORT     XBOPTools_CArray1OfVVInterference& VVInterferences() ;
   
   Standard_EXPORT     void Purge() ;
 
@@ -110,12 +110,12 @@ protected:
   NMTDS_MapOfPairBoolean myTable[6];
   NMTDS_ListOfPairBoolean myList;
   Standard_Integer myMaxInd;
-  BOPTools_CArray1OfSSInterference mySSInterferences;
-  BOPTools_CArray1OfESInterference myESInterferences;
-  BOPTools_CArray1OfVSInterference myVSInterferences;
-  BOPTools_CArray1OfEEInterference myEEInterferences;
-  BOPTools_CArray1OfVEInterference myVEInterferences;
-  BOPTools_CArray1OfVVInterference myVVInterferences;
+  XBOPTools_CArray1OfSSInterference mySSInterferences;
+  XBOPTools_CArray1OfESInterference myESInterferences;
+  XBOPTools_CArray1OfVSInterference myVSInterferences;
+  XBOPTools_CArray1OfEEInterference myEEInterferences;
+  XBOPTools_CArray1OfVEInterference myVEInterferences;
+  XBOPTools_CArray1OfVVInterference myVVInterferences;
 
 private:
 };

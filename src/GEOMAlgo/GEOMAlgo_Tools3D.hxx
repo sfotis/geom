@@ -29,14 +29,14 @@
 #include <Standard.hxx>
 #include <Standard_Macro.hxx>
 #include <Standard_Boolean.hxx>
-#include <Handle_IntTools_Context.hxx>
+#include <Handle_XIntTools_Context.hxx>
 #include <Standard_Integer.hxx>
 #include <TopAbs_ShapeEnum.hxx>
 #include <TopAbs_State.hxx>
 #include <Standard_Real.hxx>
 #include <NMTTools_ListOfCoupleOfShape.hxx>
 #include <TopoDS_Shape.hxx>
-#include <IntTools_Context.hxx>
+#include <XIntTools_Context.hxx>
 #include <TopoDS_Face.hxx>
 #include <TopoDS_Edge.hxx>
 #include <TopTools_ListOfShape.hxx>
@@ -61,7 +61,7 @@ class GEOMAlgo_Tools3D  {
   Standard_EXPORT
     static  Standard_Boolean IsSplitToReverse(const TopoDS_Shape& theSplit,
                                               const TopoDS_Shape& theShape,
-                                              const Handle(IntTools_Context)& theContext) ;
+                                              const Handle(XIntTools_Context)& theContext) ;
 
   //! Returns True if normal direction of the face <br>
   //!          theShape is not the same as for the face <br>
@@ -70,7 +70,7 @@ class GEOMAlgo_Tools3D  {
   Standard_EXPORT
     static  Standard_Boolean IsSplitToReverse(const TopoDS_Face& theSplit,
                                               const TopoDS_Face& theShape,
-                                              const Handle(IntTools_Context)& theContext) ;
+                                              const Handle(XIntTools_Context)& theContext) ;
 
   //! Returns True if tangent direction of the edge <br>
   //!          theEdge is not the same as for the edge <br>
@@ -79,7 +79,7 @@ class GEOMAlgo_Tools3D  {
   Standard_EXPORT
     static  Standard_Boolean IsSplitToReverse(const TopoDS_Edge& theEdge,
                                               const TopoDS_Edge& theSplit,
-                                              const Handle(IntTools_Context)& theContext) ;
+                                              const Handle(XIntTools_Context)& theContext) ;
 
   //! For the couple of faces theF1, theF2 <br>
   //!          computes sense value <br>
@@ -119,7 +119,7 @@ class GEOMAlgo_Tools3D  {
     static  TopAbs_State ComputeStateByOnePoint(const TopoDS_Shape& theShape,
                                                 const TopoDS_Solid& theSolid,
                                                 const Standard_Real theTol,
-                                                const Handle(IntTools_Context)& theContext) ;
+                                                const Handle(XIntTools_Context)& theContext) ;
 
   //! Computes the 3-D state of the point thePoint <br>
   //!          toward solid theSolid. <br>
@@ -130,7 +130,7 @@ class GEOMAlgo_Tools3D  {
     static  TopAbs_State ComputeState(const gp_Pnt& thePoint,
                                       const TopoDS_Solid& theSolid,
                                       const Standard_Real theTol,
-                                      const Handle(IntTools_Context)& theContext) ;
+                                      const Handle(XIntTools_Context)& theContext) ;
 
   //! Computes the 3-D state of the vertex theVertex <br>
   //!          toward solid theSolid. <br>
@@ -141,7 +141,7 @@ class GEOMAlgo_Tools3D  {
     static  TopAbs_State ComputeState(const TopoDS_Vertex& theVertex,
                                       const TopoDS_Solid& theSolid,
                                       const Standard_Real theTol,
-                                      const Handle(IntTools_Context)& theContext) ;
+                                      const Handle(XIntTools_Context)& theContext) ;
 
   //! Computes the 3-D state of the edge theEdge <br>
   //!          toward solid theSolid. <br>
@@ -152,7 +152,7 @@ class GEOMAlgo_Tools3D  {
     static  TopAbs_State ComputeState(const TopoDS_Edge& theEdge,
                                       const TopoDS_Solid& theSolid,
                                       const Standard_Real theTol,
-                                      const Handle(IntTools_Context)& theContext) ;
+                                      const Handle(XIntTools_Context)& theContext) ;
 
   //! Computes the 3-D state of the face theFace <br>
   //!          toward solid theSolid. <br>
@@ -165,7 +165,7 @@ class GEOMAlgo_Tools3D  {
                                       const TopoDS_Solid& theSolid,
                                       const Standard_Real theTol,
                                       const TopTools_IndexedMapOfShape& theBounds,
-                                      const Handle(IntTools_Context)& theContext) ;
+                                      const Handle(XIntTools_Context)& theContext) ;
 
   //! Returns True if the face theFace is inside of the <br>
   //!          couple of faces theFace1, theFace2. <br>
@@ -176,7 +176,7 @@ class GEOMAlgo_Tools3D  {
                                             const TopoDS_Edge& theEdge,
                                             const TopoDS_Face& theFace1,
                                             const TopoDS_Face& theFace2,
-                                            const Handle(IntTools_Context)& theContext) ;
+                                            const Handle(XIntTools_Context)& theContext) ;
 
   //! Returns True if the face theFace is inside of the <br>
   //!          appropriate couple of faces (from the set theLF)    . <br>
@@ -186,7 +186,7 @@ class GEOMAlgo_Tools3D  {
     static  Standard_Boolean IsInternalFace(const TopoDS_Face& theFace,
                                             const TopoDS_Edge& theEdge,
                                             const TopTools_ListOfShape& theLF,
-                                            const Handle(IntTools_Context)& theContext) ;
+                                            const Handle(XIntTools_Context)& theContext) ;
 
   //! Returns True if the face theFace is inside the <br>
   //!          solid theSolid. <br>
@@ -198,7 +198,7 @@ class GEOMAlgo_Tools3D  {
                                             const TopoDS_Solid& theSolid,
                                             const TopTools_IndexedDataMapOfShapeListOfShape& theMEF,
                                             const Standard_Real theTol,
-                                            const Handle(IntTools_Context)& theContext) ;
+                                            const Handle(XIntTools_Context)& theContext) ;
 
   //!  For the face theFace and its edge theEdge <br>
   //!           finds the face suitable to produce shell. <br>

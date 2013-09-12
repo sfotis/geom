@@ -51,9 +51,9 @@
 #include <TopTools_ListIteratorOfListOfShape.hxx>
 #include <TopTools_ListOfShape.hxx>
 
-#include <BOPTools_Tools.hxx>
-#include <BOPTools_Tools2D.hxx>
-#include <BOPTools_Tools3D.hxx>
+#include <XBOPTools_Tools.hxx>
+#include <XBOPTools_Tools2D.hxx>
+#include <XBOPTools_Tools3D.hxx>
 
 #include <GEOMAlgo_Tools.hxx>
 
@@ -168,10 +168,10 @@ void GEOMAlgo_Gluer2::MakeFace(const TopoDS_Face& theF,
         if (iRet) {
           continue;
         }
-        //BOPTools_Tools2D::BuildPCurveForEdgeOnFace(aEx, aFF);
+        //XBOPTools_Tools2D::BuildPCurveForEdgeOnFace(aEx, aFF);
         //modified by NIZNHY-PKV Fri Feb 03 11:18:20 2012t
         //
-        bIsToReverse=BOPTools_Tools3D::IsSplitToReverse1(aEx, aE, myContext);
+        bIsToReverse=XBOPTools_Tools3D::IsSplitToReverse1(aEx, aE, myContext);
         if (bIsToReverse) {
           aEx.Reverse();
         }
@@ -223,7 +223,7 @@ void GEOMAlgo_Gluer2::MakeEdge(const TopoDS_Edge& aE,
   aVR2.Orientation(TopAbs_REVERSED);
   //
   if (!bIsDE) {
-    BOPTools_Tools::MakeSplitEdge(aEx, aVR1, aT1, aVR2, aT2, aNewEdge);
+    XBOPTools_Tools::MakeSplitEdge(aEx, aVR1, aT1, aVR2, aT2, aNewEdge);
   }
   else {
     Standard_Real aTol;

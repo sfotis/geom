@@ -68,10 +68,10 @@
 #include <TopTools_DataMapOfShapeListOfShape.hxx>
 #include <TopTools_DataMapIteratorOfDataMapOfShapeListOfShape.hxx>
 
-#include <IntTools_Context.hxx>
+#include <XIntTools_Context.hxx>
 
-#include <BOPTools_Tools2D.hxx>
-#include <BOPTools_Tools3D.hxx>
+#include <XBOPTools_Tools2D.hxx>
+#include <XBOPTools_Tools3D.hxx>
 
 #include <NMTTools_ListOfCoupleOfShape.hxx>
 #include <NMTTools_CoupleOfShape.hxx>
@@ -86,11 +86,11 @@ static
                                  const TopTools_IndexedMapOfShape& );
 static
   Standard_Boolean IsHole(const TopoDS_Shape& ,
-                          const Handle(IntTools_Context)& );
+                          const Handle(XIntTools_Context)& );
 static
   Standard_Boolean IsInside(const TopoDS_Shape& ,
                             const TopoDS_Shape& ,
-                            const Handle(IntTools_Context)& );
+                            const Handle(XIntTools_Context)& );
 static
   void MakeInternalShells(const TopTools_MapOfShape& ,
                           TopTools_ListOfShape& );
@@ -749,7 +749,7 @@ void MakeInternalShells(const TopTools_MapOfShape& theMF,
 //purpose  :
 //=======================================================================
 Standard_Boolean IsHole(const TopoDS_Shape& theS2,
-                        const Handle(IntTools_Context)& theContext)
+                        const Handle(XIntTools_Context)& theContext)
 {
   TopoDS_Solid *pS2=(TopoDS_Solid *)&theS2;
   BRepClass3d_SolidClassifier& aClsf=theContext->SolidClassifier(*pS2);
@@ -764,7 +764,7 @@ Standard_Boolean IsHole(const TopoDS_Shape& theS2,
 //=======================================================================
 Standard_Boolean IsInside(const TopoDS_Shape& theS1,
                           const TopoDS_Shape& theS2,
-                          const Handle(IntTools_Context)& theContext)
+                          const Handle(XIntTools_Context)& theContext)
 {
   TopExp_Explorer aExp;
   TopAbs_State aState;

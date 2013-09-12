@@ -56,38 +56,38 @@
 #include <BRep_Builder.hxx>
 #include <BRepBndLib.hxx>
 
-#include <BOPTColStd_Dump.hxx>
-#include <BOPTColStd_Failure.hxx>
+#include <XBOPTColStd_Dump.hxx>
+#include <XBOPTColStd_Failure.hxx>
 
-#include <IntTools_ShrunkRange.hxx>
-#include <IntTools_Range.hxx>
-#include <IntTools_CommonPrt.hxx>
-#include <IntTools_SequenceOfRanges.hxx>
-#include <IntTools_EdgeEdge.hxx>
-#include <IntTools_SequenceOfCommonPrts.hxx>
-#include <IntTools_Tools.hxx>
-#include <IntTools_Context.hxx>
+#include <XIntTools_ShrunkRange.hxx>
+#include <XIntTools_Range.hxx>
+#include <XIntTools_CommonPrt.hxx>
+#include <XIntTools_SequenceOfRanges.hxx>
+#include <XIntTools_EdgeEdge.hxx>
+#include <XIntTools_SequenceOfCommonPrts.hxx>
+#include <XIntTools_Tools.hxx>
+#include <XIntTools_Context.hxx>
 
-#include <BOPTools_Pave.hxx>
-#include <BOPTools_PaveSet.hxx>
-#include <BOPTools_PaveBlockIterator.hxx>
-#include <BOPTools_PaveBlock.hxx>
-#include <BOPTools_CArray1OfEEInterference.hxx>
-#include <BOPTools_EEInterference.hxx>
-#include <BOPTools_ListOfPaveBlock.hxx>
-#include <BOPTools_ListIteratorOfListOfPaveBlock.hxx>
-#include <BOPTools_CArray1OfVVInterference.hxx>
-#include <BOPTools_VVInterference.hxx>
-#include <BOPTools_CArray1OfEEInterference.hxx>
-#include <BOPTools_Tools.hxx>
-#include <BOPTools_IDMapOfPaveBlockIMapOfPaveBlock.hxx>
-#include <BOPTools_IMapOfPaveBlock.hxx>
-#include <BOPTools_ListIteratorOfListOfPave.hxx>
-#include <BOPTools_SequenceOfPaveBlock.hxx>
+#include <XBOPTools_Pave.hxx>
+#include <XBOPTools_PaveSet.hxx>
+#include <XBOPTools_PaveBlockIterator.hxx>
+#include <XBOPTools_PaveBlock.hxx>
+#include <XBOPTools_CArray1OfEEInterference.hxx>
+#include <XBOPTools_EEInterference.hxx>
+#include <XBOPTools_ListOfPaveBlock.hxx>
+#include <XBOPTools_ListIteratorOfListOfPaveBlock.hxx>
+#include <XBOPTools_CArray1OfVVInterference.hxx>
+#include <XBOPTools_VVInterference.hxx>
+#include <XBOPTools_CArray1OfEEInterference.hxx>
+#include <XBOPTools_Tools.hxx>
+#include <XBOPTools_IDMapOfPaveBlockIMapOfPaveBlock.hxx>
+#include <XBOPTools_IMapOfPaveBlock.hxx>
+#include <XBOPTools_ListIteratorOfListOfPave.hxx>
+#include <XBOPTools_SequenceOfPaveBlock.hxx>
 
-#include <BooleanOperations_AncestorsSeqAndSuccessorsSeq.hxx>
-#include <BooleanOperations_IndexedDataMapOfShapeInteger.hxx>
-#include <BooleanOperations_KindOfInterference.hxx>
+#include <XBooleanOperations_AncestorsSeqAndSuccessorsSeq.hxx>
+#include <XBooleanOperations_IndexedDataMapOfShapeInteger.hxx>
+#include <XBooleanOperations_KindOfInterference.hxx>
 
 #include <NMTDS_Iterator.hxx>
 #include <NMTDS_ShapesDataStructure.hxx>
@@ -105,13 +105,13 @@
 #include <TColStd_ListOfInteger.hxx>
 #include <TColStd_ListIteratorOfListOfInteger.hxx>
 #include <BRepBndLib.hxx>
-#include <BOPTools_CArray1OfVSInterference.hxx>
-#include <BOPTools_VSInterference.hxx>
+#include <XBOPTools_CArray1OfVSInterference.hxx>
+#include <XBOPTools_VSInterference.hxx>
 #include <TColStd_MapOfInteger.hxx>
 #include <TColStd_MapIteratorOfMapOfInteger.hxx>
 
 static
-  void TreatNewVertices(const BooleanOperations_IndexedDataMapOfShapeInteger& aMapVI,
+  void TreatNewVertices(const XBooleanOperations_IndexedDataMapOfShapeInteger& aMapVI,
                         TopTools_DataMapOfShapeListOfShape& myImages,
                         TopTools_DataMapOfShapeShape& myOrigins);
 
@@ -120,26 +120,26 @@ static
                      TopoDS_Vertex& aNewVertex);
 
 static
-  void VertexParameters(const IntTools_CommonPrt& aCPart,
+  void VertexParameters(const XIntTools_CommonPrt& aCPart,
                         Standard_Real& aT1,
                         Standard_Real& aT2);
 
 static
   Standard_Boolean IsOnPave(const Standard_Real& aT1,
-                            const IntTools_Range& aRange,
+                            const XIntTools_Range& aRange,
                             const Standard_Real& aTolerance);
 
 // static
-//   void EECommonBlocks(const BOPTools_IDMapOfPaveBlockIMapOfPaveBlock& aMapCB);
+//   void EECommonBlocks(const XBOPTools_IDMapOfPaveBlockIMapOfPaveBlock& aMapCB);
 
 static
-  void ProcessBlock(const BOPTools_PaveBlock& aPB,
-                    const BOPTools_IDMapOfPaveBlockIMapOfPaveBlock& aMapCB,
-                    BOPTools_IMapOfPaveBlock& aProcessedBlocks,
-                    BOPTools_IMapOfPaveBlock& aChain);
+  void ProcessBlock(const XBOPTools_PaveBlock& aPB,
+                    const XBOPTools_IDMapOfPaveBlockIMapOfPaveBlock& aMapCB,
+                    XBOPTools_IMapOfPaveBlock& aProcessedBlocks,
+                    XBOPTools_IMapOfPaveBlock& aChain);
 
 static
-  void FindChains(const BOPTools_IDMapOfPaveBlockIMapOfPaveBlock& aMapCB,
+  void FindChains(const XBOPTools_IDMapOfPaveBlockIMapOfPaveBlock& aMapCB,
                   NMTTools_ListOfCommonBlock& aLCB);
 
 //=======================================================================
@@ -155,13 +155,13 @@ void NMTTools_PaveFiller::PerformEE()
   Standard_Integer aTmp, aWhat, aWith, i, aNbCPrts, aDiscretize=30;
   Standard_Integer aNbLPB1, aNbLPB2;
   Standard_Real aTolE1, aTolE2, aDeflection=0.01;
-  BOPTools_ListIteratorOfListOfPaveBlock anIt1, anIt2;
+  XBOPTools_ListIteratorOfListOfPaveBlock anIt1, anIt2;
   TopoDS_Edge aEWhat, aEWith;
   TopoDS_Vertex aNewVertex;
-  BooleanOperations_IndexedDataMapOfShapeInteger aMapVI;
-  BOPTools_IDMapOfPaveBlockIMapOfPaveBlock aMapCB;
+  XBooleanOperations_IndexedDataMapOfShapeInteger aMapVI;
+  XBOPTools_IDMapOfPaveBlockIMapOfPaveBlock aMapCB;
   //
-  BOPTools_CArray1OfEEInterference& aEEs=myIP->EEInterferences();
+  XBOPTools_CArray1OfEEInterference& aEEs=myIP->EEInterferences();
   //
   myDSIt->Initialize(TopAbs_EDGE, TopAbs_EDGE);
   //
@@ -193,8 +193,8 @@ void NMTTools_PaveFiller::PerformEE()
     aTolE1=BRep_Tool::Tolerance(aE1);
     aTolE2=BRep_Tool::Tolerance(aE2);
     //
-    BOPTools_ListOfPaveBlock& aLPB1=mySplitShapesPool(myDS->RefEdge(nE1));
-    BOPTools_ListOfPaveBlock& aLPB2=mySplitShapesPool(myDS->RefEdge(nE2));
+    XBOPTools_ListOfPaveBlock& aLPB1=mySplitShapesPool(myDS->RefEdge(nE1));
+    XBOPTools_ListOfPaveBlock& aLPB2=mySplitShapesPool(myDS->RefEdge(nE2));
     //
     // Modified  Thu Sep 14 14:35:18 2006
     // Contribution of Samtech www.samcef.com BEGIN
@@ -207,17 +207,17 @@ void NMTTools_PaveFiller::PerformEE()
     // Contribution of Samtech www.samcef.com END
     //
     for (anIt1.Initialize(aLPB1); anIt1.More(); anIt1.Next()) {
-      BOPTools_PaveBlock& aPB1=anIt1.Value();
-      const IntTools_ShrunkRange& aShrunkRange1=aPB1.ShrunkRange();
+      XBOPTools_PaveBlock& aPB1=anIt1.Value();
+      const XIntTools_ShrunkRange& aShrunkRange1=aPB1.ShrunkRange();
       //
-      const IntTools_Range& aSR1=aShrunkRange1.ShrunkRange();
+      const XIntTools_Range& aSR1=aShrunkRange1.ShrunkRange();
       const Bnd_Box&        aBB1=aShrunkRange1.BndBox();
       //
       for (anIt2.Initialize(aLPB2); anIt2.More(); anIt2.Next()) {
-        BOPTools_PaveBlock& aPB2=anIt2.Value();
-        const IntTools_ShrunkRange& aShrunkRange2=aPB2.ShrunkRange();
+        XBOPTools_PaveBlock& aPB2=anIt2.Value();
+        const XIntTools_ShrunkRange& aShrunkRange2=aPB2.ShrunkRange();
         //
-        const IntTools_Range& aSR2=aShrunkRange2.ShrunkRange();
+        const XIntTools_Range& aSR2=aShrunkRange2.ShrunkRange();
         const Bnd_Box&        aBB2=aShrunkRange2.BndBox();
         //
         if (aBB1.IsOut (aBB2)) {
@@ -225,7 +225,7 @@ void NMTTools_PaveFiller::PerformEE()
         }
         //
         // EE
-        IntTools_EdgeEdge aEE;
+        XIntTools_EdgeEdge aEE;
         aEE.SetEdge1 (aE1);
         aEE.SetEdge2 (aE2);
         aEE.SetTolerance1 (aTolE1);
@@ -233,11 +233,11 @@ void NMTTools_PaveFiller::PerformEE()
         aEE.SetDiscretize (aDiscretize);
         aEE.SetDeflection (aDeflection);
         //
-        IntTools_Range anewSR1 = aSR1;
-        IntTools_Range anewSR2 = aSR2;
+        XIntTools_Range anewSR1 = aSR1;
+        XIntTools_Range anewSR2 = aSR2;
         //
-        BOPTools_Tools::CorrectRange (aE1, aE2, aSR1, anewSR1);
-        BOPTools_Tools::CorrectRange (aE2, aE1, aSR2, anewSR2);
+        XBOPTools_Tools::CorrectRange (aE1, aE2, aSR1, anewSR1);
+        XBOPTools_Tools::CorrectRange (aE2, aE1, aSR2, anewSR2);
         //
         aEE.SetRange1(anewSR1);
         aEE.SetRange2(anewSR2);
@@ -260,11 +260,11 @@ void NMTTools_PaveFiller::PerformEE()
             aEWith=aE1;
           }
           //
-          const IntTools_SequenceOfCommonPrts& aCPrts=aEE.CommonParts();
+          const XIntTools_SequenceOfCommonPrts& aCPrts=aEE.CommonParts();
           aNbCPrts=aCPrts.Length();
           for (i=1; i<=aNbCPrts; i++) {
-            const IntTools_CommonPrt& aCPart=aCPrts(i);
-            const IntTools_SequenceOfRanges& aRanges2=aCPart.Ranges2();
+            const XIntTools_CommonPrt& aCPart=aCPrts(i);
+            const XIntTools_SequenceOfRanges& aRanges2=aCPart.Ranges2();
             //
             anIndexIn=0;
             //
@@ -273,7 +273,7 @@ void NMTTools_PaveFiller::PerformEE()
               case TopAbs_VERTEX:  {
                 Standard_Real aT1, aT2, aTol=Precision::PConfusion();
                 Standard_Boolean bIsOnPave1, bIsOnPave2;
-                IntTools_Range aR1, aR2;
+                XIntTools_Range aR1, aR2;
                 //
                 VertexParameters(aCPart, aT1, aT2);
                 //
@@ -289,7 +289,7 @@ void NMTTools_PaveFiller::PerformEE()
                    continue;
                 }
                 //
-                BOPTools_Tools::MakeNewVertex(aEWhat, aT1, aEWith, aT2, aNewVertex);
+                XBOPTools_Tools::MakeNewVertex(aEWhat, aT1, aEWith, aT2, aNewVertex);
                 //
                 {
                   Standard_Integer nV11, nV12, nV21, nV22, nVS[2], k, j, iFound;
@@ -338,7 +338,7 @@ void NMTTools_PaveFiller::PerformEE()
                 }
                 //
                 // Add Interference to the Pool
-                BOPTools_EEInterference anInterf (aWhat, aWith, aCPart);
+                XBOPTools_EEInterference anInterf (aWhat, aWith, aCPart);
                 //
                 anIndexIn=aEEs.Append(anInterf);
                 // qqf
@@ -365,24 +365,24 @@ void NMTTools_PaveFiller::PerformEE()
                 //
                 // Fill aMapCB
                 if (aMapCB.Contains(aPB1)) {
-                  BOPTools_IMapOfPaveBlock& aMapPB=aMapCB.ChangeFromKey(aPB1);
+                  XBOPTools_IMapOfPaveBlock& aMapPB=aMapCB.ChangeFromKey(aPB1);
                   aMapPB.Add(aPB1);
                   aMapPB.Add(aPB2);
                 }
                 else {
-                  BOPTools_IMapOfPaveBlock aMapPB;
+                  XBOPTools_IMapOfPaveBlock aMapPB;
                   aMapPB.Add(aPB1);
                   aMapPB.Add(aPB2);
                   aMapCB.Add(aPB1, aMapPB);
                 }
                 //
                 if (aMapCB.Contains(aPB2)) {
-                  BOPTools_IMapOfPaveBlock& aMapPB=aMapCB.ChangeFromKey(aPB2);
+                  XBOPTools_IMapOfPaveBlock& aMapPB=aMapCB.ChangeFromKey(aPB2);
                   aMapPB.Add(aPB1);
                   aMapPB.Add(aPB2);
                 }
                 else {
-                  BOPTools_IMapOfPaveBlock aMapPB;
+                  XBOPTools_IMapOfPaveBlock aMapPB;
                   aMapPB.Add(aPB1);
                   aMapPB.Add(aPB2);
                   aMapCB.Add(aPB2, aMapPB);
@@ -430,27 +430,27 @@ void NMTTools_PaveFiller::TreatPaveBlocks (NMTTools_ListOfCommonBlock& theLCB)
   TColStd_MapOfInteger aMI;
   TColStd_MapIteratorOfMapOfInteger aItMI;
   NMTTools_ListIteratorOfListOfCommonBlock aItLCB;
-  BOPTools_ListIteratorOfListOfPaveBlock aItLPB;
-  BOPTools_ListIteratorOfListOfPave aItLP;
+  XBOPTools_ListIteratorOfListOfPaveBlock aItLPB;
+  XBOPTools_ListIteratorOfListOfPave aItLP;
   //
   aItLCB.Initialize(theLCB);
   for (; aItLCB.More(); aItLCB.Next()) {
     const NMTTools_CommonBlock& aCB=aItLCB.Value();
     //
     aMI.Clear();
-    const BOPTools_ListOfPaveBlock& aLPB=aCB.PaveBlocks();
+    const XBOPTools_ListOfPaveBlock& aLPB=aCB.PaveBlocks();
     //
     // 1 -> aMI
     aItLPB.Initialize(aLPB);
     for (; aItLPB.More(); aItLPB.Next()) {
-      const BOPTools_PaveBlock& aPB=aItLPB.Value();
+      const XBOPTools_PaveBlock& aPB=aItLPB.Value();
       nE=aPB.OriginalEdge();
-      BOPTools_PaveSet& aPaveSet=myPavePoolNew(myDS->RefEdge(nE));
-      BOPTools_ListOfPave& aLP=aPaveSet.ChangeSet();
+      XBOPTools_PaveSet& aPaveSet=myPavePoolNew(myDS->RefEdge(nE));
+      XBOPTools_ListOfPave& aLP=aPaveSet.ChangeSet();
       //
       aItLP.Initialize(aLP);
       for (; aItLP.More(); aItLP.Next()) {
-        const BOPTools_Pave& aPave=aItLP.Value();
+        const XBOPTools_Pave& aPave=aItLP.Value();
         nV=aPave.Index();
         aMI.Add(nV);
       }
@@ -459,10 +459,10 @@ void NMTTools_PaveFiller::TreatPaveBlocks (NMTTools_ListOfCommonBlock& theLCB)
     // 2
     aItLPB.Initialize(aLPB);
     for (; aItLPB.More(); aItLPB.Next()) {
-      const BOPTools_PaveBlock& aPB=aItLPB.Value();
+      const XBOPTools_PaveBlock& aPB=aItLPB.Value();
       nE=aPB.OriginalEdge();
-      BOPTools_PaveSet& aPaveSet=myPavePoolNew(myDS->RefEdge(nE));
-      BOPTools_ListOfPave& aLP=aPaveSet.ChangeSet();
+      XBOPTools_PaveSet& aPaveSet=myPavePoolNew(myDS->RefEdge(nE));
+      XBOPTools_ListOfPave& aLP=aPaveSet.ChangeSet();
       //
       aItMI.Initialize(aMI);
       for (; aItMI.More(); aItMI.Next()) {
@@ -470,7 +470,7 @@ void NMTTools_PaveFiller::TreatPaveBlocks (NMTTools_ListOfCommonBlock& theLCB)
         bFound=Standard_False;
         aItLP.Initialize(aLP);
         for (; aItLP.More(); aItLP.Next()) {
-          const BOPTools_Pave& aPave=aItLP.Value();
+          const XBOPTools_Pave& aPave=aItLP.Value();
           nVp=aPave.Index();
           if (nVp==nV) {
             bFound=!bFound;
@@ -484,10 +484,10 @@ void NMTTools_PaveFiller::TreatPaveBlocks (NMTTools_ListOfCommonBlock& theLCB)
           const TopoDS_Vertex& aV= *(TopoDS_Vertex*)(&myDS->Shape(nV));
           iFlag=myContext->ComputeVE (aV, aE, aT);
           if (!iFlag) {
-            BOPTools_Pave aPave;
+            XBOPTools_Pave aPave;
             //
             aPave.SetInterference(-1);
-            aPave.SetType (BooleanOperations_EdgeEdge);
+            aPave.SetType (XBooleanOperations_EdgeEdge);
             aPave.SetIndex(nV);
             aPave.SetParam(aT);
             aPaveSet.Append(aPave);
@@ -502,7 +502,7 @@ void NMTTools_PaveFiller::TreatPaveBlocks (NMTTools_ListOfCommonBlock& theLCB)
 // function:EECommonBlocks
 // purpose:
 //=======================================================================
-void NMTTools_PaveFiller::EECommonBlocks(const BOPTools_IDMapOfPaveBlockIMapOfPaveBlock& aMapCB)
+void NMTTools_PaveFiller::EECommonBlocks(const XBOPTools_IDMapOfPaveBlockIMapOfPaveBlock& aMapCB)
 {
   NMTTools_ListOfCommonBlock aLCB;
   //
@@ -514,7 +514,7 @@ void NMTTools_PaveFiller::EECommonBlocks(const BOPTools_IDMapOfPaveBlockIMapOfPa
 // function:EENewVertices
 // purpose:
 //=======================================================================
-void NMTTools_PaveFiller::EENewVertices (const BooleanOperations_IndexedDataMapOfShapeInteger& aMapVI)
+void NMTTools_PaveFiller::EENewVertices (const XBooleanOperations_IndexedDataMapOfShapeInteger& aMapVI)
 {
   Standard_Integer aNb, aNbVSD, nVnew, nIEE, nE[2], j, iFlag;
   Standard_Real aT;
@@ -523,11 +523,11 @@ void NMTTools_PaveFiller::EENewVertices (const BooleanOperations_IndexedDataMapO
   TopTools_DataMapOfShapeShape myOrigins;
   TopTools_DataMapIteratorOfDataMapOfShapeListOfShape aItIm;
   TopTools_ListIteratorOfListOfShape aIt;
-  BooleanOperations_AncestorsSeqAndSuccessorsSeq anASSeq;
+  XBooleanOperations_AncestorsSeqAndSuccessorsSeq anASSeq;
   TColStd_MapOfInteger aMFence;
-  BOPTools_Pave aPave;
+  XBOPTools_Pave aPave;
   //
-  BOPTools_CArray1OfEEInterference& aEEs=myIP->EEInterferences();
+  XBOPTools_CArray1OfEEInterference& aEEs=myIP->EEInterferences();
   //
   aNb=aMapVI.Extent();
   if (!aNb) { // no new vertices, no new problems
@@ -558,14 +558,14 @@ void NMTTools_PaveFiller::EENewVertices (const BooleanOperations_IndexedDataMapO
     // aNbVSD>1
     myDS->InsertShapeAndAncestorsSuccessors(aVnew, anASSeq);
     nVnew=myDS->NumberOfInsertedShapes();
-    myDS->SetState(nVnew, BooleanOperations_ON);
+    myDS->SetState(nVnew, XBooleanOperations_ON);
     //
     aMFence.Clear();
     aIt.Initialize(aLVSD);
     for (; aIt.More(); aIt.Next()) {
       const TopoDS_Vertex& aVold=TopoDS::Vertex(aIt.Value());
       nIEE=aMapVI.FindFromKey(aVold);
-      BOPTools_EEInterference& aEE=aEEs(nIEE);
+      XBOPTools_EEInterference& aEE=aEEs(nIEE);
       aEE.Indices(nE[0], nE[1]);
       aEE.SetNewShape(nVnew);
       //
@@ -575,11 +575,11 @@ void NMTTools_PaveFiller::EENewVertices (const BooleanOperations_IndexedDataMapO
           iFlag=myContext->ComputeVE (aVnew, aE, aT);
           if (!iFlag) {
             aPave.SetInterference(-1);
-            aPave.SetType (BooleanOperations_EdgeEdge);
+            aPave.SetType (XBooleanOperations_EdgeEdge);
             aPave.SetIndex(nVnew);
             aPave.SetParam(aT);
             //
-            BOPTools_PaveSet& aPaveSet=myPavePoolNew(myDS->RefEdge(nE[j]));
+            XBOPTools_PaveSet& aPaveSet=myPavePoolNew(myDS->RefEdge(nE[j]));
             aPaveSet.Append(aPave);
           }
         }// if (aMFence.Add(nE[j])) {
@@ -594,7 +594,7 @@ void NMTTools_PaveFiller::EENewVertices (const BooleanOperations_IndexedDataMapO
 //function : TreatNewVertices
 //purpose  :
 //=======================================================================
-void TreatNewVertices(const BooleanOperations_IndexedDataMapOfShapeInteger& aMapVI,
+void TreatNewVertices(const XBooleanOperations_IndexedDataMapOfShapeInteger& aMapVI,
                       TopTools_DataMapOfShapeListOfShape& myImages,
                       TopTools_DataMapOfShapeShape& myOrigins)
 {
@@ -820,41 +820,41 @@ void MakeNewVertex(const TopTools_ListOfShape& aLV,
 // purpose:
 //=======================================================================
 void NMTTools_PaveFiller::EENewVertices (const TopoDS_Vertex& aNewVertex,
-                                         const BooleanOperations_IndexedDataMapOfShapeInteger& aMapVI)
+                                         const XBooleanOperations_IndexedDataMapOfShapeInteger& aMapVI)
 {
   Standard_Integer  i, aNewShape, nE1, nE2;
   Standard_Real  aT1, aT2;
-  BooleanOperations_AncestorsSeqAndSuccessorsSeq anASSeq;
-  BOPTools_Pave aPave;
+  XBooleanOperations_AncestorsSeqAndSuccessorsSeq anASSeq;
+  XBOPTools_Pave aPave;
   //
-  BOPTools_CArray1OfEEInterference& aEEs=myIP->EEInterferences();
+  XBOPTools_CArray1OfEEInterference& aEEs=myIP->EEInterferences();
   //
   // one new vertex case is treated in usual way
   //
   // Insert New Vertex in DS;
   myDS->InsertShapeAndAncestorsSuccessors(aNewVertex, anASSeq);
   aNewShape=myDS->NumberOfInsertedShapes();
-  myDS->SetState (aNewShape, BooleanOperations_ON);
+  myDS->SetState (aNewShape, XBooleanOperations_ON);
   // Insert New Vertex in EE Interference
   i=aMapVI.FindFromKey(aNewVertex);
-  BOPTools_EEInterference& aEEInterf= aEEs(i);
+  XBOPTools_EEInterference& aEEInterf= aEEs(i);
   aEEInterf.SetNewShape(aNewShape);
   // Extact interference info
   aEEInterf.Indices(nE1, nE2);
-  const IntTools_CommonPrt& aCPart=aEEInterf.CommonPrt();
+  const XIntTools_CommonPrt& aCPart=aEEInterf.CommonPrt();
   VertexParameters(aCPart, aT1, aT2);
   //
   // Add Paves to the myPavePoolNew
   aPave.SetInterference(i);
-  aPave.SetType (BooleanOperations_EdgeEdge);
+  aPave.SetType (XBooleanOperations_EdgeEdge);
   aPave.SetIndex(aNewShape);
   // Pave for edge nE1
   aPave.SetParam(aT1);
-  BOPTools_PaveSet& aPaveSet1=myPavePoolNew(myDS->RefEdge(nE1));
+  XBOPTools_PaveSet& aPaveSet1=myPavePoolNew(myDS->RefEdge(nE1));
   aPaveSet1.Append(aPave);
   // Pave for edge nE2
   aPave.SetParam(aT2);
-  BOPTools_PaveSet& aPaveSet2=myPavePoolNew(myDS->RefEdge(nE2));
+  XBOPTools_PaveSet& aPaveSet2=myPavePoolNew(myDS->RefEdge(nE2));
   aPaveSet2.Append(aPave);
 }
 
@@ -869,20 +869,20 @@ void NMTTools_PaveFiller::RefinePavePool()
   for (i=1; i<=myNbSources; i++) {
 
     if ((myDS->GetShape(i)).ShapeType()==TopAbs_EDGE) {
-      BOPTools_PaveSet& aPS= myPavePool(myDS->RefEdge(i));
+      XBOPTools_PaveSet& aPS= myPavePool(myDS->RefEdge(i));
       //
-      BOPTools_PaveSet& aNewPS= myPavePoolNew(myDS->RefEdge(i));
-      BOPTools_ListOfPave& aNewLP=aNewPS.ChangeSet();
+      XBOPTools_PaveSet& aNewPS= myPavePoolNew(myDS->RefEdge(i));
+      XBOPTools_ListOfPave& aNewLP=aNewPS.ChangeSet();
       //
       aNbNew=aNewLP.Extent();
       if (aNbNew) {
-        BOPTools_ListIteratorOfListOfPave anIt(aNewLP);
+        XBOPTools_ListIteratorOfListOfPave anIt(aNewLP);
         for (; anIt.More(); anIt.Next()) {
-          const BOPTools_Pave& aPave=anIt.Value();
+          const XBOPTools_Pave& aPave=anIt.Value();
           aPS.Append(aPave);
         }
         // Clear the ListOfPaveBlock
-        BOPTools_ListOfPaveBlock& aLPB=mySplitShapesPool(myDS->RefEdge(i));
+        XBOPTools_ListOfPaveBlock& aLPB=mySplitShapesPool(myDS->RefEdge(i));
         aLPB.Clear();
         // Prepare the paveBlocks for that egde again
         PreparePaveBlocks(i);
@@ -926,7 +926,7 @@ void NMTTools_PaveFiller::PreparePaveBlocks(const TopAbs_ShapeEnum aType1,
     }
     //
     for (i=0; i<aNb; ++i) {
-      BOPTools_ListOfPaveBlock& aLPB=mySplitShapesPool(myDS->RefEdge(nE[i]));
+      XBOPTools_ListOfPaveBlock& aLPB=mySplitShapesPool(myDS->RefEdge(nE[i]));
       aNbSplits=aLPB.Extent();
       if (!aNbSplits) {
         if (aMap.Add(nE[i])) {
@@ -954,7 +954,7 @@ void NMTTools_PaveFiller::PreparePaveBlocks(const Standard_Integer nE)
   TopoDS_Edge aE;
   TopoDS_Vertex aV1, aV2;
   //
-  BOPTools_ListOfPaveBlock& aLPB=mySplitShapesPool(myDS->RefEdge(nE));
+  XBOPTools_ListOfPaveBlock& aLPB=mySplitShapesPool(myDS->RefEdge(nE));
   // Edge
   aE=TopoDS::Edge(myDS->Shape(nE));
   if (NMTTools_Tools::IsDegenerated(aE)) {
@@ -962,36 +962,36 @@ void NMTTools_PaveFiller::PreparePaveBlocks(const Standard_Integer nE)
     return;
   }
   //
-  BOPTools_PaveSet& aPS=myPavePool(myDS->RefEdge(nE));
+  XBOPTools_PaveSet& aPS=myPavePool(myDS->RefEdge(nE));
   //
-  BOPTools_PaveBlockIterator aPBIt(nE, aPS);
+  XBOPTools_PaveBlockIterator aPBIt(nE, aPS);
   for (; aPBIt.More(); aPBIt.Next()) {
-    BOPTools_PaveBlock& aPB=aPBIt.Value();
-    const IntTools_Range& aRange=aPB.Range();
+    XBOPTools_PaveBlock& aPB=aPBIt.Value();
+    const XIntTools_Range& aRange=aPB.Range();
     //
-    const BOPTools_Pave& aPave1=aPB.Pave1();
+    const XBOPTools_Pave& aPave1=aPB.Pave1();
     nV1=aPave1.Index();
     aV1=TopoDS::Vertex(myDS->GetShape(nV1));
     //
-    const BOPTools_Pave& aPave2=aPB.Pave2();
+    const XBOPTools_Pave& aPave2=aPB.Pave2();
     nV2=aPave2.Index();
     aV2=TopoDS::Vertex(myDS->GetShape(nV2));
     //
     // ShrunkRange
-    IntTools_ShrunkRange aSR (aE, aV1, aV2, aRange, myContext);
+    XIntTools_ShrunkRange aSR (aE, aV1, aV2, aRange, myContext);
     iErr=aSR.ErrorStatus();
     if (!aSR.IsDone()) {
       sprintf (buf, "Can not obtain ShrunkRange for Edge %d\n", nE);
-      BOPTColStd_Dump::PrintMessage(buf);
+      XBOPTColStd_Dump::PrintMessage(buf);
       sprintf (buf, "Can not obtain ShrunkRange for Edge %d", nE);
       throw
-        BOPTColStd_Failure(buf) ;
+        XBOPTColStd_Failure(buf) ;
     }
     //
     if (iErr==6) {
       sprintf(buf,
               "Warning: [PreparePaveBlocks()] Max.Dummy Shrunk Range for Edge %d\n", nE);
-      BOPTColStd_Dump::PrintMessage(buf);
+      XBOPTColStd_Dump::PrintMessage(buf);
     }
     else {
       // Check left paves and correct ShrunkRange if it is necessary
@@ -1010,14 +1010,14 @@ void NMTTools_PaveFiller::PreparePaveBlocks(const Standard_Integer nE)
 // purpose:
 //=======================================================================
 void NMTTools_PaveFiller::CorrectShrunkRanges(const Standard_Integer aSide,
-                                              const BOPTools_Pave& aPave,
-                                              IntTools_ShrunkRange& aShrunkRange)
+                                              const XBOPTools_Pave& aPave,
+                                              XIntTools_ShrunkRange& aShrunkRange)
 {
-  BooleanOperations_KindOfInterference aType;
+  XBooleanOperations_KindOfInterference aType;
   Standard_Integer anIndexInterf ;
   //
   aType=aPave.Type();
-  if (aType!=BooleanOperations_EdgeEdge) {
+  if (aType!=XBooleanOperations_EdgeEdge) {
     return;
   }
   //
@@ -1028,25 +1028,25 @@ void NMTTools_PaveFiller::CorrectShrunkRanges(const Standard_Integer aSide,
     return;
   }
 
-  BOPTools_CArray1OfEEInterference& aEEs=myIP->EEInterferences();
-  const BOPTools_EEInterference& aEE=aEEs(anIndexInterf);
-  const IntTools_CommonPrt& aCP=aEE.CommonPrt();
+  XBOPTools_CArray1OfEEInterference& aEEs=myIP->EEInterferences();
+  const XBOPTools_EEInterference& aEE=aEEs(anIndexInterf);
+  const XIntTools_CommonPrt& aCP=aEE.CommonPrt();
   const TopoDS_Edge& aE1=aCP.Edge1();
   const TopoDS_Edge& aE2=aCP.Edge2();
 
-  const IntTools_Range& aSR=aShrunkRange.ShrunkRange();
+  const XIntTools_Range& aSR=aShrunkRange.ShrunkRange();
   const TopoDS_Edge& aE=aShrunkRange.Edge();
 
-  IntTools_Range aNewRange;
-  IntTools_Range aCPRange;
+  XIntTools_Range aNewRange;
+  XIntTools_Range aCPRange;
 
   if (aE1.IsSame(aE)) {
-    const IntTools_Range& aR1=aCP.Range1();
+    const XIntTools_Range& aR1=aCP.Range1();
     aCPRange=aR1;
   }
   if (aE2.IsSame(aE)) {
-    const IntTools_SequenceOfRanges& aSeqR=aCP.Ranges2();
-    const IntTools_Range& aR2=aSeqR(1);
+    const XIntTools_SequenceOfRanges& aSeqR=aCP.Ranges2();
+    const XIntTools_Range& aR2=aSeqR(1);
      aCPRange=aR2;
   }
   //
@@ -1081,8 +1081,8 @@ void NMTTools_PaveFiller::CorrectShrunkRanges(const Standard_Integer aSide,
 // function:  IsBlocksCoinside
 // purpose:
 //=======================================================================
-Standard_Boolean NMTTools_PaveFiller::IsBlocksCoinside(const BOPTools_PaveBlock& aPB1,
-                                                       const BOPTools_PaveBlock& aPB2) const
+Standard_Boolean NMTTools_PaveFiller::IsBlocksCoinside(const XBOPTools_PaveBlock& aPB1,
+                                                       const XBOPTools_PaveBlock& aPB2) const
 {
   Standard_Boolean bRetFlag=Standard_True;
   Standard_Real aTolV11, aTolV12, aTolV21, aTolV22;
@@ -1145,7 +1145,7 @@ void NMTTools_PaveFiller::SplitCommonBlocks(const NMTTools_ListOfCommonBlock& aL
   Standard_Integer nE;
   NMTTools_ListOfCommonBlock aLCBx;
   NMTTools_ListIteratorOfListOfCommonBlock anIt, anItCBx;
-  BOPTools_ListIteratorOfListOfPaveBlock anItLPE;
+  XBOPTools_ListIteratorOfListOfPaveBlock anItLPE;
   //
   anIt.Initialize(aLCB);
   for (; anIt.More(); anIt.Next()) {
@@ -1159,11 +1159,11 @@ void NMTTools_PaveFiller::SplitCommonBlocks(const NMTTools_ListOfCommonBlock& aL
     anItCBx.Initialize(aLCBx);
     for (; anItCBx.More(); anItCBx.Next()) {
       const NMTTools_CommonBlock& aCBx=anItCBx.Value();
-      const BOPTools_ListOfPaveBlock& aLPBx=aCBx.PaveBlocks();
+      const XBOPTools_ListOfPaveBlock& aLPBx=aCBx.PaveBlocks();
       //
       anItLPE.Initialize(aLPBx);
       for (; anItLPE.More(); anItLPE.Next()) {
-        const BOPTools_PaveBlock& aPBx=anItLPE.Value();
+        const XBOPTools_PaveBlock& aPBx=anItLPE.Value();
         nE=aPBx.OriginalEdge();
         NMTTools_ListOfCommonBlock& aLCBE=myCommonBlockPool(myDS->RefEdge(nE));
         aLCBE.Append(aCBx);
@@ -1177,7 +1177,7 @@ void NMTTools_PaveFiller::SplitCommonBlocks(const NMTTools_ListOfCommonBlock& aL
   // Contribution of Samtech www.samcef.com BEGIN
   Standard_Integer i, iMax, aNb, aNbCB, nSp;
   Standard_Real aTolSp, aTolMax;
-  BOPTools_ListOfPaveBlock *pLPBE;
+  XBOPTools_ListOfPaveBlock *pLPBE;
   //
   aNb=myDS->NumberOfShapesOfTheObject();
   for (nE=1; nE<=aNb; ++nE) {
@@ -1195,12 +1195,12 @@ void NMTTools_PaveFiller::SplitCommonBlocks(const NMTTools_ListOfCommonBlock& aL
     anIt.Initialize(aLCBE);
     for (; anIt.More(); anIt.Next()) {
       NMTTools_CommonBlock& aCBE=anIt.ChangeValue();
-      const BOPTools_ListOfPaveBlock& aLPBE=aCBE.PaveBlocks();
+      const XBOPTools_ListOfPaveBlock& aLPBE=aCBE.PaveBlocks();
       //
       aTolMax=-1.;
       anItLPE.Initialize(aLPBE);
       for (i=0; anItLPE.More(); anItLPE.Next(), ++i) {
-        const BOPTools_PaveBlock& aPB=anItLPE.Value();
+        const XBOPTools_PaveBlock& aPB=anItLPE.Value();
         nSp=aPB.OriginalEdge();
         const TopoDS_Edge& aSp=TopoDS::Edge(myDS->Shape(nSp));
         aTolSp=BRep_Tool::Tolerance(aSp);
@@ -1210,11 +1210,11 @@ void NMTTools_PaveFiller::SplitCommonBlocks(const NMTTools_ListOfCommonBlock& aL
         }
       }
       //
-      BOPTools_ListOfPaveBlock aLPBx;
+      XBOPTools_ListOfPaveBlock aLPBx;
       //
       anItLPE.Initialize(aLPBE);
       for (i=0; anItLPE.More(); anItLPE.Next(), ++i) {
-        const BOPTools_PaveBlock& aPB=anItLPE.Value();
+        const XBOPTools_PaveBlock& aPB=anItLPE.Value();
         if (i==iMax) {
           aLPBx.Prepend(aPB);
         }
@@ -1223,7 +1223,7 @@ void NMTTools_PaveFiller::SplitCommonBlocks(const NMTTools_ListOfCommonBlock& aL
         }
       }
       //
-      pLPBE=(BOPTools_ListOfPaveBlock *)&aLPBE;
+      pLPBE=(XBOPTools_ListOfPaveBlock *)&aLPBE;
       pLPBE->Clear();
       pLPBE->Append(aLPBx);
     }//for (; anIt.More(); anIt.Next()) {
@@ -1240,17 +1240,17 @@ void NMTTools_PaveFiller::RemoveCommonBlocks(const NMTTools_ListOfCommonBlock& a
   Standard_Integer nE;
   NMTTools_ListOfCommonBlock aLCBx;
   NMTTools_ListIteratorOfListOfCommonBlock anItCB, anItCBE;
-  BOPTools_ListIteratorOfListOfPaveBlock anItLPB;
+  XBOPTools_ListIteratorOfListOfPaveBlock anItLPB;
   //
   anItCB.Initialize(aLCB);
   for (; anItCB.More(); anItCB.Next()) {
     const NMTTools_CommonBlock& aCB=anItCB.Value();
-    const BOPTools_ListOfPaveBlock& aLPB=aCB.PaveBlocks();
+    const XBOPTools_ListOfPaveBlock& aLPB=aCB.PaveBlocks();
     //
     // Remove aCB from each edge
     anItLPB.Initialize(aLPB);
     for (; anItLPB.More(); anItLPB.Next()) {
-      const BOPTools_PaveBlock& aPB=anItLPB.Value();
+      const XBOPTools_PaveBlock& aPB=anItLPB.Value();
       nE=aPB.OriginalEdge();
       //
       NMTTools_ListOfCommonBlock& aLCBE=myCommonBlockPool(myDS->RefEdge(nE));
@@ -1275,28 +1275,28 @@ void NMTTools_PaveFiller::SplitCommonBlock(const NMTTools_CommonBlock& aCB,
 {
   Standard_Boolean bIsCoincided;
   Standard_Integer i, j,nE, aNbE, aNbSPBx, aNbPB, k;
-  BOPTools_SequenceOfPaveBlock aSPBx;
-  BOPTools_ListIteratorOfListOfPaveBlock anItLPB;
-  BOPTools_ListIteratorOfListOfPave anIt;
-  BOPTools_PaveBlockIterator anPBIt;
+  XBOPTools_SequenceOfPaveBlock aSPBx;
+  XBOPTools_ListIteratorOfListOfPaveBlock anItLPB;
+  XBOPTools_ListIteratorOfListOfPave anIt;
+  XBOPTools_PaveBlockIterator anPBIt;
   //
-  const BOPTools_ListOfPaveBlock& aLPB=aCB.PaveBlocks();
+  const XBOPTools_ListOfPaveBlock& aLPB=aCB.PaveBlocks();
   aNbE=aLPB.Extent();
   //
   // 1. Checking: Whether we realy need to split the common block ?
   anItLPB.Initialize(aLPB);
   for (; anItLPB.More(); anItLPB.Next()) {
-    const BOPTools_PaveBlock& aPB=anItLPB.Value();
+    const XBOPTools_PaveBlock& aPB=anItLPB.Value();
     nE=aPB.OriginalEdge();
-    BOPTools_PaveSet& aPSE=myPavePoolNew(myDS->RefEdge(nE));
+    XBOPTools_PaveSet& aPSE=myPavePoolNew(myDS->RefEdge(nE));
     aPSE.SortSet();
     //
-    BOPTools_PaveSet aPSx;
+    XBOPTools_PaveSet aPSx;
     //
-    const BOPTools_ListOfPave& aLPE=aPSE.Set();
+    const XBOPTools_ListOfPave& aLPE=aPSE.Set();
     anIt.Initialize(aLPE);
     for (; anIt.More(); anIt.Next()) {
-      const BOPTools_Pave& aPx=anIt.Value();
+      const XBOPTools_Pave& aPx=anIt.Value();
       if (aPB.IsInBlock(aPx)) {
         aPSx.Append(aPx);
       }
@@ -1315,25 +1315,25 @@ void NMTTools_PaveFiller::SplitCommonBlock(const NMTTools_CommonBlock& aCB,
   // for each edges's source pave Block
   anItLPB.Initialize(aLPB);
   for (; anItLPB.More(); anItLPB.Next()) {
-    const BOPTools_PaveBlock& aPB=anItLPB.Value();
-    const BOPTools_Pave& aPave1=aPB.Pave1();
-    const BOPTools_Pave& aPave2=aPB.Pave2();
+    const XBOPTools_PaveBlock& aPB=anItLPB.Value();
+    const XBOPTools_Pave& aPave1=aPB.Pave1();
+    const XBOPTools_Pave& aPave2=aPB.Pave2();
     nE=aPB.OriginalEdge();
     //
-    BOPTools_PaveSet aPSx;
+    XBOPTools_PaveSet aPSx;
     //
     // the set aPsx will contain bounadry paves aPave1, aPave2 and
     // all paves of the edge nE that are inside block aPB
     aPSx.Append(aPave1);
     aPSx.Append(aPave2);
     //
-    BOPTools_PaveSet& aPSE=myPavePoolNew(myDS->RefEdge(nE));
+    XBOPTools_PaveSet& aPSE=myPavePoolNew(myDS->RefEdge(nE));
     aPSE.SortSet();
     //
-    const BOPTools_ListOfPave& aLPE=aPSE.Set();
+    const XBOPTools_ListOfPave& aLPE=aPSE.Set();
     anIt.Initialize(aLPE);
     for (; anIt.More(); anIt.Next()) {
-      const BOPTools_Pave& aPx=anIt.Value();
+      const XBOPTools_Pave& aPx=anIt.Value();
       if (aPB.IsInBlock(aPx)) {
         aPSx.Append(aPx);
       }
@@ -1342,7 +1342,7 @@ void NMTTools_PaveFiller::SplitCommonBlock(const NMTTools_CommonBlock& aCB,
     // Form pave blocks from aPSx and collect them in aSPBx
     anPBIt.Initialize(nE, aPSx);
     for (; anPBIt.More(); anPBIt.Next()) {
-      const BOPTools_PaveBlock& aPBx=anPBIt.Value();
+      const XBOPTools_PaveBlock& aPBx=anPBIt.Value();
       aSPBx.Append(aPBx);
     }
   }
@@ -1360,7 +1360,7 @@ void NMTTools_PaveFiller::SplitCommonBlock(const NMTTools_CommonBlock& aCB,
     //
     aCBx.AddFaces(aLF);
     //
-    const BOPTools_PaveBlock& aPB1=aSPBx(i);
+    const XBOPTools_PaveBlock& aPB1=aSPBx(i);
     n11=aPB1.Pave1().Index();
     n12=aPB1.Pave2().Index();
     //
@@ -1370,7 +1370,7 @@ void NMTTools_PaveFiller::SplitCommonBlock(const NMTTools_CommonBlock& aCB,
       k1=(j-1)*aNbPB+1;
       k2=k1+aNbPB-1;
       for(k=k1; k<=k2; ++k) {
-        const BOPTools_PaveBlock& aPB2=aSPBx(k);
+        const XBOPTools_PaveBlock& aPB2=aSPBx(k);
         n21=aPB2.Pave1().Index();
         n22=aPB2.Pave2().Index();
         if ((n21==n11 && n22==n12) || (n21==n12 && n22==n11)) {
@@ -1394,11 +1394,11 @@ void NMTTools_PaveFiller::SplitCommonBlock(const NMTTools_CommonBlock& aCB,
 // function: VertexParameters
 // purpose:
 //=======================================================================
-void VertexParameters(const IntTools_CommonPrt& aCPart,
+void VertexParameters(const XIntTools_CommonPrt& aCPart,
                       Standard_Real& aT1,
                       Standard_Real& aT2)
 {
-  const IntTools_Range& aR1=aCPart.Range1();
+  const XIntTools_Range& aR1=aCPart.Range1();
   aT1=0.5*(aR1.First()+aR1.Last());
   //
   if((aCPart.VertexParameter1() >= aR1.First()) &&
@@ -1406,8 +1406,8 @@ void VertexParameters(const IntTools_CommonPrt& aCPart,
     aT1 = aCPart.VertexParameter1();
   }
   //
-  const IntTools_SequenceOfRanges& aRanges2=aCPart.Ranges2();
-  const IntTools_Range& aR2=aRanges2(1);
+  const XIntTools_SequenceOfRanges& aRanges2=aCPart.Ranges2();
+  const XIntTools_Range& aR2=aRanges2(1);
   aT2=0.5*(aR2.First()+aR2.Last());
   //
   if((aCPart.VertexParameter2() >= aR2.First()) &&
@@ -1421,7 +1421,7 @@ void VertexParameters(const IntTools_CommonPrt& aCPart,
 // purpose:
 //=======================================================================
 Standard_Boolean IsOnPave(const Standard_Real& aT1,
-                          const IntTools_Range& aRange,
+                          const XIntTools_Range& aRange,
                           const Standard_Real& aTolerance)
 {
   Standard_Boolean firstisonpave1, firstisonpave2, bIsOnPave;
@@ -1436,15 +1436,15 @@ Standard_Boolean IsOnPave(const Standard_Real& aT1,
 // function:FindChains
 // purpose:
 //=======================================================================
-void FindChains(const BOPTools_IDMapOfPaveBlockIMapOfPaveBlock& aMapCB,
+void FindChains(const XBOPTools_IDMapOfPaveBlockIMapOfPaveBlock& aMapCB,
                 NMTTools_ListOfCommonBlock& aLCB)
 {
   Standard_Integer  i, j, aNbCB, aNbPB;
-  BOPTools_IMapOfPaveBlock aProcessedBlocks, aChain;
+  XBOPTools_IMapOfPaveBlock aProcessedBlocks, aChain;
   //
   aNbCB=aMapCB.Extent();
   for (i=1; i<=aNbCB; ++i) {
-    const BOPTools_PaveBlock& aPB=aMapCB.FindKey(i);
+    const XBOPTools_PaveBlock& aPB=aMapCB.FindKey(i);
     if (aProcessedBlocks.Contains(aPB)) {
       continue;
     }
@@ -1452,10 +1452,10 @@ void FindChains(const BOPTools_IDMapOfPaveBlockIMapOfPaveBlock& aMapCB,
     aProcessedBlocks.Add(aPB);
     aChain.Add(aPB);
     //
-    const BOPTools_IMapOfPaveBlock& aMapPB=aMapCB(i);
+    const XBOPTools_IMapOfPaveBlock& aMapPB=aMapCB(i);
     aNbPB=aMapPB.Extent();
     for (j=1; j<=aNbPB; ++j) {
-      const BOPTools_PaveBlock& aPBx=aMapPB(j);
+      const XBOPTools_PaveBlock& aPBx=aMapPB(j);
       ProcessBlock(aPBx, aMapCB, aProcessedBlocks, aChain);
     }
     //
@@ -1463,7 +1463,7 @@ void FindChains(const BOPTools_IDMapOfPaveBlockIMapOfPaveBlock& aMapCB,
     //
     aNbPB=aChain.Extent();
     for (j=1; j<=aNbPB; ++j) {
-      const BOPTools_PaveBlock& aPBx=aChain(j);
+      const XBOPTools_PaveBlock& aPBx=aChain(j);
       aCB.AddPaveBlock(aPBx);
     }
     aLCB.Append(aCB);
@@ -1475,10 +1475,10 @@ void FindChains(const BOPTools_IDMapOfPaveBlockIMapOfPaveBlock& aMapCB,
 // function:ProcessBlock
 // purpose:
 //=======================================================================
-void ProcessBlock(const BOPTools_PaveBlock& aPB,
-                  const BOPTools_IDMapOfPaveBlockIMapOfPaveBlock& aMapCB,
-                  BOPTools_IMapOfPaveBlock& aProcessedBlocks,
-                  BOPTools_IMapOfPaveBlock& aChain)
+void ProcessBlock(const XBOPTools_PaveBlock& aPB,
+                  const XBOPTools_IDMapOfPaveBlockIMapOfPaveBlock& aMapCB,
+                  XBOPTools_IMapOfPaveBlock& aProcessedBlocks,
+                  XBOPTools_IMapOfPaveBlock& aChain)
 {
   Standard_Integer j, aNbPB;
   //
@@ -1488,10 +1488,10 @@ void ProcessBlock(const BOPTools_PaveBlock& aPB,
   aProcessedBlocks.Add(aPB);
   aChain.Add(aPB);
   //
-  const BOPTools_IMapOfPaveBlock& aMapPB=aMapCB.FindFromKey(aPB);
+  const XBOPTools_IMapOfPaveBlock& aMapPB=aMapCB.FindFromKey(aPB);
   aNbPB=aMapPB.Extent();
   for (j=1; j<=aNbPB; ++j) {
-    const BOPTools_PaveBlock& aPBx=aMapPB(j);
+    const XBOPTools_PaveBlock& aPBx=aMapPB(j);
     ProcessBlock(aPBx, aMapCB, aProcessedBlocks, aChain);
   }
 }
@@ -1511,8 +1511,8 @@ void ProcessBlock(const BOPTools_PaveBlock& aPB,
   TColStd_ListOfInteger aLFI;
   TColStd_ListIteratorOfListOfInteger aItLFI;
   //
-  BOPTools_CArray1OfVSInterference& aVSs=myIP->VSInterferences();
-  BOPTools_CArray1OfEEInterference& aEEs=myIP->EEInterferences();
+  XBOPTools_CArray1OfVSInterference& aVSs=myIP->VSInterferences();
+  XBOPTools_CArray1OfEEInterference& aEEs=myIP->EEInterferences();
   //
   aNbS=myDS->NumberOfShapesOfTheObject();
   for (i=1; i<=aNbS; ++i) {
@@ -1527,7 +1527,7 @@ void ProcessBlock(const BOPTools_PaveBlock& aPB,
   //
   aNbEE=aEEs.Extent();
   for (i=1; i<=aNbEE; ++i) {
-    BOPTools_EEInterference& aEE=aEEs(i);
+    XBOPTools_EEInterference& aEE=aEEs(i);
     aEE.Indices(n1, n2);
     nNewShape=aEE.NewShape();
     if (!nNewShape) {
@@ -1558,10 +1558,10 @@ void ProcessBlock(const BOPTools_PaveBlock& aPB,
       anIndexIn=0;
       aFlag=myContext->ComputeVS (aVnew, aF, aU, aV);
       if (!aFlag) {
-        BOPTools_VSInterference anInterf (nNewShape, nF, aU, aV);
+        XBOPTools_VSInterference anInterf (nNewShape, nF, aU, aV);
         //
         anIndexIn=aVSs.Append(anInterf);
-        BOPTools_VSInterference& aVS=aVSs(anIndexIn);
+        XBOPTools_VSInterference& aVS=aVSs(anIndexIn);
         aVS.SetNewShape(nNewShape);//->
       }
     }
@@ -1573,8 +1573,8 @@ void ProcessBlock(const BOPTools_PaveBlock& aPB,
 // function: CheckCoincidence
 // purpose:
 //=======================================================================
-Standard_Boolean NMTTools_PaveFiller::CheckCoincidence(const BOPTools_PaveBlock& aPB1,
-                                                       const BOPTools_PaveBlock& aPB2)
+Standard_Boolean NMTTools_PaveFiller::CheckCoincidence(const XBOPTools_PaveBlock& aPB1,
+                                                       const XBOPTools_PaveBlock& aPB2)
 {
   Standard_Boolean bRet;
   Standard_Integer nE1, nE2, aNbPoints;
@@ -1585,10 +1585,10 @@ Standard_Boolean NMTTools_PaveFiller::CheckCoincidence(const BOPTools_PaveBlock&
   //
   aT11=aPB1.Pave1().Param();
   aT12=aPB1.Pave2().Param();
-  aT1m=IntTools_Tools::IntermediatePoint (aT11, aT12);
+  aT1m=XIntTools_Tools::IntermediatePoint (aT11, aT12);
   nE1=aPB1.OriginalEdge();
   const TopoDS_Edge& aE1=(*(TopoDS_Edge*)(&myDS->Shape(nE1)));
-  BOPTools_Tools::PointOnEdge(aE1, aT1m, aP1m);
+  XBOPTools_Tools::PointOnEdge(aE1, aT1m, aP1m);
   //
   aT21=aPB2.Pave1().Param();
   aT22=aPB2.Pave2().Param();

@@ -55,7 +55,7 @@
 #include <TopTools_DataMapIteratorOfDataMapOfShapeInteger.hxx>
 #include <TopTools_MapOfShape.hxx>
 
-#include <IntTools_Context.hxx>
+#include <XIntTools_Context.hxx>
 
 #include <NMTDS_ShapesDataStructure.hxx>
 #include <NMTTools_PaveFiller.hxx>
@@ -95,7 +95,7 @@ void GEOMAlgo_Builder::BuildDraftSolid (const TopoDS_Shape& theSolid,
   myErrorStatus=0;
   //
   NMTTools_PaveFiller* pPF=myPaveFiller;
-  const Handle(IntTools_Context)& aCtx= pPF->Context();
+  const Handle(XIntTools_Context)& aCtx= pPF->Context();
   //
   Standard_Boolean bToReverse;
   Standard_Integer  iFlag;
@@ -188,7 +188,7 @@ void GEOMAlgo_Builder::BuildDraftSolid (const TopoDS_Shape& theSolid,
   //
   const NMTDS_ShapesDataStructure& aDS=*myPaveFiller->DS();
   NMTTools_PaveFiller* pPF=myPaveFiller;
-  const Handle(IntTools_Context)& aCtx= pPF->Context();
+  const Handle(XIntTools_Context)& aCtx= pPF->Context();
   //
   Standard_Boolean bIsIN, bHasImage;
   Standard_Integer aNbS, aNbSolids, i, j, aNbFaces, aNbFP, aNbFPx, aNbFIN, aNbLIF;
@@ -419,7 +419,7 @@ void GEOMAlgo_Builder::BuildDraftSolid (const TopoDS_Shape& theSolid,
   //
   const NMTDS_ShapesDataStructure& aDS=*myPaveFiller->DS();
   NMTTools_PaveFiller* pPF=myPaveFiller;
-  const Handle(IntTools_Context)& aCtx= pPF->Context();
+  const Handle(XIntTools_Context)& aCtx= pPF->Context();
   //
   Standard_Integer i, aNbS, iErr;
   TopExp_Explorer aExp;
@@ -560,7 +560,7 @@ void GEOMAlgo_Builder::BuildDraftSolid (const TopoDS_Shape& theSolid,
   //
   const NMTDS_ShapesDataStructure& aDS=*myPaveFiller->DS();
   NMTTools_PaveFiller* pPF=myPaveFiller;
-  const Handle(IntTools_Context)& aCtx= pPF->Context();
+  const Handle(XIntTools_Context)& aCtx= pPF->Context();
   //
   //Standard_Boolean bHasImage;
   Standard_Integer i, j, jT, aNbS, aNbSI, aNbSx, aNbSd;

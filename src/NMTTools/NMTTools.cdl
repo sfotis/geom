@@ -38,10 +38,10 @@ uses
     TopoDS,
     TopTools,
     Geom2d,
-    BooleanOperations,
-    BOPTColStd,
-    IntTools,
-    BOPTools,
+    XBooleanOperations,
+    XBOPTColStd,
+    XIntTools,
+    XBOPTools,
     NMTDS
 
 is
@@ -94,8 +94,8 @@ is
     --	List from TCollection(CoupleOfShape from NMTTools);
 --
     --class  MapOfPaveBlock  instantiates
-    --	Map from TCollection   (PaveBlock from BOPTools,
-    --	    	    	    	PaveBlockMapHasher from BOPTools);
+    --	Map from TCollection   (PaveBlock from XBOPTools,
+    --	    	    	    	PaveBlockMapHasher from XBOPTools);
 --
     --class IndexedDataMapOfIndexedMapOfInteger instantiates
     --	IndexedDataMap from TCollection  (Integer from Standard,
@@ -104,7 +104,7 @@ is
 
     --class IndexedDataMapOfShapePaveBlock instantiates
     --	IndexedDataMap from TCollection  (Shape from TopoDS,
-    --	    	    	    	    	  PaveBlock from BOPTools,
+    --	    	    	    	    	  PaveBlock from XBOPTools,
     --	    	    	    	    	  ShapeMapHasher from TopTools);
 
     --class IndexedDataMapOfShapeIndexedMapOfShape instantiates
@@ -115,7 +115,7 @@ is
 --
     --class DataMapOfIntegerListOfPaveBlock instantiates
     --	DataMap from TCollection(Integer from  Standard,
-    --	    	    	    	 ListOfPaveBlock from BOPTools,
+    --	    	    	    	 ListOfPaveBlock from XBOPTools,
     --				 MapIntegerHasher from TColStd);
 
     --class DataMapOfIntegerFaceInfo instantiates
@@ -124,6 +124,6 @@ is
     --				 MapIntegerHasher from TColStd);
 --
     --class CommonBlockPool    instantiates
-    --	CArray1 from BOPTColStd (ListOfCommonBlock from NMTTools);
+    --	CArray1 from XBOPTColStd (ListOfCommonBlock from NMTTools);
 --
 end NMTTools;

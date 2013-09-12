@@ -31,11 +31,11 @@
 
 #include <Standard.hxx>
 #include <Standard_Macro.hxx>
-#include <BOPTools_ListOfPaveBlock.hxx>
+#include <XBOPTools_ListOfPaveBlock.hxx>
 #include <TColStd_ListOfInteger.hxx>
 #include <Standard_Integer.hxx>
 #include <Standard_Boolean.hxx>
-#include <BOPTools_PaveBlock.hxx>
+#include <XBOPTools_PaveBlock.hxx>
 
 
 //=======================================================================
@@ -48,7 +48,7 @@ class NMTTools_CommonBlock  {
     NMTTools_CommonBlock();
 
   Standard_EXPORT
-    void AddPaveBlock(const BOPTools_PaveBlock& aPB) ;
+    void AddPaveBlock(const XBOPTools_PaveBlock& aPB) ;
 
   Standard_EXPORT
     void AddFace(const Standard_Integer aF) ;
@@ -57,19 +57,19 @@ class NMTTools_CommonBlock  {
     void AddFaces(const TColStd_ListOfInteger& aLF) ;
 
   Standard_EXPORT
-    const BOPTools_ListOfPaveBlock& PaveBlocks() const;
+    const XBOPTools_ListOfPaveBlock& PaveBlocks() const;
 
   Standard_EXPORT
     const TColStd_ListOfInteger& Faces() const;
 
   Standard_EXPORT
-    const BOPTools_PaveBlock& PaveBlock1() const;
+    const XBOPTools_PaveBlock& PaveBlock1() const;
 
   Standard_EXPORT
-    BOPTools_PaveBlock& PaveBlock1(const Standard_Integer anIx) ;
+    XBOPTools_PaveBlock& PaveBlock1(const Standard_Integer anIx) ;
 
   Standard_EXPORT
-    BOPTools_PaveBlock& PaveBlockOnEdge(const Standard_Integer anIndex) ;
+    XBOPTools_PaveBlock& PaveBlockOnEdge(const Standard_Integer anIndex) ;
 
   Standard_EXPORT
     Standard_Boolean IsPaveBlockOnFace(const Standard_Integer anIndex) const;
@@ -81,10 +81,10 @@ class NMTTools_CommonBlock  {
     Standard_Boolean IsEqual(const NMTTools_CommonBlock& aCB) const;
 
   Standard_EXPORT
-    Standard_Boolean Contains(const BOPTools_PaveBlock& aPB) const;
+    Standard_Boolean Contains(const XBOPTools_PaveBlock& aPB) const;
 
  protected:
-  BOPTools_ListOfPaveBlock myPaveBlocks;
+  XBOPTools_ListOfPaveBlock myPaveBlocks;
   TColStd_ListOfInteger myFaces;
 };
 

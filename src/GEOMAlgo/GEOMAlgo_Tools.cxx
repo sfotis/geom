@@ -58,8 +58,8 @@
 #include <BRep_Builder.hxx>
 #include <BRepTools.hxx>
 
-#include <BOPTools_Tools2D.hxx>
-#include <IntTools_Context.hxx>
+#include <XBOPTools_Tools2D.hxx>
+#include <XIntTools_Context.hxx>
 
 #include <GEOMAlgo_PassKeyShape.hxx>
 #include <GEOMAlgo_IndexedDataMapOfPassKeyShapeListOfShape.hxx>
@@ -118,7 +118,7 @@ void GetCount(const TopoDS_Shape& aS,
 //=======================================================================
   Standard_Integer GEOMAlgo_Tools::RefineSDShapes(GEOMAlgo_IndexedDataMapOfPassKeyShapeListOfShape& aMPKLE,
                                                   const Standard_Real aTol,
-                                                  const Handle(IntTools_Context)& aCtx)
+                                                  const Handle(XIntTools_Context)& aCtx)
 {
   Standard_Integer i, aNbE, iErr, j, aNbEE, aNbToAdd;
   TopTools_IndexedDataMapOfShapeListOfShape aMEE, aMSDE, aMEToAdd;
@@ -181,7 +181,7 @@ void GetCount(const TopoDS_Shape& aS,
 Standard_Integer GEOMAlgo_Tools::FindSDShapes(const TopTools_ListOfShape& aLE,
                                               const Standard_Real aTol,
                                               TopTools_IndexedDataMapOfShapeListOfShape& aMEE,
-                                              const Handle(IntTools_Context)& aCtx)
+                                              const Handle(XIntTools_Context)& aCtx)
 {
   Standard_Integer aNbE, aNbEProcessed, aNbESD, iErr;
   TopTools_ListOfShape aLESD;
@@ -254,7 +254,7 @@ Standard_Integer GEOMAlgo_Tools::FindSDShapes(const TopoDS_Shape& aE1,
                                               const TopTools_ListOfShape& aLE,
                                               const Standard_Real aTol,
                                               TopTools_ListOfShape& aLESD,
-                                              const Handle(IntTools_Context)& aCtx)
+                                              const Handle(XIntTools_Context)& aCtx)
 {
   Standard_Boolean bIsDone;
   Standard_Real aTol2, aD2;
@@ -292,7 +292,7 @@ Standard_Integer GEOMAlgo_Tools::FindSDShapes(const TopoDS_Shape& aE1,
 Standard_Boolean GEOMAlgo_Tools::ProjectPointOnShape(const gp_Pnt& aP1,
                                                      const TopoDS_Shape& aS,
                                                      gp_Pnt& aP2,
-                                                     const Handle(IntTools_Context)& aCtx)
+                                                     const Handle(XIntTools_Context)& aCtx)
 {
   Standard_Boolean bIsDone = Standard_False;
   Standard_Real aT2;
@@ -383,8 +383,8 @@ void GEOMAlgo_Tools::PointOnFace(const TopoDS_Face& aF,
   //
   BRepTools::UVBounds(aF, aUMin, aUMax, aVMin, aVMax);
   //
-  aU=BOPTools_Tools2D::IntermediatePoint(aUMin, aUMax);
-  aV=BOPTools_Tools2D::IntermediatePoint(aVMin, aVMax);
+  aU=XBOPTools_Tools2D::IntermediatePoint(aUMin, aUMax);
+  aV=XBOPTools_Tools2D::IntermediatePoint(aVMin, aVMax);
   //
   GEOMAlgo_Tools::PointOnFace(aF, aU, aV, aP3D);
 }
@@ -412,7 +412,7 @@ void GEOMAlgo_Tools::PointOnEdge(const TopoDS_Edge& aE,
   Standard_Real aTx, aT1, aT2;
   //
   BRep_Tool::Curve(aE, aT1, aT2);
-  aTx=BOPTools_Tools2D::IntermediatePoint(aT1, aT2);
+  aTx=XBOPTools_Tools2D::IntermediatePoint(aT1, aT2);
   GEOMAlgo_Tools::PointOnEdge(aE, aTx, aP3D);
 }
 //=======================================================================
@@ -449,7 +449,7 @@ void GEOMAlgo_Tools::RefinePCurveForEdgeOnFace(const TopoDS_Edge& aE,
     if (BRep_Tool::IsClosed(aE, aF)) {
       return;
     }
-    aTx=BOPTools_Tools2D::IntermediatePoint(aT1, aT2);
+    aTx=XBOPTools_Tools2D::IntermediatePoint(aT1, aT2);
     aC2D->D0(aTx, aP2D);
     aUx=aP2D.X();
     if (aUx < aUMin || aUx > aUMax) {
@@ -489,7 +489,7 @@ Standard_Integer
   GEOMAlgo_Tools::BuildPCurveForEdgeOnFace(const TopoDS_Edge& aEold,
                                            const TopoDS_Edge& aEnew,
                                            const TopoDS_Face& aF,
-                                           const Handle(IntTools_Context)& aCtx)
+                                           const Handle(XIntTools_Context)& aCtx)
 {
   Standard_Boolean bIsClosed, bUClosed, bHasOld;
   Standard_Integer iRet, aNbPoints;
@@ -504,12 +504,12 @@ Standard_Integer
   //
   iRet=0;
   //
-  bHasOld=BOPTools_Tools2D::HasCurveOnSurface(aEnew, aF, aC2D, aT1, aT2, aTol);
+  bHasOld=XBOPTools_Tools2D::HasCurveOnSurface(aEnew, aF, aC2D, aT1, aT2, aTol);
   if (bHasOld) {
     return iRet;
   }
   //
-  BOPTools_Tools2D::BuildPCurveForEdgeOnFace(aEnew, aF);
+  XBOPTools_Tools2D::BuildPCurveForEdgeOnFace(aEnew, aF);
   aC2D=BRep_Tool::CurveOnSurface(aEnew, aF, aT1, aT2);
   if (aC2D.IsNull()){
     iRet=1;
@@ -532,7 +532,7 @@ Standard_Integer
   aES.Orientation(TopAbs_REVERSED);
   aC2DS2=BRep_Tool::CurveOnSurface(aES, aF, aTS1, aTS2);
   //
-  aTS=BOPTools_Tools2D::IntermediatePoint(aTS1, aTS2);
+  aTS=XBOPTools_Tools2D::IntermediatePoint(aTS1, aTS2);
   //
   aC2DS1->D1(aTS, aP2DS1, aV2DS1);
   aC2DS2->D1(aTS, aP2DS2, aV2DS2);

@@ -26,14 +26,14 @@
 #include <NMTDS_ShapesDataStructure.hxx>
 #include <TopoDS_Iterator.hxx>
 #include <TopoDS_Shape.hxx>
-#include <BooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors.hxx>
+#include <XBooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors.hxx>
 #include <NMTDS_ListOfIndexedDataMapOfShapeAncestorsSuccessors.hxx>
 #include <NMTDS_ListIteratorOfListOfIndexedDataMapOfShapeAncestorsSuccessors.hxx>
-#include <BooleanOperations_ShapeAndInterferences.hxx>
+#include <XBooleanOperations_ShapeAndInterferences.hxx>
 #include <NMTDS_IndexRange.hxx>
 //
-#include <BooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors.hxx>
-#include <BooleanOperations_AncestorsSeqAndSuccessorsSeq.hxx>
+#include <XBooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors.hxx>
+#include <XBooleanOperations_AncestorsSeqAndSuccessorsSeq.hxx>
 #include <TColStd_MapOfInteger.hxx>
 #include <NMTDS_Tools.hxx>
 
@@ -53,7 +53,7 @@ static
 //===========================================================================
 NMTDS_ShapesDataStructure::NMTDS_ShapesDataStructure()
 :
-  BooleanOperations_ShapesDataStructure()
+  XBooleanOperations_ShapesDataStructure()
 {}
 //===========================================================================
 //function : SetCompositeShape
@@ -85,11 +85,11 @@ const NMTDS_CArray1OfIndexRange& NMTDS_ShapesDataStructure::Ranges()const
 //===========================================================================
 void NMTDS_ShapesDataStructure::FillMap
   (const TopoDS_Shape& aS,
-   BooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors& aMSA,
-   BooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors& aMS) const
+   XBooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors& aMSA,
+   XBooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors& aMS) const
 {
   Standard_Integer iX, i, j, aIndex, aNbSc, aNbS;
-  BooleanOperations_AncestorsSeqAndSuccessorsSeq aAS;
+  XBooleanOperations_AncestorsSeqAndSuccessorsSeq aAS;
   //
   aMSA.Add(aS, aAS);
   aMS.Add(aS, aAS);
@@ -101,13 +101,13 @@ void NMTDS_ShapesDataStructure::FillMap
     //
     const TopoDS_Shape& aSX=aMS.FindKey(i);
     iX=aMSA.FindIndex(aSX);
-    const BooleanOperations_AncestorsSeqAndSuccessorsSeq& aAS1=aMSA(iX);
+    const XBooleanOperations_AncestorsSeqAndSuccessorsSeq& aAS1=aMSA(iX);
     //
     aNbSc=aAS1.NumberOfSuccessors();
     for(j=1; j<=aNbSc; ++j) {
       aIndex=aAS1.GetSuccessor(j);
       if(aMFence.Add(aIndex)) {
-        BooleanOperations_AncestorsSeqAndSuccessorsSeq& aAS2=aMSA.ChangeFromIndex(aIndex);
+        XBooleanOperations_AncestorsSeqAndSuccessorsSeq& aAS2=aMSA.ChangeFromIndex(aIndex);
         aAS2.SetNewAncestor(iX);
       }
     }
@@ -119,15 +119,15 @@ void NMTDS_ShapesDataStructure::FillMap
 //===========================================================================
 void NMTDS_ShapesDataStructure::FillSubshapes
   (const TopoDS_Shape& aS,
-   BooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors& aMSA,
-   BooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors& aMS) const
+   XBooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors& aMSA,
+   XBooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors& aMS) const
 {
   Standard_Boolean bIsNewSubShape;
   Standard_Integer aIndexSubShape, aIndex;
-  BooleanOperations_AncestorsSeqAndSuccessorsSeq aASx;
+  XBooleanOperations_AncestorsSeqAndSuccessorsSeq aASx;
   //
   aIndex=aMSA.FindIndex(aS);
-  BooleanOperations_AncestorsSeqAndSuccessorsSeq& aAS=aMSA.ChangeFromIndex(aIndex);
+  XBooleanOperations_AncestorsSeqAndSuccessorsSeq& aAS=aMSA.ChangeFromIndex(aIndex);
   //
   TopoDS_Iterator anIt(aS, Standard_True);
   for(; anIt.More(); anIt.Next()) {
@@ -160,12 +160,12 @@ void NMTDS_ShapesDataStructure::Init()
   NMTDS_ListOfIndexedDataMapOfShapeAncestorsSuccessors aLx;
   NMTDS_ListIteratorOfListOfIndexedDataMapOfShapeAncestorsSuccessors aLit;
   TopoDS_Iterator anIt;
-  BooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors aMSA;
+  XBooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors aMSA;
   //
   anIt.Initialize(myCompositeShape);
   for (; anIt.More(); anIt.Next()) {
     const TopoDS_Shape& aSx=anIt.Value(); 
-    BooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors aMS;
+    XBooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors aMS;
     //
     if (!aMSA.Contains(aSx)) {
       FillMap(aSx, aMSA, aMS);
@@ -179,7 +179,7 @@ void NMTDS_ShapesDataStructure::Init()
   myRanges.Resize(i);
   aLit.Initialize(aLx);
   for (i=1; aLit.More(); aLit.Next(), ++i) {
-    const BooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors& aMSx=aLit.Value();
+    const XBooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors& aMSx=aLit.Value();
     aNbSx=aMSx.Extent();
     if (i==1) {
       iFirst=1;
@@ -199,15 +199,15 @@ void NMTDS_ShapesDataStructure::Init()
   myLength=2*aNbS;
   //
   // Allocate the whole Table
-  myListOfShapeAndInterferences = (BooleanOperations_PShapeAndInterferences)
-    Standard::Allocate(myLength*sizeof(BooleanOperations_ShapeAndInterferences));
+  myListOfShapeAndInterferences = (XBooleanOperations_PShapeAndInterferences)
+    Standard::Allocate(myLength*sizeof(XBooleanOperations_ShapeAndInterferences));
   //
   // Fill the table
   
   aShift=0;
   for (j=1; j<=aNbS; ++j) {
     const TopoDS_Shape& aSx=aMSA.FindKey(j);
-    const BooleanOperations_AncestorsSeqAndSuccessorsSeq& aASx=aMSA.FindFromIndex(j);
+    const XBooleanOperations_AncestorsSeqAndSuccessorsSeq& aASx=aMSA.FindFromIndex(j);
     InsertShapeAndAncestorsSuccessors(aSx, aASx, aShift);
   }
   // myShapeIndexMap

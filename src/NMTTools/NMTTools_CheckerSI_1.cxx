@@ -28,17 +28,17 @@
 #include <NMTDS_InterfPool.hxx>
 #include <TopoDS_Edge.hxx>
 #include <TopoDS_Vertex.hxx>
-#include <BOPTools_ListOfPaveBlock.hxx>
+#include <XBOPTools_ListOfPaveBlock.hxx>
 #include <TopoDS.hxx>
 #include <BRep_Tool.hxx>
-#include <BOPTools_PaveSet.hxx>
-#include <BOPTools_PaveBlockIterator.hxx>
-#include <BOPTools_PaveBlock.hxx>
-#include <IntTools_Range.hxx>
-#include <BOPTools_Pave.hxx>
-#include <IntTools_ShrunkRange.hxx>
-#include <BOPTColStd_Failure.hxx>
-#include <BOPTColStd_Dump.hxx>
+#include <XBOPTools_PaveSet.hxx>
+#include <XBOPTools_PaveBlockIterator.hxx>
+#include <XBOPTools_PaveBlock.hxx>
+#include <XIntTools_Range.hxx>
+#include <XBOPTools_Pave.hxx>
+#include <XIntTools_ShrunkRange.hxx>
+#include <XBOPTColStd_Failure.hxx>
+#include <XBOPTColStd_Dump.hxx>
 #include <Geom_Curve.hxx>
 #include <gp_Pnt.hxx>
 
@@ -65,7 +65,7 @@
   // 
   myIsDone=Standard_False;
   //
-  BOPTools_ListOfPaveBlock& aLPB=mySplitShapesPool(myDS->RefEdge(nE));
+  XBOPTools_ListOfPaveBlock& aLPB=mySplitShapesPool(myDS->RefEdge(nE));
   // Edge
   aE=TopoDS::Edge(myDS->Shape(nE));
   if (BRep_Tool::Degenerated(aE)) {
@@ -73,19 +73,19 @@
     return;
   }
   //
-  BOPTools_PaveSet& aPS=myPavePool(myDS->RefEdge(nE));
+  XBOPTools_PaveSet& aPS=myPavePool(myDS->RefEdge(nE));
 
-  BOPTools_PaveBlockIterator aPBIt(nE, aPS);
+  XBOPTools_PaveBlockIterator aPBIt(nE, aPS);
   for (; aPBIt.More(); aPBIt.Next()) {
-    BOPTools_PaveBlock& aPB=aPBIt.Value();
-    const IntTools_Range& aRange=aPB.Range();
+    XBOPTools_PaveBlock& aPB=aPBIt.Value();
+    const XIntTools_Range& aRange=aPB.Range();
     //
-    const BOPTools_Pave& aPave1=aPB.Pave1();
+    const XBOPTools_Pave& aPave1=aPB.Pave1();
     nV1=aPave1.Index();
     aV1=TopoDS::Vertex(myDS->Shape(nV1));
     aT1=aPave1.Param();
     //
-    const BOPTools_Pave& aPave2=aPB.Pave2();
+    const XBOPTools_Pave& aPave2=aPB.Pave2();
     nV2=aPave2.Index();
     aV2=TopoDS::Vertex(myDS->Shape(nV2));
     aT2=aPave2.Param();
@@ -103,7 +103,7 @@
     */
     //modified by NIZNHY-PKV Thu Nov 01 13:46:09 2012t
     //
-    IntTools_ShrunkRange aSR (aE, aV1, aV2, aRange, myContext);
+    XIntTools_ShrunkRange aSR (aE, aV1, aV2, aRange, myContext);
     iErr=aSR.ErrorStatus();
     if (!aSR.IsDone()) {
       aSR.SetShrunkRange(aRange);

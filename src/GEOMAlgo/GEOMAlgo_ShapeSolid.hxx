@@ -32,10 +32,10 @@
 #include <Standard_Macro.hxx>
 #include <TopTools_ListOfShape.hxx>
 #include <Standard_Integer.hxx>
-#include <BOPTools_PDSFiller.hxx>
+#include <XBOPTools_PDSFiller.hxx>
 #include <GEOMAlgo_Algo.hxx>
 #include <TopAbs_State.hxx>
-#include <BOPTools_DSFiller.hxx>
+#include <XBOPTools_DSFiller.hxx>
 
 //=======================================================================
 //function : GEOMAlgo_ShapeSolid
@@ -45,7 +45,7 @@ class GEOMAlgo_ShapeSolid  : public GEOMAlgo_Algo
 {
  public:
   Standard_EXPORT
-    void SetFiller(const BOPTools_DSFiller& aDSF) ;
+    void SetFiller(const XBOPTools_DSFiller& aDSF) ;
 
   Standard_EXPORT
     virtual ~GEOMAlgo_ShapeSolid();
@@ -68,6 +68,6 @@ protected:
   TopTools_ListOfShape myLSOUT;
   TopTools_ListOfShape myLSON;
   Standard_Integer myRank;
-  BOPTools_PDSFiller myDSFiller;
+  XBOPTools_PDSFiller myDSFiller;
 };
 #endif

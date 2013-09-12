@@ -31,17 +31,17 @@
 #include <Standard.hxx>
 #include <Standard_Macro.hxx>
 #include <Standard_Boolean.hxx>
-#include <Handle_IntTools_Context.hxx>
+#include <Handle_XIntTools_Context.hxx>
 #include <Handle_Geom2d_Curve.hxx>
 #include <Standard_Real.hxx>
 #include <TopTools_ListOfShape.hxx>
 #include <TopoDS_Vertex.hxx>
-#include <BOPTools_CArray1OfVVInterference.hxx>
-#include <BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger.hxx>
-#include <BOPTools_CArray1OfSSInterference.hxx>
+#include <XBOPTools_CArray1OfVVInterference.hxx>
+#include <XBOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger.hxx>
+#include <XBOPTools_CArray1OfSSInterference.hxx>
 #include <TopoDS_Edge.hxx>
 #include <TopoDS_Face.hxx>
-#include <IntTools_Context.hxx>
+#include <XIntTools_Context.hxx>
 #include <NMTTools_ListOfCoupleOfShape.hxx>
 #include <NMTTools_IndexedDataMapOfShapeIndexedMapOfShape.hxx>
 #include <Geom2d_Curve.hxx>
@@ -57,26 +57,26 @@ class NMTTools_Tools  {
                                TopoDS_Vertex& aNewVertex) ;
 
   Standard_EXPORT
-    static  void FindChains(const BOPTools_CArray1OfVVInterference& aVVs,
-                            BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCX) ;
+    static  void FindChains(const XBOPTools_CArray1OfVVInterference& aVVs,
+                            XBOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCX) ;
 
   Standard_EXPORT
-    static  void FindChains(const BOPTools_CArray1OfSSInterference& aVVs,
-                            BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCX) ;
+    static  void FindChains(const XBOPTools_CArray1OfSSInterference& aVVs,
+                            XBOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCX) ;
 
   Standard_EXPORT
-    static  void FindChains(const BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCV,
-                            BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCX) ;
+    static  void FindChains(const XBOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCV,
+                            XBOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCX) ;
 
   Standard_EXPORT
     static  Standard_Boolean IsSplitInOnFace(const TopoDS_Edge& aE,
                                              const TopoDS_Face& aF,
-                                             const Handle(IntTools_Context)& aCtx) ;
+                                             const Handle(XIntTools_Context)& aCtx) ;
 
   Standard_EXPORT
     static  Standard_Boolean AreFacesSameDomain(const TopoDS_Face& aF1,
                                                 const TopoDS_Face& aF2,
-                                                const Handle(IntTools_Context)& aCtx) ;
+                                                const Handle(XIntTools_Context)& aCtx) ;
 
   Standard_EXPORT
     static  void FindChains(const NMTTools_ListOfCoupleOfShape& aLCS,

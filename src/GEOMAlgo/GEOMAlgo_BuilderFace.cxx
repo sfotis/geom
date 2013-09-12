@@ -64,12 +64,12 @@
 #include <TopTools_DataMapOfShapeListOfShape.hxx>
 #include <TopTools_DataMapIteratorOfDataMapOfShapeListOfShape.hxx>
 
-#include <IntTools_FClass2d.hxx>
-#include <IntTools_Context.hxx>
+#include <XIntTools_FClass2d.hxx>
+#include <XIntTools_Context.hxx>
 
-#include <BOPTools_Tools2D.hxx>
-#include <BOP_WireEdgeSet.hxx>
-#include <BOP_WESCorrector.hxx>
+#include <XBOPTools_Tools2D.hxx>
+#include <XBOP_WireEdgeSet.hxx>
+#include <XBOP_WESCorrector.hxx>
 
 #include <NMTTools_ListOfCoupleOfShape.hxx>
 #include <NMTTools_CoupleOfShape.hxx>
@@ -89,7 +89,7 @@ static
 static
   Standard_Boolean IsInside(const TopoDS_Shape& ,
                             const TopoDS_Shape& ,
-                            const Handle(IntTools_Context)& );
+                            const Handle(XIntTools_Context)& );
 static
   void MakeInternalWires(const TopTools_MapOfShape& ,
                          TopTools_ListOfShape& );
@@ -472,7 +472,7 @@ static
     //
     // update classifier
     aTol=BRep_Tool::Tolerance(aF);
-    IntTools_FClass2d& aClsf=myContext->FClass2d(aF);
+    XIntTools_FClass2d& aClsf=myContext->FClass2d(aF);
     aClsf.Init(aF, aTol);
   }
   //
@@ -616,7 +616,7 @@ void MakeInternalWires(const TopTools_MapOfShape& theME,
 //=======================================================================
 Standard_Boolean IsInside(const TopoDS_Shape& theHole,
                           const TopoDS_Shape& theF2,
-                          const Handle(IntTools_Context)& theContext)
+                          const Handle(XIntTools_Context)& theContext)
 {
   Standard_Boolean bRet;
   Standard_Real aT, aU, aV;
@@ -639,11 +639,11 @@ Standard_Boolean IsInside(const TopoDS_Shape& theHole,
       return bRet;
     }
     //
-    aT=BOPTools_Tools2D::IntermediatePoint(aE);
-    BOPTools_Tools2D::PointOnSurface(aE, aF2, aT, aU, aV);
+    aT=XBOPTools_Tools2D::IntermediatePoint(aE);
+    XBOPTools_Tools2D::PointOnSurface(aE, aF2, aT, aU, aV);
     aP2D.SetCoord(aU, aV);
     //
-    IntTools_FClass2d& aClsf=theContext->FClass2d(aF2);
+    XIntTools_FClass2d& aClsf=theContext->FClass2d(aF2);
     aState=aClsf.Perform(aP2D);
     bRet=(aState==TopAbs_IN);
   }
@@ -687,7 +687,7 @@ Standard_Boolean IsGrowthWire(const TopoDS_Shape& theWire,
 //=======================================================================
 Standard_Boolean IsInside(const TopoDS_Shape& theHole,
                           const TopoDS_Shape& theF2,
-                          IntTools_PContext& theContext)
+                          XIntTools_PContext& theContext)
 {
   Standard_Real aT, aU, aV;
   TopExp_Explorer aExp;
@@ -699,11 +699,11 @@ Standard_Boolean IsInside(const TopoDS_Shape& theHole,
   aExp.Init(theHole, TopAbs_EDGE);
   if (aExp.More()){
     const TopoDS_Edge& aE = TopoDS::Edge(aExp.Current());
-    aT=BOPTools_Tools2D::IntermediatePoint(aE);
-    BOPTools_Tools2D::PointOnSurface(aE, aF2, aT, aU, aV);
+    aT=XBOPTools_Tools2D::IntermediatePoint(aE);
+    XBOPTools_Tools2D::PointOnSurface(aE, aF2, aT, aU, aV);
     aP2D.SetCoord(aU, aV);
     //
-    IntTools_FClass2d& aClsf=theContext->FClass2d(aF2);
+    XIntTools_FClass2d& aClsf=theContext->FClass2d(aF2);
     aState=aClsf.Perform(aP2D);
   }
   return (aState==TopAbs_IN);

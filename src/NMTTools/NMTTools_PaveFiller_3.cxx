@@ -34,13 +34,13 @@
 
 #include <TopExp_Explorer.hxx>
 
-#include <BOPTools_VSInterference.hxx>
-#include <BOPTools_CArray1OfVSInterference.hxx>
+#include <XBOPTools_VSInterference.hxx>
+#include <XBOPTools_CArray1OfVSInterference.hxx>
 
 #include <NMTDS_Iterator.hxx>
 #include <NMTDS_ShapesDataStructure.hxx>
 #include <NMTDS_InterfPool.hxx>
-#include <IntTools_Context.hxx>
+#include <XIntTools_Context.hxx>
 
 
 static
@@ -61,7 +61,7 @@ static
   TopoDS_Vertex aV1;
   TopoDS_Face aF2;
   //
-  BOPTools_CArray1OfVSInterference& aVSs=myIP->VSInterferences();
+  XBOPTools_CArray1OfVSInterference& aVSs=myIP->VSInterferences();
   //
   // V/E Interferences
   myDSIt->Initialize(TopAbs_VERTEX, TopAbs_FACE);
@@ -87,7 +87,7 @@ static
       iSDV=FindSDVertex(aWhat);
         //
       if(aJustAdd) {
-        //myIntrPool->AddInterference(aWhat, aWith, BooleanOperations_VertexSurface, anIndexIn);
+        //myIntrPool->AddInterference(aWhat, aWith, XBooleanOperations_VertexSurface, anIndexIn);
         continue;
       }
       //
@@ -110,13 +110,13 @@ static
       if (!aFlag) {
         //
         // Add Interference to the Pool
-        BOPTools_VSInterference anInterf (aWhat, aWith, aU, aV);
+        XBOPTools_VSInterference anInterf (aWhat, aWith, aU, aV);
         anIndexIn=aVSs.Append(anInterf);
         //
         // SetState for Vertex in DS;
-        myDS->SetState (aWhat, BooleanOperations_ON);
+        myDS->SetState (aWhat, XBooleanOperations_ON);
         // Insert Vertex in Interference Object
-        BOPTools_VSInterference& aVS=aVSs(anIndexIn);
+        XBOPTools_VSInterference& aVS=aVSs(anIndexIn);
         aVS.SetNewShape(aWhat);
         // qqf
         {
@@ -124,7 +124,7 @@ static
         }
         // qqt
       }
-      //myIntrPool->AddInterference(aWhat, aWith, BooleanOperations_VertexSurface, anIndexIn);
+      //myIntrPool->AddInterference(aWhat, aWith, XBooleanOperations_VertexSurface, anIndexIn);
     }
   }
   myIsDone=Standard_True;

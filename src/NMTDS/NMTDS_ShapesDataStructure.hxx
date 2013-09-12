@@ -29,11 +29,11 @@
 #include <TopoDS_Shape.hxx>
 #include <NMTDS_CArray1OfIndexRange.hxx>
 #include <TopTools_DataMapOfShapeInteger.hxx>
-#include <BooleanOperations_ShapesDataStructure.hxx>
+#include <XBooleanOperations_ShapesDataStructure.hxx>
 #include <Standard_Integer.hxx>
 #include <TopoDS_Shape.hxx>
 #include <NMTDS_CArray1OfIndexRange.hxx>
-#include <BooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors.hxx>
+#include <XBooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors.hxx>
 #include <TColStd_IndexedMapOfInteger.hxx>
 #include <Bnd_Box.hxx>
 
@@ -41,7 +41,7 @@
 //class    : NMTDS_ShapesDataStructure
 //purpose  : 
 //=======================================================================
-class NMTDS_ShapesDataStructure  : public BooleanOperations_ShapesDataStructure
+class NMTDS_ShapesDataStructure  : public XBooleanOperations_ShapesDataStructure
 {
  public:
   Standard_EXPORT
@@ -71,13 +71,13 @@ class NMTDS_ShapesDataStructure  : public BooleanOperations_ShapesDataStructure
   
   Standard_EXPORT     
     void FillMap(const TopoDS_Shape& aS,
-                 BooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors& aMSA,
-                 BooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors& aMS) const;
+                 XBooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors& aMSA,
+                 XBooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors& aMS) const;
   
   Standard_EXPORT
     void FillSubshapes(const TopoDS_Shape& aS,
-                       BooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors& aMSA,
-                       BooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors& aMS) const;
+                       XBooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors& aMSA,
+                       XBooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors& aMS) const;
   
   Standard_EXPORT     
     void GetAllSuccessors(const Standard_Integer anIndex,

@@ -38,10 +38,10 @@
 
 #include <TopTools_ListOfShape.hxx>
 
-#include <IntTools_Tools.hxx>
-#include <BooleanOperations_AncestorsSeqAndSuccessorsSeq.hxx>
-#include <BOPTools_VVInterference.hxx>
-#include <BOPTools_CArray1OfVVInterference.hxx>
+#include <XIntTools_Tools.hxx>
+#include <XBooleanOperations_AncestorsSeqAndSuccessorsSeq.hxx>
+#include <XBOPTools_VVInterference.hxx>
+#include <XBOPTools_CArray1OfVVInterference.hxx>
 
 #include <NMTDS_Iterator.hxx>
 #include <NMTDS_InterfPool.hxx>
@@ -72,7 +72,7 @@
     return;
   }
   //
-  BOPTools_CArray1OfVVInterference& aVVs=myIP->VVInterferences();
+  XBOPTools_CArray1OfVVInterference& aVVs=myIP->VVInterferences();
   //
   // BlockLength correction
   myDSIt->Initialize(TopAbs_VERTEX, TopAbs_VERTEX);
@@ -101,11 +101,11 @@
     //
     NMTTools_Tools::MakeNewVertex(aLV, aVnew);
     //
-    BooleanOperations_AncestorsSeqAndSuccessorsSeq anASSeq;
+    XBooleanOperations_AncestorsSeqAndSuccessorsSeq anASSeq;
     //
     myDS->InsertShapeAndAncestorsSuccessors(aVnew, anASSeq);
     nVnew=myDS->NumberOfInsertedShapes();
-    myDS->SetState (nVnew, BooleanOperations_ON);
+    myDS->SetState (nVnew, XBooleanOperations_ON);
     //
     // myVSD, aLIX
     aLIX.Clear();
@@ -129,7 +129,7 @@
           n2=aItY.Value();
           myIP->Add(n1, n2, Standard_True, NMTDS_TI_VV);
           //
-          BOPTools_VVInterference aVV(n1, n2);
+          XBOPTools_VVInterference aVV(n1, n2);
           aVV.SetNewShape(nVnew);
           aVVs.Append(aVV);
         }

@@ -37,8 +37,8 @@
 #include <TopTools_ListIteratorOfListOfShape.hxx>
 #include <TopTools_IndexedMapOfShape.hxx>
 
-#include <BooleanOperations_ShapesDataStructure.hxx>
-#include <BOPTools_DSFiller.hxx>
+#include <XBooleanOperations_ShapesDataStructure.hxx>
+#include <XBOPTools_DSFiller.hxx>
 
 #include <GEOMAlgo_IndexedDataMapOfShapeState.hxx>
 

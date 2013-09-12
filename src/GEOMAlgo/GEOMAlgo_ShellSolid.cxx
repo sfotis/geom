@@ -48,30 +48,30 @@
 
 #include <BRepClass3d_SolidClassifier.hxx>
 
-#include <IntTools_Context.hxx>
-#include <BOPTColStd_Dump.hxx>
-#include <BooleanOperations_ShapesDataStructure.hxx>
+#include <XIntTools_Context.hxx>
+#include <XBOPTColStd_Dump.hxx>
+#include <XBooleanOperations_ShapesDataStructure.hxx>
 
-#include <BOPTools_PaveFiller.hxx>
-#include <BOPTools_SolidStateFiller.hxx>
-#include <BOPTools_PCurveMaker.hxx>
-#include <BOPTools_DEProcessor.hxx>
-#include <BOPTools_InterferencePool.hxx>
-#include <BOPTools_CArray1OfSSInterference.hxx>
-#include <BOPTools_ListOfPaveBlock.hxx>
-#include <BOPTools_ListIteratorOfListOfPaveBlock.hxx>
-#include <BOPTools_PaveBlock.hxx>
-#include <BOPTools_SSInterference.hxx>
-#include <BOPTools_SequenceOfCurves.hxx>
-#include <BOPTools_Curve.hxx>
-#include <BOPTools_PaveFiller.hxx>
-#include <BOPTools_SplitShapesPool.hxx>
-#include <BOPTools_Tools3D.hxx>
-#include <BOPTools_DSFiller.hxx>
+#include <XBOPTools_PaveFiller.hxx>
+#include <XBOPTools_SolidStateFiller.hxx>
+#include <XBOPTools_PCurveMaker.hxx>
+#include <XBOPTools_DEProcessor.hxx>
+#include <XBOPTools_InterferencePool.hxx>
+#include <XBOPTools_CArray1OfSSInterference.hxx>
+#include <XBOPTools_ListOfPaveBlock.hxx>
+#include <XBOPTools_ListIteratorOfListOfPaveBlock.hxx>
+#include <XBOPTools_PaveBlock.hxx>
+#include <XBOPTools_SSInterference.hxx>
+#include <XBOPTools_SequenceOfCurves.hxx>
+#include <XBOPTools_Curve.hxx>
+#include <XBOPTools_PaveFiller.hxx>
+#include <XBOPTools_SplitShapesPool.hxx>
+#include <XBOPTools_Tools3D.hxx>
+#include <XBOPTools_DSFiller.hxx>
 
-#include <BOP_WireEdgeSet.hxx>
-#include <BOP_SDFWESFiller.hxx>
-#include <BOP_FaceBuilder.hxx>
+#include <XBOP_WireEdgeSet.hxx>
+#include <XBOP_SDFWESFiller.hxx>
+#include <XBOP_FaceBuilder.hxx>
 
 //=======================================================================
 //function : GEOMAlgo_ShellSolid
@@ -128,18 +128,18 @@ void GEOMAlgo_ShellSolid::Perform()
 //=======================================================================
 void GEOMAlgo_ShellSolid::Prepare()
 {
-  const BOPTools_PaveFiller& aPaveFiller=myDSFiller->PaveFiller();
+  const XBOPTools_PaveFiller& aPaveFiller=myDSFiller->PaveFiller();
   //
   // 1 States
-  BOPTools_SolidStateFiller aStateFiller(aPaveFiller);
+  XBOPTools_SolidStateFiller aStateFiller(aPaveFiller);
   aStateFiller.Do();
   //
   // 2 Project section edges on corresp. faces -> P-Curves on edges.
-  BOPTools_PCurveMaker aPCurveMaker(aPaveFiller);
+  XBOPTools_PCurveMaker aPCurveMaker(aPaveFiller);
   aPCurveMaker.Do();
   //
   // 3. Degenerated Edges Processing
-  BOPTools_DEProcessor aDEProcessor(aPaveFiller);
+  XBOPTools_DEProcessor aDEProcessor(aPaveFiller);
   aDEProcessor.Do();
   //
   // 4. Detect Same Domain Faces
@@ -154,18 +154,18 @@ void GEOMAlgo_ShellSolid::BuildResult()
   Standard_Boolean bIsTouchCase;
   Standard_Integer i, j, nF1, nF2, aNbFFs, aNbS, aNbCurves, nSp, iRank1;
   Standard_Integer nE, nF, aNbPB, iBeg, iEnd;
-  BooleanOperations_StateOfShape aState;
+  XBooleanOperations_StateOfShape aState;
   TopExp_Explorer anExp;
   TopAbs_ShapeEnum aType;
   gp_Pnt2d aP2D;
   gp_Pnt aP3D;
   //
-  const BooleanOperations_ShapesDataStructure& aDS=myDSFiller->DS();
-  const BOPTools_InterferencePool& anInterfPool=myDSFiller->InterfPool();
-  BOPTools_InterferencePool* pInterfPool=(BOPTools_InterferencePool*) &anInterfPool;
-  BOPTools_CArray1OfSSInterference& aFFs=pInterfPool->SSInterferences();
-  const BOPTools_PaveFiller& aPaveFiller=myDSFiller->PaveFiller();
-  const BOPTools_SplitShapesPool& aSplitShapesPool=aPaveFiller.SplitShapesPool();
+  const XBooleanOperations_ShapesDataStructure& aDS=myDSFiller->DS();
+  const XBOPTools_InterferencePool& anInterfPool=myDSFiller->InterfPool();
+  XBOPTools_InterferencePool* pInterfPool=(XBOPTools_InterferencePool*) &anInterfPool;
+  XBOPTools_CArray1OfSSInterference& aFFs=pInterfPool->SSInterferences();
+  const XBOPTools_PaveFiller& aPaveFiller=myDSFiller->PaveFiller();
+  const XBOPTools_SplitShapesPool& aSplitShapesPool=aPaveFiller.SplitShapesPool();
   //
   // 1. process pf non-interferring faces
   iBeg=1;
@@ -183,10 +183,10 @@ void GEOMAlgo_ShellSolid::BuildResult()
     //
     const TopoDS_Face& aF1=TopoDS::Face(aDS.Shape(i));
     aState=aDS.GetState(i);
-    if (aState==BooleanOperations_IN) {
+    if (aState==XBooleanOperations_IN) {
       myLSIN.Append(aF1);
     }
-    else if (aState==BooleanOperations_OUT) {
+    else if (aState==XBooleanOperations_OUT) {
       myLSOUT.Append(aF1);
     }
   }
@@ -194,7 +194,7 @@ void GEOMAlgo_ShellSolid::BuildResult()
   // 2. process pf interferred faces
   aNbFFs=aFFs.Extent();
   for (i=1; i<=aNbFFs; ++i) {
-    BOPTools_SSInterference& aFFi=aFFs(i);
+    XBOPTools_SSInterference& aFFi=aFFs(i);
     //
     nF1=aFFi.Index1();
     nF2=aFFi.Index2();
@@ -211,11 +211,11 @@ void GEOMAlgo_ShellSolid::BuildResult()
     //
     // Has section edges ?
     aNbS=0;
-    BOPTools_SequenceOfCurves& aBCurves=aFFi.Curves();
+    XBOPTools_SequenceOfCurves& aBCurves=aFFi.Curves();
     aNbCurves=aBCurves.Length();
     for (j=1; j<=aNbCurves; j++) {
-      BOPTools_Curve& aBC=aBCurves(j);
-      const BOPTools_ListOfPaveBlock& aSectEdges=aBC.NewPaveBlocks();
+      XBOPTools_Curve& aBC=aBCurves(j);
+      const XBOPTools_ListOfPaveBlock& aSectEdges=aBC.NewPaveBlocks();
       aNbS=aSectEdges.Extent();
       if (aNbS) {
         break;
@@ -234,25 +234,25 @@ void GEOMAlgo_ShellSolid::BuildResult()
       }
       //
       nE=aDS.ShapeIndex(aE, myRank);
-      const BOPTools_ListOfPaveBlock& aLPB=aSplitShapesPool(aDS.RefEdge(nE));
+      const XBOPTools_ListOfPaveBlock& aLPB=aSplitShapesPool(aDS.RefEdge(nE));
       aNbPB=aLPB.Extent();
       //
       if (aNbPB<2) {
         nSp=nE;
         if (aNbPB) {
-          const BOPTools_PaveBlock& aPB=aLPB.First();
+          const XBOPTools_PaveBlock& aPB=aLPB.First();
           nSp=aPB.Edge();
         }
         /*const TopoDS_Shape& aSp=*/aDS.Shape(nSp);
         //
         aState=aDS.GetState(nSp);
-        if (aState==BooleanOperations_IN) {
+        if (aState==XBooleanOperations_IN) {
           myLSIN.Append(aF1);
         }
-        else if (aState==BooleanOperations_OUT) {
+        else if (aState==XBooleanOperations_OUT) {
           myLSOUT.Append(aF1);
         }
-        else if (aState==BooleanOperations_ON) {
+        else if (aState==XBooleanOperations_ON) {
           Standard_Real aTol;
           TopAbs_State aSt;
           //
@@ -260,12 +260,12 @@ void GEOMAlgo_ShellSolid::BuildResult()
           //aTol=BRep_Tool::Tolerance(aF2);
           aTol=1.e-7;
           //
-          BOPTools_Tools3D::PointNearEdge(aE, aF1, aP2D, aP3D);
+          XBOPTools_Tools3D::PointNearEdge(aE, aF1, aP2D, aP3D);
           const TopoDS_Solid& aRefSolid=(myRank==1) ?
             TopoDS::Solid(aDS.Tool()) : TopoDS::Solid(aDS.Object());
           //
-          BOPTools_PaveFiller* pPF=(BOPTools_PaveFiller*)& aPaveFiller;
-          const Handle(IntTools_Context)& aCtx=pPF->Context();
+          XBOPTools_PaveFiller* pPF=(XBOPTools_PaveFiller*)& aPaveFiller;
+          const Handle(XIntTools_Context)& aCtx=pPF->Context();
           //
           BRepClass3d_SolidClassifier& aSC=aCtx->SolidClassifier(aRefSolid);
           aSC.Perform(aP3D, aTol);
@@ -288,9 +288,9 @@ void GEOMAlgo_ShellSolid::BuildResult()
 //=======================================================================
 void GEOMAlgo_ShellSolid::DetectSDFaces()
 {
-  const BooleanOperations_ShapesDataStructure& aDS=myDSFiller->DS();
-  BOPTools_InterferencePool* pIntrPool=(BOPTools_InterferencePool*)&myDSFiller->InterfPool();
-  BOPTools_CArray1OfSSInterference& aFFs=pIntrPool->SSInterferences();
+  const XBooleanOperations_ShapesDataStructure& aDS=myDSFiller->DS();
+  XBOPTools_InterferencePool* pIntrPool=(XBOPTools_InterferencePool*)&myDSFiller->InterfPool();
+  XBOPTools_CArray1OfSSInterference& aFFs=pIntrPool->SSInterferences();
   //
   Standard_Boolean bFlag;
   Standard_Integer i, aNb, nF1, nF2,  iZone, aNbSps, iSenseFlag;
@@ -300,7 +300,7 @@ void GEOMAlgo_ShellSolid::DetectSDFaces()
   for (i=1; i<=aNb; i++) {
     bFlag=Standard_False;
 
-    BOPTools_SSInterference& aFF=aFFs(i);
+    XBOPTools_SSInterference& aFF=aFFs(i);
 
     nF1=aFF.Index1();
     nF2=aFF.Index2();
@@ -308,19 +308,19 @@ void GEOMAlgo_ShellSolid::DetectSDFaces()
     const TopoDS_Face& aF2=TopoDS::Face(aDS.Shape(nF2));
     //
     // iSenseFlag;
-    const BOPTools_ListOfPaveBlock& aLPB=aFF.PaveBlocks();
+    const XBOPTools_ListOfPaveBlock& aLPB=aFF.PaveBlocks();
     aNbSps=aLPB.Extent();
 
     if (!aNbSps) {
       continue;
     }
 
-    const BOPTools_PaveBlock& aPB=aLPB.First();
+    const XBOPTools_PaveBlock& aPB=aLPB.First();
     const TopoDS_Edge& aSpE=TopoDS::Edge(aDS.Shape(aPB.Edge()));
 
-    BOPTools_Tools3D::GetNormalToFaceOnEdge (aSpE, aF1, aDNF1);
-    BOPTools_Tools3D::GetNormalToFaceOnEdge (aSpE, aF2, aDNF2);
-    iSenseFlag=BOPTools_Tools3D::SenseFlag (aDNF1, aDNF2);
+    XBOPTools_Tools3D::GetNormalToFaceOnEdge (aSpE, aF1, aDNF1);
+    XBOPTools_Tools3D::GetNormalToFaceOnEdge (aSpE, aF2, aDNF2);
+    iSenseFlag=XBOPTools_Tools3D::SenseFlag (aDNF1, aDNF2);
     //
     if (iSenseFlag==1 || iSenseFlag==-1) {
     //
@@ -328,13 +328,13 @@ void GEOMAlgo_ShellSolid::DetectSDFaces()
       TopoDS_Face aF1FWD=aF1;
       aF1FWD.Orientation (TopAbs_FORWARD);
 
-      BOP_WireEdgeSet aWES (aF1FWD);
-      BOP_SDFWESFiller aWESFiller(nF1, nF2, *myDSFiller);
+      XBOP_WireEdgeSet aWES (aF1FWD);
+      XBOP_SDFWESFiller aWESFiller(nF1, nF2, *myDSFiller);
       aWESFiller.SetSenseFlag(iSenseFlag);
-      aWESFiller.SetOperation(BOP_COMMON);
+      aWESFiller.SetOperation(XBOP_COMMON);
       aWESFiller.Do(aWES);
 
-      BOP_FaceBuilder aFB;
+      XBOP_FaceBuilder aFB;
       aFB.Do(aWES);
       const TopTools_ListOfShape& aLF=aFB.NewFaces();
 
@@ -347,7 +347,7 @@ void GEOMAlgo_ShellSolid::DetectSDFaces()
           const TopoDS_Face& aFaceResult=TopoDS::Face(aFR);
           //
           Standard_Boolean bIsValidIn2D, bNegativeFlag;
-          bIsValidIn2D=BOPTools_Tools3D::IsValidArea (aFaceResult, bNegativeFlag);
+          bIsValidIn2D=XBOPTools_Tools3D::IsValidArea (aFaceResult, bNegativeFlag);
           if (bIsValidIn2D) {
             //if(CheckSameDomainFaceInside(aFaceResult, aF2)) {
             iZone=1;

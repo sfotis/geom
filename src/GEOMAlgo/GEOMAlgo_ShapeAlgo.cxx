@@ -26,7 +26,7 @@
 //              <pkv@irinox>
 //
 #include <GEOMAlgo_ShapeAlgo.hxx>
-#include <IntTools_Context.hxx>
+#include <XIntTools_Context.hxx>
 
 //=======================================================================
 //function : GEOMAlgo_ShapeAlgo
@@ -50,7 +50,7 @@ GEOMAlgo_ShapeAlgo::~GEOMAlgo_ShapeAlgo()
 //function : SetContext
 //purpose  :
 //=======================================================================
-void GEOMAlgo_ShapeAlgo::SetContext(const Handle(IntTools_Context)& theContext)
+void GEOMAlgo_ShapeAlgo::SetContext(const Handle(XIntTools_Context)& theContext)
 {
   myContext=theContext;
 }
@@ -58,7 +58,7 @@ void GEOMAlgo_ShapeAlgo::SetContext(const Handle(IntTools_Context)& theContext)
 //function : Context
 //purpose  :
 //=======================================================================
-const Handle(IntTools_Context)& GEOMAlgo_ShapeAlgo::Context()const
+const Handle(XIntTools_Context)& GEOMAlgo_ShapeAlgo::Context()const
 {
   return myContext;
 }
@@ -109,6 +109,6 @@ const TopoDS_Shape& GEOMAlgo_ShapeAlgo::Result()const
 void GEOMAlgo_ShapeAlgo::Perform()
 {
   if (myContext.IsNull()) {
-    myContext=new IntTools_Context;
+    myContext=new XIntTools_Context;
   }
 }

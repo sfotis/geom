@@ -41,7 +41,7 @@
 #include <TopTools_ListIteratorOfListOfShape.hxx>
 #include <TopTools_IndexedMapOfShape.hxx>
 
-#include <BOP_CorrectTolerances.hxx>
+#include <XBOP_CorrectTolerances.hxx>
 
 
 static

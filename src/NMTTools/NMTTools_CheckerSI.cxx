@@ -27,7 +27,7 @@
 #include <NMTDS_IteratorCheckerSI.hxx>
 #include <NMTDS_InterfPool.hxx>
 #include <NMTTools_DEProcessor.hxx>
-#include <IntTools_Context.hxx>
+#include <XIntTools_Context.hxx>
 
 //=======================================================================
 //function :
@@ -92,7 +92,7 @@
   myIP=new NMTDS_InterfPool;
   //
   // 5
-  myContext=new IntTools_Context;
+  myContext=new XIntTools_Context;
 }
 //=======================================================================
 //function : Perform

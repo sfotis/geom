@@ -30,8 +30,8 @@
 #include <Standard_Macro.hxx>
 #include <TopoDS_Face.hxx>
 #include <Standard_Boolean.hxx>
-#include <BOPTColStd_ListOfListOfShape.hxx>
-#include <BOP_IndexedDataMapOfVertexListEdgeInfo.hxx>
+#include <XBOPTColStd_ListOfListOfShape.hxx>
+#include <XBOP_IndexedDataMapOfVertexListEdgeInfo.hxx>
 #include <TopTools_ListOfShape.hxx>
 #include <GEOMAlgo_Algo.hxx>
 
@@ -70,14 +70,14 @@ public:
     const TopoDS_Face& Face() const;
 
   Standard_EXPORT
-    const BOPTColStd_ListOfListOfShape& Shapes() const;
+    const XBOPTColStd_ListOfListOfShape& Shapes() const;
 
 protected:
   TopoDS_Face myFace;
   Standard_Boolean myIsDone;
   Standard_Boolean myNothingToDo;
-  BOPTColStd_ListOfListOfShape myShapes;
-  BOP_IndexedDataMapOfVertexListEdgeInfo mySmartMap;
+  XBOPTColStd_ListOfListOfShape myShapes;
+  XBOP_IndexedDataMapOfVertexListEdgeInfo mySmartMap;
   TopTools_ListOfShape myEdges;
 };
 

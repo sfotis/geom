@@ -42,11 +42,11 @@
 #include <TopTools_IndexedMapOfOrientedShape.hxx>
 #include <TopTools_ListIteratorOfListOfShape.hxx>
 
-#include <BOP_ConnexityBlock.hxx>
-#include <BOP_ListIteratorOfListOfConnexityBlock.hxx>
+#include <XBOP_ConnexityBlock.hxx>
+#include <XBOP_ListIteratorOfListOfConnexityBlock.hxx>
 
-#include <BOPTColStd_ListOfListOfShape.hxx>
-#include <BOPTColStd_ListIteratorOfListOfListOfShape.hxx>
+#include <XBOPTColStd_ListOfListOfShape.hxx>
+#include <XBOPTColStd_ListIteratorOfListOfListOfShape.hxx>
 
 #include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
 #include <NMTTools_IndexedDataMapOfShapeIndexedMapOfShape.hxx>
@@ -207,7 +207,7 @@ static
       aMVAdd.Clear();
     }// while(1) {
     //-------------------------------------
-    BOP_ConnexityBlock aCB;
+    XBOP_ConnexityBlock aCB;
     TopTools_ListOfShape aLEC;
     TopTools_IndexedDataMapOfShapeListOfShape aMVER;
     //
@@ -276,7 +276,7 @@ static
   Standard_Integer iErr;
   Standard_Real aScale;
   TopoDS_Wire aW;
-  BOP_ListIteratorOfListOfConnexityBlock aCBIt;
+  XBOP_ListIteratorOfListOfConnexityBlock aCBIt;
   GEOMAlgo_WESScaler aWSC;
   //
   const TopoDS_Face& aF=myWES->Face();
@@ -286,7 +286,7 @@ static
   myNewWES.SetFace(aF);
   aCBIt.Initialize(myConnexityBlocks);
   for (; aCBIt.More(); aCBIt.Next()) {
-    const BOP_ConnexityBlock& aCB=aCBIt.Value();
+    const XBOP_ConnexityBlock& aCB=aCBIt.Value();
     const TopTools_ListOfShape& aLE=aCB.Shapes();
     //
     bIsRegular=aCB.IsRegular();
@@ -301,7 +301,7 @@ static
     if(bToScale) {
       TopoDS_Shape aE;
       TopTools_ListIteratorOfListOfShape aIt;
-      BOPTColStd_ListIteratorOfListOfListOfShape aItLLSS;
+      XBOPTColStd_ListIteratorOfListOfListOfShape aItLLSS;
       //
       aWSC.SetScale(aScale);
       aWSC.SetFace(aF);
@@ -332,7 +332,7 @@ static
         continue;
       }
       //
-      const BOPTColStd_ListOfListOfShape& aLLSS=aWS.Shapes();
+      const XBOPTColStd_ListOfListOfShape& aLLSS=aWS.Shapes();
       aItLLSS.Initialize(aLLSS);
       for (; aItLLSS.More(); aItLLSS.Next()) {
         TopTools_ListOfShape aLS;
@@ -366,9 +366,9 @@ static
         continue;
       }
       //
-      const BOPTColStd_ListOfListOfShape& aSSS=aWS.Shapes();
+      const XBOPTColStd_ListOfListOfShape& aSSS=aWS.Shapes();
       //
-      BOPTColStd_ListIteratorOfListOfListOfShape aWireIt(aSSS);
+      XBOPTColStd_ListIteratorOfListOfListOfShape aWireIt(aSSS);
       for (; aWireIt.More(); aWireIt.Next()) {
         const TopTools_ListOfShape& aLEx=aWireIt.Value();
         //

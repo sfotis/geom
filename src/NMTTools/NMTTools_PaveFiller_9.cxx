@@ -43,10 +43,10 @@
 
 #include <TopExp_Explorer.hxx>
 
-#include <BOPTools_ListIteratorOfListOfPaveBlock.hxx>
-#include <BOPTools_ListOfPaveBlock.hxx>
-#include <BOPTools_PaveBlock.hxx>
-#include <BOPTools_Tools3D.hxx>
+#include <XBOPTools_ListIteratorOfListOfPaveBlock.hxx>
+#include <XBOPTools_ListOfPaveBlock.hxx>
+#include <XBOPTools_PaveBlock.hxx>
+#include <XBOPTools_Tools3D.hxx>
 
 #include <NMTDS_ShapesDataStructure.hxx>
 
@@ -71,7 +71,7 @@
   TopAbs_Orientation anOrF, anOrE;
   BRep_Builder aBB;
   TopExp_Explorer aExpW, aExpE;
-  BOPTools_ListIteratorOfListOfPaveBlock aItPB;
+  XBOPTools_ListIteratorOfListOfPaveBlock aItPB;
   //
   iRankF=myDS->Rank(nF);
   aF=TopoDS::Face(myDS->Shape(nF));
@@ -95,7 +95,7 @@
       anOrE=aE.Orientation();
       //
       nE=myDS->ShapeIndex(aE, iRankF);
-      const BOPTools_ListOfPaveBlock& aLPB=mySplitShapesPool(myDS->RefEdge(nE));
+      const XBOPTools_ListOfPaveBlock& aLPB=mySplitShapesPool(myDS->RefEdge(nE));
       aNbPB=aLPB.Extent();
       if (!aNbPB) {
         aBB.Add(newWire, aE);
@@ -104,13 +104,13 @@
       //
       aItPB.Initialize(aLPB);
       for (; aItPB.More(); aItPB.Next()) {
-        const BOPTools_PaveBlock& aPB=aItPB.Value();
-        const BOPTools_PaveBlock& aPBR=RealPaveBlock(aPB);
+        const XBOPTools_PaveBlock& aPB=aItPB.Value();
+        const XBOPTools_PaveBlock& aPBR=RealPaveBlock(aPB);
         nSp=aPBR.Edge();
         //
         aSp=TopoDS::Edge(myDS->Shape(nSp));
         if (!bIsDegenerated) {
-          bToReverse=BOPTools_Tools3D::IsSplitToReverse1(aSp, aE, myContext);
+          bToReverse=XBOPTools_Tools3D::IsSplitToReverse1(aSp, aE, myContext);
           if (bToReverse) {
             aSp.Reverse();
           }

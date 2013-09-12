@@ -41,7 +41,7 @@
 
 #include <BRepClass3d_SolidClassifier.hxx>
 
-#include <IntTools_Context.hxx>
+#include <XIntTools_Context.hxx>
 
 #include <GEOMAlgo_ShapeAlgo.hxx>
 #include <GEOMAlgo_BuilderSolid.hxx>
@@ -106,7 +106,7 @@ void GEOMAlgo_RemoverWebs::Perform()
   if (!myContext.IsNull()) {
     myContext.Nullify();
   }
-  myContext=new IntTools_Context;
+  myContext=new XIntTools_Context;
   //
   BuildSolid();
   //
@@ -251,9 +251,9 @@ void GEOMAlgo_RemoverWebs::AddInternalShapes(const TopTools_ListOfShape& aLSR,
   TopoDS_Solid aSd;
   BRep_Builder aBB;
   TopTools_ListIteratorOfListOfShape aItLS;
-  Handle(IntTools_Context) aCtx;
+  Handle(XIntTools_Context) aCtx;
   //
-  aCtx=new IntTools_Context;
+  aCtx=new XIntTools_Context;
   //
   aNbSI=aMSI.Extent();
   for (i=1; i<=aNbSI; ++i) {

@@ -27,8 +27,8 @@
 //
 #include <NMTTools_PaveFiller.hxx>
 //
-#include <BOPTColStd_Failure.hxx>
-#include <IntTools_Context.hxx>
+#include <XBOPTColStd_Failure.hxx>
+#include <XIntTools_Context.hxx>
 #include <NMTDS_ShapesDataStructure.hxx>
 #include <NMTTools_DEProcessor.hxx>
 #include <NMTDS_Iterator.hxx>
@@ -127,7 +127,7 @@
 // function: Context
 // purpose:
 //=======================================================================
-  const Handle(IntTools_Context)& NMTTools_PaveFiller::Context() const
+  const Handle(XIntTools_Context)& NMTTools_PaveFiller::Context() const
 {
   return myContext;
 }
@@ -135,7 +135,7 @@
 // function: PavePool
 // purpose:
 //=======================================================================
-  const BOPTools_PavePool& NMTTools_PaveFiller::PavePool() const
+  const XBOPTools_PavePool& NMTTools_PaveFiller::PavePool() const
 {
   return myPavePool;
 }
@@ -143,7 +143,7 @@
 // function: ChangePavePool
 // purpose:
 //=======================================================================
-  BOPTools_PavePool& NMTTools_PaveFiller::ChangePavePool()
+  XBOPTools_PavePool& NMTTools_PaveFiller::ChangePavePool()
 {
   return myPavePool;
 }
@@ -151,7 +151,7 @@
 // function: ChangePavePoolNew
 // purpose:
 //=======================================================================
-  BOPTools_PavePool& NMTTools_PaveFiller::ChangePavePoolNew()
+  XBOPTools_PavePool& NMTTools_PaveFiller::ChangePavePoolNew()
 {
   return myPavePoolNew;
 }
@@ -175,7 +175,7 @@
 // function:  SplitShapesPool
 // purpose:
 //=======================================================================
-  const BOPTools_SplitShapesPool& NMTTools_PaveFiller::SplitShapesPool() const
+  const XBOPTools_SplitShapesPool& NMTTools_PaveFiller::SplitShapesPool() const
 {
   return mySplitShapesPool;
 }
@@ -183,7 +183,7 @@
 // function:  ChangeSplitShapesPool
 // purpose:
 //=======================================================================
-  BOPTools_SplitShapesPool& NMTTools_PaveFiller::ChangeSplitShapesPool()
+  XBOPTools_SplitShapesPool& NMTTools_PaveFiller::ChangeSplitShapesPool()
 {
   return mySplitShapesPool;
 }
@@ -218,7 +218,7 @@
   myIP=new NMTDS_InterfPool;
   //
   // 5
-  myContext=new IntTools_Context;
+  myContext=new XIntTools_Context;
 }
 
 //=======================================================================
@@ -298,6 +298,6 @@
     //modified by NIZNHY-PKV Mon Dec 12 09:14:27 2011t
     myIsDone=Standard_True;
   }
-  catch (BOPTColStd_Failure& ) {
+  catch (XBOPTColStd_Failure& ) {
   }
 }

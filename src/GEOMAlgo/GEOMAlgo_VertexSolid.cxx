@@ -45,18 +45,18 @@
 #include <BRep_Tool.hxx>
 #include <BRepClass3d_SolidClassifier.hxx>
 
-#include <BOPTColStd_Dump.hxx>
+#include <XBOPTColStd_Dump.hxx>
 
-#include <IntTools_Context.hxx>
+#include <XIntTools_Context.hxx>
 
-#include <BooleanOperations_StateOfShape.hxx>
-#include <BooleanOperations_ShapesDataStructure.hxx>
+#include <XBooleanOperations_StateOfShape.hxx>
+#include <XBooleanOperations_ShapesDataStructure.hxx>
 
-#include <BOPTools_InterferencePool.hxx>
-#include <BOPTools_CArray1OfVVInterference.hxx>
-#include <BOPTools_VVInterference.hxx>
-#include <BOPTools_PaveFiller.hxx>
-#include <BOPTools_DSFiller.hxx>
+#include <XBOPTools_InterferencePool.hxx>
+#include <XBOPTools_CArray1OfVVInterference.hxx>
+#include <XBOPTools_VVInterference.hxx>
+#include <XBOPTools_PaveFiller.hxx>
+#include <XBOPTools_DSFiller.hxx>
 
 //=======================================================================
 //function : GEOMAlgo_VertexSolid
@@ -96,7 +96,7 @@ void GEOMAlgo_VertexSolid::Perform()
     Standard_Integer aNbF;
     TopTools_IndexedMapOfShape aM;
     //
-    const BooleanOperations_ShapesDataStructure& aDS=myDSFiller->DS();
+    const XBooleanOperations_ShapesDataStructure& aDS=myDSFiller->DS();
     const TopoDS_Shape& aObj=aDS.Object();
     //
     TopExp::MapShapes(aObj, TopAbs_FACE, aM);
@@ -126,17 +126,17 @@ void GEOMAlgo_VertexSolid::Prepare()
   Standard_Real aTol;
   TopAbs_State aSt;
   TopAbs_ShapeEnum aType;
-  BooleanOperations_StateOfShape aState;
+  XBooleanOperations_StateOfShape aState;
   gp_Pnt aP3D;
   //
-  const BooleanOperations_ShapesDataStructure& aDS=myDSFiller->DS();
-  BooleanOperations_ShapesDataStructure* pDS=(BooleanOperations_ShapesDataStructure*)&aDS;
-  const BOPTools_InterferencePool& aIP=myDSFiller->InterfPool();
-  BOPTools_InterferencePool* pIP=(BOPTools_InterferencePool*) &aIP;
-  BOPTools_CArray1OfVVInterference& aVVs=pIP->VVInterferences();
-  const BOPTools_PaveFiller& aPF=myDSFiller->PaveFiller();
-  BOPTools_PaveFiller* pPF=(BOPTools_PaveFiller*)&aPF;
-  const Handle(IntTools_Context)& aCtx=pPF->Context();
+  const XBooleanOperations_ShapesDataStructure& aDS=myDSFiller->DS();
+  XBooleanOperations_ShapesDataStructure* pDS=(XBooleanOperations_ShapesDataStructure*)&aDS;
+  const XBOPTools_InterferencePool& aIP=myDSFiller->InterfPool();
+  XBOPTools_InterferencePool* pIP=(XBOPTools_InterferencePool*) &aIP;
+  XBOPTools_CArray1OfVVInterference& aVVs=pIP->VVInterferences();
+  const XBOPTools_PaveFiller& aPF=myDSFiller->PaveFiller();
+  XBOPTools_PaveFiller* pPF=(XBOPTools_PaveFiller*)&aPF;
+  const Handle(XIntTools_Context)& aCtx=pPF->Context();
   //
   const TopoDS_Shape& aObj=aDS.Object();
   const TopoDS_Shape& aTool=aDS.Tool();
@@ -161,20 +161,20 @@ void GEOMAlgo_VertexSolid::Prepare()
     const TopoDS_Vertex& aV=TopoDS::Vertex(aDS.Shape(i));
     //
     aState=aDS.GetState(i);
-    if (aState==BooleanOperations_ON ||
-        aState==BooleanOperations_IN ||
-        aState==BooleanOperations_OUT) {
+    if (aState==XBooleanOperations_ON ||
+        aState==XBooleanOperations_IN ||
+        aState==XBooleanOperations_OUT) {
       continue;
     }
     //
     iFound=0;
     aNbVV=aVVs.Extent();
     for (j=1; j<=aNbVV; ++j) {
-      BOPTools_VVInterference& aVV=aVVs(j);
+      XBOPTools_VVInterference& aVV=aVVs(j);
       aVV.Indices(n1, n2);
       if (n1==i || n2==i) {
-        pDS->SetState (n1, BooleanOperations_ON);
-        pDS->SetState (n2, BooleanOperations_ON);
+        pDS->SetState (n1, XBooleanOperations_ON);
+        pDS->SetState (n2, XBooleanOperations_ON);
         iFound=1;
         break;
       }
@@ -188,10 +188,10 @@ void GEOMAlgo_VertexSolid::Prepare()
     aSC.Perform(aP3D, aTol);
     aSt=aSC.State();
     if (aSt==TopAbs_IN) {
-      pDS->SetState (i, BooleanOperations_IN);
+      pDS->SetState (i, XBooleanOperations_IN);
     }
     else if (aSt==TopAbs_OUT) {
-      pDS->SetState (i, BooleanOperations_OUT);
+      pDS->SetState (i, XBooleanOperations_OUT);
     }
   }
 }
@@ -201,11 +201,11 @@ void GEOMAlgo_VertexSolid::Prepare()
 //=======================================================================
 void GEOMAlgo_VertexSolid::BuildResult()
 {
-  const BooleanOperations_ShapesDataStructure& aDS=myDSFiller->DS();
+  const XBooleanOperations_ShapesDataStructure& aDS=myDSFiller->DS();
   //
   Standard_Integer i, iBeg, iEnd;
   TopAbs_ShapeEnum aType;
-  BooleanOperations_StateOfShape aState;
+  XBooleanOperations_StateOfShape aState;
   //
   myLSIN.Clear();
   myLSOUT.Clear();
@@ -226,13 +226,13 @@ void GEOMAlgo_VertexSolid::BuildResult()
     const TopoDS_Shape& aV=aDS.Shape(i);
     aState=aDS.GetState(i);
     //
-    if (aState==BooleanOperations_IN) {
+    if (aState==XBooleanOperations_IN) {
       myLSIN.Append(aV);
     }
-    else if (aState==BooleanOperations_OUT) {
+    else if (aState==XBooleanOperations_OUT) {
       myLSOUT.Append(aV);
     }
-    else if (aState==BooleanOperations_ON) {
+    else if (aState==XBooleanOperations_ON) {
       myLSON.Append(aV);
     }
   }

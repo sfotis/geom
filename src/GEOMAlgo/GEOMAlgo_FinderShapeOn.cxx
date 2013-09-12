@@ -26,7 +26,7 @@
 
 #include <GEOMAlgo_FinderShapeOn.hxx>
 
-#include <Basics_OCCTVersion.hxx>
+#include <GEOM_OCCTVersion.hxx>
 
 #if OCC_VERSION_LARGE > 0x06050100 // for OCC-6.5.2 and higher version
 #include <Precision.hxx>
@@ -64,7 +64,7 @@
 #include <BRepLib_MakeFace.hxx>
 #include <BRepLib_FaceError.hxx>
 
-#include <BOPTools_DSFiller.hxx>
+#include <XBOPTools_DSFiller.hxx>
 
 #include <GEOMAlgo_WireSolid.hxx>
 #include <GEOMAlgo_ShellSolid.hxx>
@@ -303,7 +303,7 @@ void GEOMAlgo_FinderShapeOn::Find(const TopoDS_Shape& aS)
   Standard_Integer i, iErr;
   TopAbs_State aSts[]={TopAbs_IN, TopAbs_OUT, TopAbs_ON};
   TopTools_ListIteratorOfListOfShape aIt;
-  BOPTools_DSFiller aDF;
+  XBOPTools_DSFiller aDF;
   //
   // 1. Prepare DSFiller
   aDF.SetShapes (myArg1, aS);

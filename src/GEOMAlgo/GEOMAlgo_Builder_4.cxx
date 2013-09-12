@@ -33,7 +33,7 @@
 #include <TopTools_MapOfShape.hxx>
 #include <TopTools_MapIteratorOfMapOfShape.hxx>
 
-#include <IntTools_Context.hxx>
+#include <XIntTools_Context.hxx>
 
 #include <NMTDS_ShapesDataStructure.hxx>
 
@@ -52,7 +52,7 @@ static
   const TopTools_ListOfShape& GEOMAlgo_Builder::Generated(const TopoDS_Shape& theS)
 {
   NMTTools_PaveFiller* pPF=myPaveFiller;
-  const Handle(IntTools_Context)& aCtx=pPF->Context();
+  const Handle(XIntTools_Context)& aCtx=pPF->Context();
   //
   Standard_Boolean bHasImage, bToReverse;
   TopAbs_ShapeEnum aType;
@@ -106,7 +106,7 @@ static
   const TopTools_ListOfShape& GEOMAlgo_Builder::Modified(const TopoDS_Shape& theS)
 {
   NMTTools_PaveFiller* pPF=myPaveFiller;
-  const Handle(IntTools_Context)& aCtx=pPF->Context();
+  const Handle(XIntTools_Context)& aCtx=pPF->Context();
   //
   Standard_Boolean bHasImage, bToReverse;
   TopAbs_ShapeEnum aType;

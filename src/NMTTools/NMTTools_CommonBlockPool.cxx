@@ -36,7 +36,7 @@
 
 #define Array1Item NMTTools_ListOfCommonBlock
 #define Array1Item_hxx <NMTTools_ListOfCommonBlock.hxx>
-#define BOPTColStd_CArray1 NMTTools_CommonBlockPool
-#define BOPTColStd_CArray1_hxx <NMTTools_CommonBlockPool.hxx>
-#include <BOPTColStd_CArray1.gxx>
+#define XBOPTColStd_CArray1 NMTTools_CommonBlockPool
+#define XBOPTColStd_CArray1_hxx <NMTTools_CommonBlockPool.hxx>
+#include <XBOPTColStd_CArray1.gxx>
 

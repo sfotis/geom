@@ -33,7 +33,7 @@
 #include <NMTTools_PPaveFiller.hxx>
 #include <NMTDS_PShapesDataStructure.hxx>
 #include <Standard_Boolean.hxx>
-#include <BOPTools_IndexedDataMapOfIntegerDEInfo.hxx>
+#include <XBOPTools_IndexedDataMapOfIntegerDEInfo.hxx>
 #include <NMTTools_PaveFiller.hxx>
 #include <Standard_Integer.hxx>
 #include <Standard_Real.hxx>
@@ -84,13 +84,13 @@ protected:
     void FindPaveBlocks(const Standard_Integer nED,
                         const Standard_Integer nVD,
                         const Standard_Integer nFD,
-                        BOPTools_ListOfPaveBlock& aLPB) ;
+                        XBOPTools_ListOfPaveBlock& aLPB) ;
 
   Standard_EXPORT
     void FillPaveSet(const Standard_Integer nED,
                      const Standard_Integer nVD,
                      const Standard_Integer nFD,
-                     const BOPTools_ListOfPaveBlock& aLPB) ;
+                     const XBOPTools_ListOfPaveBlock& aLPB) ;
 
   Standard_EXPORT
     void FillSplitEdgesPool(const Standard_Integer nED) ;
@@ -112,6 +112,6 @@ protected:
   NMTTools_PPaveFiller myFiller;
   NMTDS_PShapesDataStructure myDS;
   Standard_Boolean myIsDone;
-  BOPTools_IndexedDataMapOfIntegerDEInfo myDEMap;
+  XBOPTools_IndexedDataMapOfIntegerDEInfo myDEMap;
 };
 #endif

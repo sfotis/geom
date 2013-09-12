@@ -32,11 +32,11 @@
 #include <Standard_Boolean.hxx>
 #include <Standard_Integer.hxx>
 #include <Standard_Real.hxx>
-#include <Handle_IntTools_Context.hxx>
+#include <Handle_XIntTools_Context.hxx>
 #include <Handle_Geom_Surface.hxx>
 #include <TopoDS_Shape.hxx>
 #include <GEOMAlgo_IndexedDataMapOfPassKeyShapeListOfShape.hxx>
-#include <IntTools_Context.hxx>
+#include <XIntTools_Context.hxx>
 #include <TopTools_ListOfShape.hxx>
 #include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
 #include <gp_Pnt.hxx>
@@ -57,25 +57,25 @@ public:
   Standard_EXPORT
     static  Standard_Integer RefineSDShapes(GEOMAlgo_IndexedDataMapOfPassKeyShapeListOfShape& aMSD,
                                             const Standard_Real aTol,
-                                            const Handle(IntTools_Context)& aCtx) ;
+                                            const Handle(XIntTools_Context)& aCtx) ;
 
   Standard_EXPORT
     static  Standard_Integer FindSDShapes(const TopTools_ListOfShape& aLE,
                                           const Standard_Real aTol,
                                           TopTools_IndexedDataMapOfShapeListOfShape& aMEE,
-                                          const Handle(IntTools_Context)& aCtx) ;
+                                          const Handle(XIntTools_Context)& aCtx) ;
 
   Standard_EXPORT
     static  Standard_Integer FindSDShapes(const TopoDS_Shape& aE1,
                                           const TopTools_ListOfShape& aLE,
                                           const Standard_Real aTol,
                                           TopTools_ListOfShape& aLESD,
-                                          const Handle(IntTools_Context)& aCtx) ;
+                                          const Handle(XIntTools_Context)& aCtx) ;
 
   Standard_EXPORT
     static  Standard_Boolean ProjectPointOnShape(const gp_Pnt& aP1,
                                                  const TopoDS_Shape& aS,gp_Pnt& aP2,
-                                                 const Handle(IntTools_Context)& aCtx) ;
+                                                 const Handle(XIntTools_Context)& aCtx) ;
 
   Standard_EXPORT
     static  void PointOnShape(const TopoDS_Shape& aS,
@@ -115,7 +115,7 @@ public:
     static  Standard_Integer BuildPCurveForEdgeOnFace(const TopoDS_Edge& aE,
                                                       const TopoDS_Edge& aEold,
                                                       const TopoDS_Face& aF,
-                                                      const Handle(IntTools_Context)& aCtx) ;
+                                                      const Handle(XIntTools_Context)& aCtx) ;
 
 };
 #endif

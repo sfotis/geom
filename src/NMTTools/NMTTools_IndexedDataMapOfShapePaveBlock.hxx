@@ -27,12 +27,12 @@
 
 #include <TopoDS_Shape.hxx>
 #include <TopTools_ShapeMapHasher.hxx>
-#include <BOPTools_PaveBlock.hxx>
+#include <XBOPTools_PaveBlock.hxx>
 
 #define _NCollection_MapHasher
 #include <NCollection_IndexedDataMap.hxx>
 
-typedef NCollection_IndexedDataMap <TopoDS_Shape, BOPTools_PaveBlock, TopTools_ShapeMapHasher> NMTTools_IndexedDataMapOfShapePaveBlock;
+typedef NCollection_IndexedDataMap <TopoDS_Shape, XBOPTools_PaveBlock, TopTools_ShapeMapHasher> NMTTools_IndexedDataMapOfShapePaveBlock;
 
 #undef _NCollection_MapHasher
 

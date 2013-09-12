@@ -33,17 +33,17 @@
 
 #include <TopTools_ListIteratorOfListOfShape.hxx>
 
-#include <BOPTColStd_Dump.hxx>
+#include <XBOPTColStd_Dump.hxx>
 
-#include <BooleanOperations_ShapesDataStructure.hxx>
-#include <BooleanOperations_StateOfShape.hxx>
+#include <XBooleanOperations_ShapesDataStructure.hxx>
+#include <XBooleanOperations_StateOfShape.hxx>
 
-#include <BOPTools_PaveFiller.hxx>
-#include <BOPTools_SplitShapesPool.hxx>
-#include <BOPTools_PaveBlock.hxx>
-#include <BOPTools_ListOfPaveBlock.hxx>
-#include <BOPTools_DSFiller.hxx>
-#include <BOPTools_WireStateFiller.hxx>
+#include <XBOPTools_PaveFiller.hxx>
+#include <XBOPTools_SplitShapesPool.hxx>
+#include <XBOPTools_PaveBlock.hxx>
+#include <XBOPTools_ListOfPaveBlock.hxx>
+#include <XBOPTools_DSFiller.hxx>
+#include <XBOPTools_WireStateFiller.hxx>
 
 //=======================================================================
 //function : GEOMAlgo_WireSolid
@@ -100,9 +100,9 @@ void GEOMAlgo_WireSolid::Perform()
 //=======================================================================
 void GEOMAlgo_WireSolid::Prepare()
 {
-  const BOPTools_PaveFiller& aPaveFiller=myDSFiller->PaveFiller();
+  const XBOPTools_PaveFiller& aPaveFiller=myDSFiller->PaveFiller();
   //
-  BOPTools_WireStateFiller aStateFiller(aPaveFiller);
+  XBOPTools_WireStateFiller aStateFiller(aPaveFiller);
   aStateFiller.Do();
   //
 }
@@ -112,13 +112,13 @@ void GEOMAlgo_WireSolid::Prepare()
 //=======================================================================
 void GEOMAlgo_WireSolid::BuildResult()
 {
-  const BooleanOperations_ShapesDataStructure& aDS=myDSFiller->DS();
-  const BOPTools_PaveFiller& aPaveFiller=myDSFiller->PaveFiller();
-  const BOPTools_SplitShapesPool& aSplitShapesPool=aPaveFiller.SplitShapesPool();
+  const XBooleanOperations_ShapesDataStructure& aDS=myDSFiller->DS();
+  const XBOPTools_PaveFiller& aPaveFiller=myDSFiller->PaveFiller();
+  const XBOPTools_SplitShapesPool& aSplitShapesPool=aPaveFiller.SplitShapesPool();
   //
   Standard_Integer i, aNbPB, nSp, iBeg, iEnd;
   TopAbs_ShapeEnum aType;
-  BooleanOperations_StateOfShape aState;
+  XBooleanOperations_StateOfShape aState;
   //
   myLSIN.Clear();
   myLSOUT.Clear();
@@ -135,36 +135,36 @@ void GEOMAlgo_WireSolid::BuildResult()
     aType=aDS.GetShapeType(i);
     if (aType==TopAbs_EDGE) {
       const TopoDS_Shape& aE=aDS.Shape(i);
-      const BOPTools_ListOfPaveBlock& aLPB=aSplitShapesPool(aDS.RefEdge(i));
+      const XBOPTools_ListOfPaveBlock& aLPB=aSplitShapesPool(aDS.RefEdge(i));
       aNbPB=aLPB.Extent();
       //
       if (!aNbPB) {
         aState=aDS.GetState(i);
         //
-        if (aState==BooleanOperations_IN) {
+        if (aState==XBooleanOperations_IN) {
           myLSIN.Append(aE);
         }
-        else if (aState==BooleanOperations_OUT) {
+        else if (aState==XBooleanOperations_OUT) {
           myLSOUT.Append(aE);
         }
-        else if (aState==BooleanOperations_ON) {
+        else if (aState==XBooleanOperations_ON) {
           myLSON.Append(aE);
         }
       }
       //
       else if (aNbPB==1) {
-        const BOPTools_PaveBlock& aPB=aLPB.First();
+        const XBOPTools_PaveBlock& aPB=aLPB.First();
         nSp=aPB.Edge();
         /*const TopoDS_Shape& aSp=*/aDS.Shape(nSp);
         aState=aDS.GetState(nSp);
          //
-        if (aState==BooleanOperations_IN) {
+        if (aState==XBooleanOperations_IN) {
           myLSIN.Append(aE);
         }
-        else if (aState==BooleanOperations_OUT) {
+        else if (aState==XBooleanOperations_OUT) {
           myLSOUT.Append(aE);
         }
-        else if (aState==BooleanOperations_ON) {
+        else if (aState==XBooleanOperations_ON) {
           myLSON.Append(aE);
         }
       }

@@ -28,7 +28,7 @@
 
 #include <TopTools_ListIteratorOfListOfShape.hxx>
 #include <TopoDS_Shape.hxx>
-#include <IntTools_Context.hxx>
+#include <XIntTools_Context.hxx>
 
 //=======================================================================
 //function :
@@ -50,7 +50,7 @@ GEOMAlgo_BuilderArea::~GEOMAlgo_BuilderArea()
 //function : SetContext
 //purpose  :
 //=======================================================================
-void GEOMAlgo_BuilderArea::SetContext(const Handle(IntTools_Context)& theContext)
+void GEOMAlgo_BuilderArea::SetContext(const Handle(XIntTools_Context)& theContext)
 {
   myContext=theContext;
 }
@@ -58,7 +58,7 @@ void GEOMAlgo_BuilderArea::SetContext(const Handle(IntTools_Context)& theContext
 //function : Context
 //purpose  :
 //=======================================================================
-const Handle(IntTools_Context)& GEOMAlgo_BuilderArea::Context()const
+const Handle(XIntTools_Context)& GEOMAlgo_BuilderArea::Context()const
 {
   return myContext;
 }
@@ -69,7 +69,7 @@ const Handle(IntTools_Context)& GEOMAlgo_BuilderArea::Context()const
 void GEOMAlgo_BuilderArea::Perform()
 {
   if (myContext.IsNull()) {
-    myContext=new IntTools_Context;
+    myContext=new XIntTools_Context;
   }
 }
 //=======================================================================

@@ -48,24 +48,24 @@
 #include <BRepAlgo_Image.hxx>
 #include <BRepTools.hxx>
 
-#include <IntTools_Context.hxx>
-#include <IntTools_FClass2d.hxx>
+#include <XIntTools_Context.hxx>
+#include <XIntTools_FClass2d.hxx>
 
-#include <BooleanOperations_OnceExplorer.hxx>
-#include <BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger.hxx>
-#include <BOPTools_ListOfPaveBlock.hxx>
-#include <BOPTools_ListIteratorOfListOfPaveBlock.hxx>
-#include <BOPTools_CArray1OfSSInterference.hxx>
-#include <BOPTools_SSInterference.hxx>
-#include <BOPTools_SequenceOfCurves.hxx>
-#include <BOPTools_Curve.hxx>
-#include <BOPTools_ListOfPaveBlock.hxx>
-#include <BOPTools_PaveBlock.hxx>
-#include <BOPTools_Tools3D.hxx>
-#include <BOPTools_CArray1OfVSInterference.hxx>
-#include <BOPTools_VSInterference.hxx>
-#include <BOPTools_ESInterference.hxx>
-#include <BOPTools_CArray1OfESInterference.hxx>
+#include <XBooleanOperations_OnceExplorer.hxx>
+#include <XBOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger.hxx>
+#include <XBOPTools_ListOfPaveBlock.hxx>
+#include <XBOPTools_ListIteratorOfListOfPaveBlock.hxx>
+#include <XBOPTools_CArray1OfSSInterference.hxx>
+#include <XBOPTools_SSInterference.hxx>
+#include <XBOPTools_SequenceOfCurves.hxx>
+#include <XBOPTools_Curve.hxx>
+#include <XBOPTools_ListOfPaveBlock.hxx>
+#include <XBOPTools_PaveBlock.hxx>
+#include <XBOPTools_Tools3D.hxx>
+#include <XBOPTools_CArray1OfVSInterference.hxx>
+#include <XBOPTools_VSInterference.hxx>
+#include <XBOPTools_ESInterference.hxx>
+#include <XBOPTools_CArray1OfESInterference.hxx>
 
 #include <NMTDS_ShapesDataStructure.hxx>
 #include <NMTDS_InterfPool.hxx>
@@ -130,7 +130,7 @@ void GEOMAlgo_Builder::FillIn2DParts()
   const NMTDS_ShapesDataStructure& aDS=*myPaveFiller->DS();
   NMTTools_PaveFiller* pPF=myPaveFiller;
   NMTDS_InterfPool* pIP=pPF->IP();
-  BOPTools_CArray1OfSSInterference& aFFs=pIP->SSInterferences();
+  XBOPTools_CArray1OfSSInterference& aFFs=pIP->SSInterferences();
   NMTTools_CommonBlockPool& aCBP=pPF->ChangeCommonBlockPool();
   //
   Standard_Integer  j, nSpIn, nSpSc, aNbCurves;
@@ -139,7 +139,7 @@ void GEOMAlgo_Builder::FillIn2DParts()
   TopTools_ListOfShape aLSpIn;
   TopoDS_Face aF;
   NMTTools_ListIteratorOfListOfCommonBlock aItCB;
-  BOPTools_ListIteratorOfListOfPaveBlock aItPB;
+  XBOPTools_ListIteratorOfListOfPaveBlock aItPB;
   //
   myInParts.Clear();
   //
@@ -158,13 +158,13 @@ void GEOMAlgo_Builder::FillIn2DParts()
     aLSpIn.Clear();
     //
     // 1. In Parts
-    BOPTools_ListOfPaveBlock aLPBIn;
+    XBOPTools_ListOfPaveBlock aLPBIn;
     //
     pPF->RealSplitsInFace(nF, aLPBIn);
     //
     aItPB.Initialize(aLPBIn);
     for (; aItPB.More(); aItPB.Next()) {
-      const BOPTools_PaveBlock& aPB1=aItPB.Value();
+      const XBOPTools_PaveBlock& aPB1=aItPB.Value();
       nSpIn=aPB1.Edge();
       const TopoDS_Shape& aSpIn=aDS.Shape(nSpIn);
       aLSpIn.Append(aSpIn);
@@ -172,22 +172,22 @@ void GEOMAlgo_Builder::FillIn2DParts()
     //
     // 2. Section Parts
     for (j=1; j<=aNbFFs; ++j) {
-      BOPTools_SSInterference& aFF=aFFs(j);
+      XBOPTools_SSInterference& aFF=aFFs(j);
       aFF.Indices(n1, n2);
       if (!(n1==nF || n2==nF)) {
         continue;
       }
-      BOPTools_SequenceOfCurves& aSC=aFF.Curves();
+      XBOPTools_SequenceOfCurves& aSC=aFF.Curves();
       aNbCurves=aSC.Length();
       if (!aNbCurves) {
         continue;
       }
       //
-      const BOPTools_Curve& aBC=aSC(1);
-      const BOPTools_ListOfPaveBlock& aLPB=aBC.NewPaveBlocks();
+      const XBOPTools_Curve& aBC=aSC(1);
+      const XBOPTools_ListOfPaveBlock& aLPB=aBC.NewPaveBlocks();
       aItPB.Initialize(aLPB);
       for (; aItPB.More(); aItPB.Next()) {
-        const BOPTools_PaveBlock& aPBSc=aItPB.Value();
+        const XBOPTools_PaveBlock& aPBSc=aItPB.Value();
         nSpSc=aPBSc.Edge();
         const TopoDS_Shape& aSpSc=aDS.Shape(nSpSc);
         if (aMFence.Add(aSpSc)){
@@ -211,8 +211,8 @@ void GEOMAlgo_Builder::BuildSplitFaces()
   const NMTDS_ShapesDataStructure& aDS=*myPaveFiller->DS();
   NMTTools_PaveFiller* pPF=myPaveFiller;
   NMTDS_InterfPool* pIP=pPF->IP();
-  BOPTools_CArray1OfSSInterference& aFFs=pIP->SSInterferences();
-  const Handle(IntTools_Context)& aCtx= pPF->Context();
+  XBOPTools_CArray1OfSSInterference& aFFs=pIP->SSInterferences();
+  const Handle(XIntTools_Context)& aCtx= pPF->Context();
   //
   Standard_Boolean bToReverse, bIsClosed, bIsDegenerated;
   Standard_Boolean bFlagClosed;
@@ -258,7 +258,7 @@ void GEOMAlgo_Builder::BuildSplitFaces()
       //
       aNbFFs=aFFs.Extent();
       for (j=1; j<=aNbFFs; ++j) {
-        BOPTools_SSInterference& aFFj=aFFs(j);
+        XBOPTools_SSInterference& aFFj=aFFs(j);
         aFFj.Indices(n1, n2);
         if (!(n1==i || n2==i)) {
           continue;
@@ -337,7 +337,7 @@ void GEOMAlgo_Builder::BuildSplitFaces()
           if (aMFence.Add(aSp)) {
             //
             if (!BRep_Tool::IsClosed(aSp, aF)){
-              BOPTools_Tools3D::DoSplitSEAMOnFace(aSp, aF);
+              XBOPTools_Tools3D::DoSplitSEAMOnFace(aSp, aF);
             }
             //
             aSp.Orientation(TopAbs_FORWARD);
@@ -351,14 +351,14 @@ void GEOMAlgo_Builder::BuildSplitFaces()
         //modified by NIZNHY-PKV Wed Nov 28 13:50:34 2012f
         if (!bIsClosed && bFlagClosed) {
           if (!BRep_Tool::IsClosed(aSp, aF)){
-            BOPTools_Tools3D::DoSplitSEAMOnFace(aSp, aF);
+            XBOPTools_Tools3D::DoSplitSEAMOnFace(aSp, aF);
           }
         }
         //modified by NIZNHY-PKV Wed Nov 28 13:50:36 2012t
         //
         //
         aSp.Orientation(anOriE);
-        bToReverse=BOPTools_Tools3D::IsSplitToReverse1(aSp, aE, aCtx);
+        bToReverse=XBOPTools_Tools3D::IsSplitToReverse1(aSp, aE, aCtx);
         if (bToReverse) {
           aSp.Reverse();
         }
@@ -433,8 +433,8 @@ void GEOMAlgo_Builder::FillSameDomainFaces()
   const NMTDS_ShapesDataStructure& aDS=*myPaveFiller->DS();
   NMTTools_PaveFiller* pPF=myPaveFiller;
   NMTDS_InterfPool* pIP=pPF->IP();
-  BOPTools_CArray1OfSSInterference& aFFs=pIP->SSInterferences();
-  const Handle(IntTools_Context)& aCtx= pPF->Context();
+  XBOPTools_CArray1OfSSInterference& aFFs=pIP->SSInterferences();
+  const Handle(XIntTools_Context)& aCtx= pPF->Context();
   //
   //
   //mySameDomainShapes.Clear();
@@ -443,7 +443,7 @@ void GEOMAlgo_Builder::FillSameDomainFaces()
   //    all pairs of same domain faces (SDF) [=> aLCS]
   aNbFF=aFFs.Extent();
   for (i=1; i<=aNbFF; ++i) {
-    BOPTools_SSInterference& aFF=aFFs(i);
+    XBOPTools_SSInterference& aFF=aFFs(i);
     aFF.Indices(nF1, nF2);
     //
     const TopoDS_Face& aF1=TopoDS::Face(aDS.Shape(nF1));
@@ -451,7 +451,7 @@ void GEOMAlgo_Builder::FillSameDomainFaces()
     //
     // if there are no in/on 2D split parts the faces nF1, nF2
     // can not be SDF
-    const BOPTools_ListOfPaveBlock& aLPBInOn=aFF.PaveBlocks();
+    const XBOPTools_ListOfPaveBlock& aLPBInOn=aFF.PaveBlocks();
     aNbPBInOn=aLPBInOn.Extent();
     //
     //===
@@ -464,7 +464,7 @@ void GEOMAlgo_Builder::FillSameDomainFaces()
     //
     // if there is at least one section edge between faces nF1, nF2
     // they can not be SDF
-    BOPTools_SequenceOfCurves& aSC=aFF.Curves();
+    XBOPTools_SequenceOfCurves& aSC=aFF.Curves();
     aNbC=aSC.Length();
     if (aNbC) {
       continue;
@@ -721,10 +721,10 @@ void GEOMAlgo_Builder::FillInternalVertices()
   const NMTDS_ShapesDataStructure& aDS=*myPaveFiller->DS();
   NMTTools_PaveFiller* pPF=myPaveFiller;
   NMTDS_InterfPool* pIP=pPF->IP();
-  const Handle(IntTools_Context)& aCtx= pPF->Context();
+  const Handle(XIntTools_Context)& aCtx= pPF->Context();
   //
-  BOPTools_CArray1OfVSInterference& aVFs=pIP->VSInterferences();
-  BOPTools_CArray1OfESInterference& aEFs=pIP->ESInterferences();
+  XBOPTools_CArray1OfVSInterference& aVFs=pIP->VSInterferences();
+  XBOPTools_CArray1OfESInterference& aEFs=pIP->ESInterferences();
   const NMTTools_IndexedDataMapOfIndexedMapOfInteger& aMAV=pPF->AloneVertices();
   //
   Standard_Boolean bHasImage;
@@ -741,7 +741,7 @@ void GEOMAlgo_Builder::FillInternalVertices()
   // 1.1. VFs
   aNbVFs=aVFs.Extent();
   for (i=1; i<=aNbVFs; ++i) {
-    const BOPTools_VSInterference& aVS=aVFs(i);
+    const XBOPTools_VSInterference& aVS=aVFs(i);
     aVS.Indices(n1, n2);
     nF=n2;
     nV=n1;
@@ -760,7 +760,7 @@ void GEOMAlgo_Builder::FillInternalVertices()
   // 1.2 EFs
   aNbEFs=aEFs.Extent();
   for (i=1; i<=aNbEFs; ++i) {
-    const BOPTools_ESInterference& aEF=aEFs(i);
+    const XBOPTools_ESInterference& aEF=aEFs(i);
     aEF.Indices(n1, n2);
     nV=aEF.NewShape();
     if (!nV) {
@@ -809,7 +809,7 @@ void GEOMAlgo_Builder::FillInternalVertices()
     }
     //
     // 1.4 Internal vertices of the face nF
-    BooleanOperations_OnceExplorer aExp(aDS);
+    XBooleanOperations_OnceExplorer aExp(aDS);
     aExp.Init(nF, TopAbs_VERTEX);
     for (; aExp.More(); aExp.Next()) {
       nV=aExp.Current();
@@ -894,7 +894,7 @@ void GEOMAlgo_Builder::FillInternalVertices()
           for (; aIt.More(); aIt.Next()) {
             TopoDS_Face aFx=TopoDS::Face(aIt.Value());
             // update classifier
-            IntTools_FClass2d& aClsf=aCtx->FClass2d(aFx);
+            XIntTools_FClass2d& aClsf=aCtx->FClass2d(aFx);
             aClsf.Init(aFx, aTol);
             //
             iFlag=aCtx->ComputeVS (aV, aFx, aU1, aU2);
@@ -907,7 +907,7 @@ void GEOMAlgo_Builder::FillInternalVertices()
         else {
           const TopoDS_Face& aFx=TopoDS::Face(aF);
           // update classifier
-          IntTools_FClass2d& aClsf=aCtx->FClass2d(aFx);
+          XIntTools_FClass2d& aClsf=aCtx->FClass2d(aFx);
           aClsf.Init(aFx, aTol);
           //
           iFlag=aCtx->ComputeVS (aV, aFx, aU1, aU2);

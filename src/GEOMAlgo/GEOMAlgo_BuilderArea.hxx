@@ -32,9 +32,9 @@
 #include <Standard_Macro.hxx>
 #include <TopTools_ListOfShape.hxx>
 #include <TopTools_MapOfOrientedShape.hxx>
-#include <Handle_IntTools_Context.hxx>
+#include <Handle_XIntTools_Context.hxx>
 #include <GEOMAlgo_Algo.hxx>
-#include <IntTools_Context.hxx>
+#include <XIntTools_Context.hxx>
 
 //! The root class for algorithms to build <br>
 //!          faces/solids from set of edges/faces <br>
@@ -47,11 +47,11 @@ class GEOMAlgo_BuilderArea  : public GEOMAlgo_Algo
  public:
   //! Sets cashed geometrical tools <br>
   Standard_EXPORT
-    void SetContext(const Handle(IntTools_Context)& theContext) ;
+    void SetContext(const Handle(XIntTools_Context)& theContext) ;
 
   //! Returns cashed geometrical tools <br>
   Standard_EXPORT
-    const Handle_IntTools_Context& Context() const;
+    const Handle_XIntTools_Context& Context() const;
 
   //! Sets edges/faces to process <br>
   Standard_EXPORT
@@ -107,6 +107,6 @@ class GEOMAlgo_BuilderArea  : public GEOMAlgo_Algo
   TopTools_ListOfShape myLoopsInternal;
   TopTools_MapOfOrientedShape myShapesToAvoid;
   TopTools_ListOfShape myAreas;
-  Handle_IntTools_Context myContext;
+  Handle_XIntTools_Context myContext;
 };
 #endif

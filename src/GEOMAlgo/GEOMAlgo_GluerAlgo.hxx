@@ -31,7 +31,7 @@
 #include <TopoDS_Shape.hxx>
 #include <Standard_Real.hxx>
 #include <Standard_Boolean.hxx>
-#include <IntTools_Context.hxx>
+#include <XIntTools_Context.hxx>
 #include <TopTools_DataMapOfShapeListOfShape.hxx>
 #include <TopTools_DataMapOfShapeShape.hxx>
 #include <GEOMAlgo_BuilderShape.hxx>
@@ -74,10 +74,10 @@ public:
     virtual  void Clear() ;
 
   Standard_EXPORT
-    void SetContext(const Handle(IntTools_Context)&) ;
+    void SetContext(const Handle(XIntTools_Context)&) ;
 
   Standard_EXPORT
-    const Handle(IntTools_Context)& Context() ;
+    const Handle(XIntTools_Context)& Context() ;
 
   Standard_EXPORT
     const TopTools_DataMapOfShapeListOfShape& Images() const;
@@ -89,7 +89,7 @@ protected:
   TopoDS_Shape myArgument;
   Standard_Real myTolerance;
   Standard_Boolean myCheckGeometry;
-  Handle(IntTools_Context) myContext;
+  Handle(XIntTools_Context) myContext;
   TopTools_DataMapOfShapeListOfShape myImages;
   TopTools_DataMapOfShapeShape myOrigins;
 

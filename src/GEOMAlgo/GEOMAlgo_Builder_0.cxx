@@ -25,13 +25,13 @@
 #include <NMTDS_ShapesDataStructure.hxx>
 //#include <NMTTools_DSFiller.hxx>
 #include <NMTTools_PaveFiller.hxx>
-#include <IntTools_Context.hxx>
+#include <XIntTools_Context.hxx>
 #include <TopoDS_Shape.hxx>
-#include <BOPTools_ListIteratorOfListOfPaveBlock.hxx>
+#include <XBOPTools_ListIteratorOfListOfPaveBlock.hxx>
 #include <TopTools_MapOfShape.hxx>
 #include <TopTools_ListOfShape.hxx>
-#include <BOPTools_ListOfPaveBlock.hxx>
-#include <BOPTools_PaveBlock.hxx>
+#include <XBOPTools_ListOfPaveBlock.hxx>
+#include <XBOPTools_PaveBlock.hxx>
 
 //=======================================================================
 //function : Shapes1

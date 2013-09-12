@@ -31,13 +31,13 @@
 #include <Standard.hxx>
 #include <Standard_Macro.hxx>
 #include <Standard_Address.hxx>
-#include <BOPTools_ListOfPaveBlock.hxx>
+#include <XBOPTools_ListOfPaveBlock.hxx>
 #include <Standard_Integer.hxx>
 #include <Standard_Boolean.hxx>
 #include <NMTTools_CommonBlock.hxx>
 #include <NMTTools_ListOfCommonBlock.hxx>
-#include <BOPTools_ListOfPaveBlock.hxx>
-#include <BOPTools_PaveBlock.hxx>
+#include <XBOPTools_ListOfPaveBlock.hxx>
+#include <XBOPTools_PaveBlock.hxx>
 
 //=======================================================================
 //class    : NMTTools_CommonBlockAPI
@@ -56,19 +56,19 @@ class NMTTools_CommonBlockAPI
 //! Returns all PaveBlock-s (from the list) that are <br>
 //! common for the given edge with  DS-index <anE> <br>
   Standard_EXPORT
-    const BOPTools_ListOfPaveBlock& CommonPaveBlocks(const Standard_Integer anE) const;
+    const XBOPTools_ListOfPaveBlock& CommonPaveBlocks(const Standard_Integer anE) const;
 
 //! Returns TRUE if given PaveBlock <aPB> is <br>
 //! common for the Blocks from the list <br>
   Standard_EXPORT
-    Standard_Boolean IsCommonBlock(const BOPTools_PaveBlock& aPB) const;
+    Standard_Boolean IsCommonBlock(const XBOPTools_PaveBlock& aPB) const;
 
   Standard_EXPORT
-    NMTTools_CommonBlock& CommonBlock(const BOPTools_PaveBlock& aPB) const;
+    NMTTools_CommonBlock& CommonBlock(const XBOPTools_PaveBlock& aPB) const;
 protected:
 //private:
 
 Standard_Address myListOfCommonBlock;
-BOPTools_ListOfPaveBlock myListOfPaveBlock;
+XBOPTools_ListOfPaveBlock myListOfPaveBlock;
 };
 #endif

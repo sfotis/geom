@@ -34,7 +34,7 @@
 
 #define Array1Item NMTDS_IndexRange
 #define Array1Item_hxx <NMTDS_IndexRange.hxx>
-#define BOPTColStd_CArray1 NMTDS_CArray1OfIndexRange
-#define BOPTColStd_CArray1_hxx <NMTDS_CArray1OfIndexRange.hxx>
-#include <BOPTColStd_CArray1.gxx>
+#define XBOPTColStd_CArray1 NMTDS_CArray1OfIndexRange
+#define XBOPTColStd_CArray1_hxx <NMTDS_CArray1OfIndexRange.hxx>
+#include <XBOPTColStd_CArray1.gxx>
 

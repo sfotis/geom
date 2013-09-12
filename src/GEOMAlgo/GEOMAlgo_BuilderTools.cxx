@@ -25,7 +25,7 @@
 
 #include <GEOMAlgo_BuilderTools.hxx>
 
-#include <Basics_OCCTVersion.hxx>
+#include <GEOM_OCCTVersion.hxx>
 
 #include <TColStd_Array1OfReal.hxx>
 

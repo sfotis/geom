@@ -27,7 +27,7 @@
 //
 #include <NMTTools_CommonBlock.hxx>
 
-#include <BOPTools_ListIteratorOfListOfPaveBlock.hxx>
+#include <XBOPTools_ListIteratorOfListOfPaveBlock.hxx>
 #include <TColStd_ListIteratorOfListOfInteger.hxx>
 
 //=======================================================================
@@ -41,7 +41,7 @@
 // function:  AddPaveBlock
 // purpose:
 //=======================================================================
-  void NMTTools_CommonBlock::AddPaveBlock(const BOPTools_PaveBlock& aPB)
+  void NMTTools_CommonBlock::AddPaveBlock(const XBOPTools_PaveBlock& aPB)
 {
   myPaveBlocks.Append(aPB);
 }
@@ -69,7 +69,7 @@
 // function:  PaveBlocks
 // purpose:
 //=======================================================================
-  const BOPTools_ListOfPaveBlock& NMTTools_CommonBlock::PaveBlocks()const
+  const XBOPTools_ListOfPaveBlock& NMTTools_CommonBlock::PaveBlocks()const
 {
   return myPaveBlocks;
 }
@@ -85,7 +85,7 @@
 // function:  PaveBlock1
 // purpose:
 //=======================================================================
-  const BOPTools_PaveBlock& NMTTools_CommonBlock::PaveBlock1()const
+  const XBOPTools_PaveBlock& NMTTools_CommonBlock::PaveBlock1()const
 {
   return myPaveBlocks.First();
 }
@@ -93,7 +93,7 @@
 // function:  PaveBlock1
 // purpose:
 //=======================================================================
-   BOPTools_PaveBlock& NMTTools_CommonBlock::PaveBlock1(const Standard_Integer aIx)
+   XBOPTools_PaveBlock& NMTTools_CommonBlock::PaveBlock1(const Standard_Integer aIx)
 {
   return PaveBlockOnEdge(aIx);
 }
@@ -101,14 +101,14 @@
 // function:  PaveBlockOnEdge
 // purpose:
 //=======================================================================
-   BOPTools_PaveBlock& NMTTools_CommonBlock::PaveBlockOnEdge(const Standard_Integer aIx)
+   XBOPTools_PaveBlock& NMTTools_CommonBlock::PaveBlockOnEdge(const Standard_Integer aIx)
 {
-  static BOPTools_PaveBlock aPBs;
+  static XBOPTools_PaveBlock aPBs;
   Standard_Integer aIOr;
-  BOPTools_ListIteratorOfListOfPaveBlock anIt(myPaveBlocks);
+  XBOPTools_ListIteratorOfListOfPaveBlock anIt(myPaveBlocks);
   //
   for (; anIt.More(); anIt.Next()) {
-    BOPTools_PaveBlock& aPB=anIt.Value();
+    XBOPTools_PaveBlock& aPB=anIt.Value();
     aIOr=aPB.OriginalEdge();
     if (aIOr==aIx){
       return aPB;
@@ -142,10 +142,10 @@
 {
   Standard_Boolean bFound=Standard_False;
   Standard_Integer aIOr;
-  BOPTools_ListIteratorOfListOfPaveBlock anIt(myPaveBlocks);
+  XBOPTools_ListIteratorOfListOfPaveBlock anIt(myPaveBlocks);
   //
   for (; anIt.More(); anIt.Next()) {
-    const BOPTools_PaveBlock& aPB=anIt.Value();
+    const XBOPTools_PaveBlock& aPB=anIt.Value();
     aIOr=aPB.OriginalEdge();
     if (aIOr==aIx){
       return !bFound;
@@ -161,7 +161,7 @@
 {
   Standard_Boolean bFound=Standard_True;
   Standard_Integer aNb1, aNb2;
-  BOPTools_ListIteratorOfListOfPaveBlock anIt;
+  XBOPTools_ListIteratorOfListOfPaveBlock anIt;
   //
   aNb1=myPaveBlocks.Extent();
   aNb2=aOther.myPaveBlocks.Extent();
@@ -176,11 +176,11 @@
     return !bFound;
   }
   //
-  const BOPTools_PaveBlock& aPB=PaveBlock1();
+  const XBOPTools_PaveBlock& aPB=PaveBlock1();
   //
   anIt.Initialize(aOther.myPaveBlocks);
   for (; anIt.More(); anIt.Next()) {
-    const BOPTools_PaveBlock& aPBOther=anIt.Value();
+    const XBOPTools_PaveBlock& aPBOther=anIt.Value();
     if (aPB.IsEqual(aPBOther)){
       return bFound;
     }
@@ -191,11 +191,11 @@
 // function:  Contains
 // purpose:
 //=======================================================================
-  Standard_Boolean NMTTools_CommonBlock::Contains(const BOPTools_PaveBlock& aPBx)const
+  Standard_Boolean NMTTools_CommonBlock::Contains(const XBOPTools_PaveBlock& aPBx)const
 {
   Standard_Boolean bFound=Standard_False;
   Standard_Integer aNb1;
-  BOPTools_ListIteratorOfListOfPaveBlock anIt;
+  XBOPTools_ListIteratorOfListOfPaveBlock anIt;
   //
   aNb1=myPaveBlocks.Extent();
   //
@@ -205,7 +205,7 @@
   //
   anIt.Initialize(myPaveBlocks);
   for (; anIt.More(); anIt.Next()) {
-    const BOPTools_PaveBlock& aPB=anIt.Value();
+    const XBOPTools_PaveBlock& aPB=anIt.Value();
     if (aPB.IsEqual(aPBx)) {
       return !bFound;
     }
@@ -219,11 +219,11 @@
 //=======================================================================
   void NMTTools_CommonBlock::SetEdge(const Standard_Integer anEdge)
 {
-  BOPTools_ListIteratorOfListOfPaveBlock anIt;
+  XBOPTools_ListIteratorOfListOfPaveBlock anIt;
   //
   anIt.Initialize(myPaveBlocks);
   for (; anIt.More(); anIt.Next()) {
-    BOPTools_PaveBlock& aPB=anIt.Value();
+    XBOPTools_PaveBlock& aPB=anIt.Value();
     aPB.SetEdge(anEdge);
   }
 }
@@ -241,7 +241,7 @@
     return aNb;
   }
   //
-  const BOPTools_PaveBlock& aPB=PaveBlock1();
+  const XBOPTools_PaveBlock& aPB=PaveBlock1();
   aNb=aPB.Edge();
   return aNb;
 }

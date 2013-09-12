@@ -27,9 +27,9 @@
 //
 #include <NMTTools_CommonBlockAPI.hxx>
 
-#include <BOPTools_PaveBlock.hxx>
-#include <BOPTools_ListOfPaveBlock.hxx>
-#include <BOPTools_ListIteratorOfListOfPaveBlock.hxx>
+#include <XBOPTools_PaveBlock.hxx>
+#include <XBOPTools_ListOfPaveBlock.hxx>
+#include <XBOPTools_ListIteratorOfListOfPaveBlock.hxx>
 
 #include <NMTTools_CommonBlock.hxx>
 #include <NMTTools_ListOfCommonBlock.hxx>
@@ -56,12 +56,12 @@
 // function:  CommonPaveBlocks
 // purpose:   get all CommonPaveBlocks
 //=======================================================================
-  const BOPTools_ListOfPaveBlock& NMTTools_CommonBlockAPI::CommonPaveBlocks(const Standard_Integer anE) const
+  const XBOPTools_ListOfPaveBlock& NMTTools_CommonBlockAPI::CommonPaveBlocks(const Standard_Integer anE) const
 {
   Standard_Integer anECurrent;
-  BOPTools_ListIteratorOfListOfPaveBlock anItPB;
+  XBOPTools_ListIteratorOfListOfPaveBlock anItPB;
   //
-  BOPTools_ListOfPaveBlock* pmyListOfPaveBlock=(BOPTools_ListOfPaveBlock*) &myListOfPaveBlock;
+  XBOPTools_ListOfPaveBlock* pmyListOfPaveBlock=(XBOPTools_ListOfPaveBlock*) &myListOfPaveBlock;
   pmyListOfPaveBlock->Clear();
 
   NMTTools_ListOfCommonBlock* pListOfCommonBlock=(NMTTools_ListOfCommonBlock*)myListOfCommonBlock;
@@ -70,10 +70,10 @@
   for (; anIt.More(); anIt.Next()) {
     const NMTTools_CommonBlock& aCB=anIt.Value();
     //
-    const BOPTools_ListOfPaveBlock& aLPB=aCB.PaveBlocks();
+    const XBOPTools_ListOfPaveBlock& aLPB=aCB.PaveBlocks();
     anItPB.Initialize(aLPB);
     for (; anItPB.More(); anItPB.Next()) {
-      const BOPTools_PaveBlock& aPB=anItPB.Value();
+      const XBOPTools_PaveBlock& aPB=anItPB.Value();
       anECurrent=aPB.OriginalEdge();
       if (anECurrent==anE) {
         pmyListOfPaveBlock->Append(aPB);
@@ -87,7 +87,7 @@
 // function:  IsCommonBlock
 // purpose:
 //=======================================================================
-  Standard_Boolean NMTTools_CommonBlockAPI::IsCommonBlock(const BOPTools_PaveBlock& aPB) const
+  Standard_Boolean NMTTools_CommonBlockAPI::IsCommonBlock(const XBOPTools_PaveBlock& aPB) const
 {
   Standard_Integer anE;
   //
@@ -95,9 +95,9 @@
   //
   CommonPaveBlocks(anE);
   //
-  BOPTools_ListIteratorOfListOfPaveBlock anIt(myListOfPaveBlock);
+  XBOPTools_ListIteratorOfListOfPaveBlock anIt(myListOfPaveBlock);
   for (; anIt.More(); anIt.Next()) {
-    const BOPTools_PaveBlock& aPB1=anIt.Value();
+    const XBOPTools_PaveBlock& aPB1=anIt.Value();
     if (aPB1.IsEqual(aPB)) {
       return Standard_True;
     }
@@ -109,12 +109,12 @@
 // function:  CommonBlock
 // purpose:
 //=======================================================================
-  NMTTools_CommonBlock& NMTTools_CommonBlockAPI::CommonBlock(const BOPTools_PaveBlock& aPB)const
+  NMTTools_CommonBlock& NMTTools_CommonBlockAPI::CommonBlock(const XBOPTools_PaveBlock& aPB)const
 {
   static NMTTools_CommonBlock aCBTMP;
   //
   NMTTools_ListIteratorOfListOfCommonBlock anItCB;
-  BOPTools_ListIteratorOfListOfPaveBlock anItPB;
+  XBOPTools_ListIteratorOfListOfPaveBlock anItPB;
   //
   NMTTools_ListOfCommonBlock* pLCB=(NMTTools_ListOfCommonBlock*)myListOfCommonBlock;
   //
@@ -122,10 +122,10 @@
   for (; anItCB.More(); anItCB.Next()) {
     NMTTools_CommonBlock& aCB=anItCB.ChangeValue();
     //
-    const BOPTools_ListOfPaveBlock& aLPB=aCB.PaveBlocks();
+    const XBOPTools_ListOfPaveBlock& aLPB=aCB.PaveBlocks();
     anItPB.Initialize(aLPB);
     for (; anItPB.More(); anItPB.Next()) {
-      const BOPTools_PaveBlock& aPBx=anItPB.Value();
+      const XBOPTools_PaveBlock& aPBx=anItPB.Value();
       if (aPBx.IsEqual(aPB)) {
         return aCB;
       }

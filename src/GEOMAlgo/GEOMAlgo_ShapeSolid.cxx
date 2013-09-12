@@ -52,9 +52,9 @@ GEOMAlgo_ShapeSolid::~GEOMAlgo_ShapeSolid()
 //function : SetFiller
 //purpose  :
 //=======================================================================
-void GEOMAlgo_ShapeSolid::SetFiller(const BOPTools_DSFiller& aDSFiller)
+void GEOMAlgo_ShapeSolid::SetFiller(const XBOPTools_DSFiller& aDSFiller)
 {
-  myDSFiller=(BOPTools_DSFiller*) &aDSFiller;
+  myDSFiller=(XBOPTools_DSFiller*) &aDSFiller;
 }
 //=======================================================================
 // function: Shapes
