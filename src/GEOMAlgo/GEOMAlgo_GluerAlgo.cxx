@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2011  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 // Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
@@ -19,17 +19,18 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-// File:	GEOMAlgo_GluerAlgo.cxx
-// Created:	
-// Author:	Peter KURNEV
-//		<peter@PREFEX>
+// File:        GEOMAlgo_GluerAlgo.cxx
+// Created:
+// Author:      Peter KURNEV
+//              <peter@PREFEX>
 //
 #include <GEOMAlgo_GluerAlgo.hxx>
+#include <IntTools_Context.hxx>
 
 
 //=======================================================================
 //function : GEOMAlgo_GluerAlgo
-//purpose  : 
+//purpose  :
 //=======================================================================
 GEOMAlgo_GluerAlgo::GEOMAlgo_GluerAlgo()
 {
@@ -38,14 +39,14 @@ GEOMAlgo_GluerAlgo::GEOMAlgo_GluerAlgo()
 }
 //=======================================================================
 //function : ~GEOMAlgo_GluerAlgo
-//purpose  : 
+//purpose  :
 //=======================================================================
 GEOMAlgo_GluerAlgo::~GEOMAlgo_GluerAlgo()
 {
 }
 //=======================================================================
 //function : SetArgument
-//purpose  : 
+//purpose  :
 //=======================================================================
 void GEOMAlgo_GluerAlgo::SetArgument(const TopoDS_Shape& theShape)
 {
@@ -53,7 +54,7 @@ void GEOMAlgo_GluerAlgo::SetArgument(const TopoDS_Shape& theShape)
 }
 //=======================================================================
 //function : Argument
-//purpose  : 
+//purpose  :
 //=======================================================================
 const TopoDS_Shape& GEOMAlgo_GluerAlgo::Argument()const
 {
@@ -61,7 +62,7 @@ const TopoDS_Shape& GEOMAlgo_GluerAlgo::Argument()const
 }
 //=======================================================================
 //function : SetTolerance
-//purpose  : 
+//purpose  :
 //=======================================================================
 void GEOMAlgo_GluerAlgo::SetTolerance(const Standard_Real aT)
 {
@@ -69,7 +70,7 @@ void GEOMAlgo_GluerAlgo::SetTolerance(const Standard_Real aT)
 }
 //=======================================================================
 //function : Tolerance
-//purpose  : 
+//purpose  :
 //=======================================================================
 Standard_Real GEOMAlgo_GluerAlgo::Tolerance()const
 {
@@ -78,7 +79,7 @@ Standard_Real GEOMAlgo_GluerAlgo::Tolerance()const
 
 //=======================================================================
 //function : SetCheckGeometry
-//purpose  : 
+//purpose  :
 //=======================================================================
 void GEOMAlgo_GluerAlgo::SetCheckGeometry(const Standard_Boolean aFlag)
 {
@@ -86,23 +87,31 @@ void GEOMAlgo_GluerAlgo::SetCheckGeometry(const Standard_Boolean aFlag)
 }
 //=======================================================================
 //function : CheckGeometry
-//purpose  : 
+//purpose  :
 //=======================================================================
 Standard_Boolean GEOMAlgo_GluerAlgo::CheckGeometry() const
 {
   return myCheckGeometry;
 }
 //=======================================================================
-//function : Context
-//purpose  : 
+//function : SetContext
+//purpose  :
 //=======================================================================
-IntTools_Context& GEOMAlgo_GluerAlgo::Context()
+void GEOMAlgo_GluerAlgo::SetContext(const Handle(IntTools_Context)& theContext)
+{
+  myContext=theContext;
+}
+//=======================================================================
+//function : Context
+//purpose  :
+//=======================================================================
+const Handle(IntTools_Context)& GEOMAlgo_GluerAlgo::Context()
 {
   return myContext;
 }
 //=======================================================================
 //function : Images
-//purpose  : 
+//purpose  :
 //=======================================================================
 const TopTools_DataMapOfShapeListOfShape& GEOMAlgo_GluerAlgo::Images()const
 {
@@ -110,7 +119,7 @@ const TopTools_DataMapOfShapeListOfShape& GEOMAlgo_GluerAlgo::Images()const
 }
 //=======================================================================
 //function : Origins
-//purpose  : 
+//purpose  :
 //=======================================================================
 const TopTools_DataMapOfShapeShape& GEOMAlgo_GluerAlgo::Origins()const
 {
@@ -118,7 +127,7 @@ const TopTools_DataMapOfShapeShape& GEOMAlgo_GluerAlgo::Origins()const
 }
 //=======================================================================
 //function : Clear
-//purpose  : 
+//purpose  :
 //=======================================================================
 void GEOMAlgo_GluerAlgo::Clear()
 {
@@ -127,8 +136,11 @@ void GEOMAlgo_GluerAlgo::Clear()
 }
 //=======================================================================
 //function : Perform
-//purpose  : 
+//purpose  :
 //=======================================================================
 void GEOMAlgo_GluerAlgo::Perform()
 {
+  if (myContext.IsNull()) {
+    myContext=new IntTools_Context;
+  }
 }

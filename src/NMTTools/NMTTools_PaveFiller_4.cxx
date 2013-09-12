@@ -1,29 +1,30 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
-//  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-//  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 //
-//  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free Software Foundation; either
-//  version 2.1 of the License.
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License.
 //
-//  This library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  Lesser General Public License for more details.
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
 //
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 //
-//  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+// See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
 //  File:        NMTTools_PaveFiller_4.cxx
 //  Created:     Mon Dec  8 17:08:58 2003
 //  Author:      Peter KURNEV
 
-#include <NMTTools_PaveFiller.ixx>
+#include <NMTTools_PaveFiller.hxx>
+#include <NMTTools_Tools.hxx>
 
 #include <stdio.h>
 #include <Precision.hxx>
@@ -65,6 +66,7 @@
 #include <IntTools_EdgeEdge.hxx>
 #include <IntTools_SequenceOfCommonPrts.hxx>
 #include <IntTools_Tools.hxx>
+#include <IntTools_Context.hxx>
 
 #include <BOPTools_Pave.hxx>
 #include <BOPTools_PaveSet.hxx>
@@ -183,7 +185,8 @@ void NMTTools_PaveFiller::PerformEE()
     const TopoDS_Edge aE1=TopoDS::Edge(myDS->Shape(nE1));//mpv
     const TopoDS_Edge aE2=TopoDS::Edge(myDS->Shape(nE2));//mpv
     //
-    if (BRep_Tool::Degenerated(aE1) || BRep_Tool::Degenerated(aE2)){
+    if (NMTTools_Tools::IsDegenerated(aE1) ||
+        NMTTools_Tools::IsDegenerated(aE2)){
       continue;
     }
     //
@@ -479,7 +482,7 @@ void NMTTools_PaveFiller::TreatPaveBlocks (NMTTools_ListOfCommonBlock& theLCB)
           // Append Pave of nV to rhe edge nE
           const TopoDS_Edge& aE=*(TopoDS_Edge*)(&myDS->Shape(nE));
           const TopoDS_Vertex& aV= *(TopoDS_Vertex*)(&myDS->Shape(nV));
-          iFlag=myContext.ComputeVE (aV, aE, aT);
+          iFlag=myContext->ComputeVE (aV, aE, aT);
           if (!iFlag) {
             BOPTools_Pave aPave;
             //
@@ -569,7 +572,7 @@ void NMTTools_PaveFiller::EENewVertices (const BooleanOperations_IndexedDataMapO
       for (j=0; j<2; ++j) {
         if (aMFence.Add(nE[j])) {
           aE=TopoDS::Edge(myDS->Shape(nE[j]));
-          iFlag=myContext.ComputeVE (aVnew, aE, aT);
+          iFlag=myContext->ComputeVE (aVnew, aE, aT);
           if (!iFlag) {
             aPave.SetInterference(-1);
             aPave.SetType (BooleanOperations_EdgeEdge);
@@ -954,7 +957,7 @@ void NMTTools_PaveFiller::PreparePaveBlocks(const Standard_Integer nE)
   BOPTools_ListOfPaveBlock& aLPB=mySplitShapesPool(myDS->RefEdge(nE));
   // Edge
   aE=TopoDS::Edge(myDS->Shape(nE));
-  if (BRep_Tool::Degenerated(aE)) {
+  if (NMTTools_Tools::IsDegenerated(aE)) {
     myIsDone=Standard_True;
     return;
   }
@@ -975,8 +978,7 @@ void NMTTools_PaveFiller::PreparePaveBlocks(const Standard_Integer nE)
     aV2=TopoDS::Vertex(myDS->GetShape(nV2));
     //
     // ShrunkRange
-	Handle(IntTools_Context)& aTempContext = &myContext;
-    IntTools_ShrunkRange aSR (aE, aV1, aV2, aRange, aTempContext);
+    IntTools_ShrunkRange aSR (aE, aV1, aV2, aRange, myContext);
     iErr=aSR.ErrorStatus();
     if (!aSR.IsDone()) {
       sprintf (buf, "Can not obtain ShrunkRange for Edge %d\n", nE);
@@ -1192,7 +1194,7 @@ void NMTTools_PaveFiller::SplitCommonBlocks(const NMTTools_ListOfCommonBlock& aL
     //
     anIt.Initialize(aLCBE);
     for (; anIt.More(); anIt.Next()) {
-      NMTTools_CommonBlock& aCBE=anIt.Value();
+      NMTTools_CommonBlock& aCBE=anIt.ChangeValue();
       const BOPTools_ListOfPaveBlock& aLPBE=aCBE.PaveBlocks();
       //
       aTolMax=-1.;
@@ -1372,15 +1374,15 @@ void NMTTools_PaveFiller::SplitCommonBlock(const NMTTools_CommonBlock& aCB,
         n21=aPB2.Pave1().Index();
         n22=aPB2.Pave2().Index();
         if ((n21==n11 && n22==n12) || (n21==n12 && n22==n11)) {
-	  //modified by NIZNHY-PKV Thu Nov 11 08:13:24 2010f
-	  bIsCoincided=CheckCoincidence(aPB2, aPB1);
-	  if (bIsCoincided) {
-	    aCBx.AddPaveBlock(aPB2);
-	    break;
-	  }
-	  //aCBx.AddPaveBlock(aPB2);
-	  //break;
-	  //modified by NIZNHY-PKV Thu Nov 11 08:13:31 2010t
+          //modified by NIZNHY-PKV Thu Nov 11 08:13:24 2010f
+          bIsCoincided=CheckCoincidence(aPB2, aPB1);
+          if (bIsCoincided) {
+            aCBx.AddPaveBlock(aPB2);
+            break;
+          }
+          //aCBx.AddPaveBlock(aPB2);
+          //break;
+          //modified by NIZNHY-PKV Thu Nov 11 08:13:31 2010t
         }
       }
     }
@@ -1554,7 +1556,7 @@ void ProcessBlock(const BOPTools_PaveBlock& aPB,
       }
       //
       anIndexIn=0;
-      aFlag=myContext.ComputeVS (aVnew, aF, aU, aV);
+      aFlag=myContext->ComputeVS (aVnew, aF, aU, aV);
       if (!aFlag) {
         BOPTools_VSInterference anInterf (nNewShape, nF, aU, aV);
         //
@@ -1572,7 +1574,7 @@ void ProcessBlock(const BOPTools_PaveBlock& aPB,
 // purpose:
 //=======================================================================
 Standard_Boolean NMTTools_PaveFiller::CheckCoincidence(const BOPTools_PaveBlock& aPB1,
-						       const BOPTools_PaveBlock& aPB2)
+                                                       const BOPTools_PaveBlock& aPB2)
 {
   Standard_Boolean bRet;
   Standard_Integer nE1, nE2, aNbPoints;
@@ -1593,7 +1595,7 @@ Standard_Boolean NMTTools_PaveFiller::CheckCoincidence(const BOPTools_PaveBlock&
   nE2=aPB2.OriginalEdge();
   const TopoDS_Edge& aE2=(*(TopoDS_Edge*)(&myDS->Shape(nE2)));
   //
-  GeomAPI_ProjectPointOnCurve& aPPC=myContext.ProjPC(aE2);
+  GeomAPI_ProjectPointOnCurve& aPPC=myContext->ProjPC(aE2);
   aPPC.Perform(aP1m);
   aNbPoints=aPPC.NbPoints();
   if (aNbPoints) {
@@ -1604,7 +1606,7 @@ Standard_Boolean NMTTools_PaveFiller::CheckCoincidence(const BOPTools_PaveBlock&
     if (aD<aTol) {
       aT2x=aPPC.LowerDistanceParameter();
       if (aT2x>aT21 && aT2x<aT22) {
-	return !bRet;
+        return !bRet;
       }
     }
   }

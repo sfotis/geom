@@ -1,30 +1,29 @@
-//  Copyright (C) 2007-2010  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
-//  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-//  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 //
-//  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free Software Foundation; either
-//  version 2.1 of the License.
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License.
 //
-//  This library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  Lesser General Public License for more details.
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
 //
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 //
-//  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+// See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+//  File    : GEOMAlgo_Tools3D.cxx
+//  Created :
+//  Author  : Peter KURNEV
 
-// File:        GEOMAlgo_Tools3D.cxx
-// Created:     
-// Author:      Peter KURNEV
-//
-#include <GEOMAlgo_Tools3D.ixx>
+#include <GEOMAlgo_Tools3D.hxx>
 
 #include <Precision.hxx>
 
@@ -34,10 +33,19 @@
 #include <gp_Pnt2d.hxx>
 #include <gp_Pln.hxx>
 #include <gp_XYZ.hxx>
+#include <gp_Dir2d.hxx>
 
 #include <Geom_Curve.hxx>
 #include <Geom_Surface.hxx>
+
 #include <Geom2d_Curve.hxx>
+#include <Geom2d_TrimmedCurve.hxx>
+#include <Geom2d_Line.hxx>
+
+#include <Geom2dHatch_Intersector.hxx>
+#include <Geom2dHatch_Hatcher.hxx>
+#include <HatchGen_Domain.hxx>
+
 #include <GeomAPI_ProjectPointOnSurf.hxx>
 
 #include <TopAbs_ShapeEnum.hxx>
@@ -70,6 +78,7 @@
 #include <TopTools_MapOfShape.hxx>
 
 #include <BRepClass3d_SolidClassifier.hxx>
+#include <BRepTools.hxx>
 
 #include <IntTools_Context.hxx>
 #include <IntTools_Tools.hxx>
@@ -103,22 +112,22 @@ static
                              const gp_Dir& );
 
 static
-  void GetApproxNormalToFaceOnEdge (const TopoDS_Edge& aE, 
-                                    const TopoDS_Face& aF, 
-                                    Standard_Real aT, 
-                                    gp_Pnt& aPF, 
+  void GetApproxNormalToFaceOnEdge (const TopoDS_Edge& aE,
+                                    const TopoDS_Face& aF,
+                                    Standard_Real aT,
+                                    gp_Pnt& aPF,
                                     gp_Dir& aDNF,
-                                    IntTools_Context& aCtx);
+                                    const Handle(IntTools_Context)& aCtx);
 
 //=======================================================================
 //function : IsInternalFace
-//purpose  : 
+//purpose  :
 //=======================================================================
-  Standard_Boolean GEOMAlgo_Tools3D::IsInternalFace(const TopoDS_Face& theFace,
-                                                   const TopoDS_Solid& theSolid,
-                                                   const TopTools_IndexedDataMapOfShapeListOfShape& theMEF,
-                                                   const Standard_Real theTol,
-                                                   IntTools_Context& theContext)
+Standard_Boolean GEOMAlgo_Tools3D::IsInternalFace(const TopoDS_Face& theFace,
+                                                  const TopoDS_Solid& theSolid,
+                                                  const TopTools_IndexedDataMapOfShapeListOfShape& theMEF,
+                                                  const Standard_Real theTol,
+                                                  const Handle(IntTools_Context)& theContext)
 {
   Standard_Boolean bRet;
   Standard_Integer aNbF;
@@ -135,7 +144,7 @@ static
     if (!theMEF.Contains(aE)) {
       continue;
     }
-    // 
+    //
     const TopTools_ListOfShape& aLF=theMEF.FindFromKey(aE);
     aNbF=aLF.Extent();
     if (!aNbF) {
@@ -179,12 +188,12 @@ static
 }
 //=======================================================================
 //function : IsInternalFace
-//purpose  : 
+//purpose  :
 //=======================================================================
   Standard_Boolean GEOMAlgo_Tools3D::IsInternalFace(const TopoDS_Face& theFace,
                                                     const TopoDS_Edge& theEdge,
                                                     const TopTools_ListOfShape& theLF,
-                                                    IntTools_Context& theContext)
+                                                    const Handle(IntTools_Context)& theContext)
 {
   Standard_Boolean bRet;
   Standard_Boolean aNbF;
@@ -221,13 +230,13 @@ static
 }
 //=======================================================================
 //function : IsInternalFace
-//purpose  : 
+//purpose  :
 //=======================================================================
   Standard_Boolean GEOMAlgo_Tools3D::IsInternalFace(const TopoDS_Face& theFace,
                                                     const TopoDS_Edge& theEdge,
                                                     const TopoDS_Face& theFace1,
                                                     const TopoDS_Face& theFace2,
-                                                    IntTools_Context& theContext)
+                                                    const Handle(IntTools_Context)& theContext)
 {
   Standard_Boolean bRet;
   Standard_Real aT1, aT2, aT, aDt2D, aDt2Dx;
@@ -246,7 +255,7 @@ static
   aDt2D=BOPTools_Tools3D::MinStepIn2d();
   aDt2Dx=10.*aDt2D;
   BOPTools_Tools3D::PointNearEdge (theEdge, theFace, aT, aDt2Dx, aPF2D, aPF);
-  // 
+  //
   // 2. E1, E2
   GEOMAlgo_Tools3D::GetEdgeOnFace(theEdge, theFace1, aE1);
   if (aE1.Orientation()==TopAbs_INTERNAL) {
@@ -268,11 +277,8 @@ static
   //
   GetApproxNormalToFaceOnEdge (aE1, theFace1, aT, aPF1, aDNF1, theContext);
   GetApproxNormalToFaceOnEdge (aE2, theFace2, aT, aPF2, aDNF2, theContext);
-
-  //BOPTools_Tools3D::GetApproxNormalToFaceOnEdge (aE1, theFace1, aT, aPF1, aDNF1);
-  //BOPTools_Tools3D::GetApproxNormalToFaceOnEdge (aE2, theFace2, aT, aPF2, aDNF2);
   //
-  aTwoPI=2.*M_PI;
+  aTwoPI = 2.*M_PI;
   gp_Vec aVBF (aPx, aPF );
   gp_Vec aVBF1(aPx, aPF1);
   gp_Vec aVBF2(aPx, aPF2);
@@ -287,7 +293,7 @@ static
   if (aA12<0.) {
     aA12=aA12+aTwoPI;
   }
-  
+
   aA1x=AngleWithRef(aDBF1, aDBF , aDTF1);
   if (aA1x<0.) {
     aA1x=aA1x+aTwoPI;
@@ -301,7 +307,7 @@ static
 }
 //=======================================================================
 //function : GetFaceOff
-//purpose  : 
+//purpose  :
 //=======================================================================
   void GEOMAlgo_Tools3D::GetFaceOff(const TopoDS_Edge& theE1,
                                    const TopoDS_Face& theF1,
@@ -315,7 +321,7 @@ static
   NMTTools_ListIteratorOfListOfCoupleOfShape aIt;
   //
   aAngleMin=100.;
-  aTwoPI=M_PI+M_PI;
+  aTwoPI = M_PI+M_PI;
   BRep_Tool::Range(theE1, aT1, aT2);
   aT=BOPTools_Tools2D::IntermediatePoint(aT1, aT2);
   // Ref
@@ -355,7 +361,7 @@ static
 }
 //=======================================================================
 //function : GetEdgeOnFace
-//purpose  : 
+//purpose  :
 //=======================================================================
   Standard_Boolean GEOMAlgo_Tools3D::GetEdgeOnFace(const TopoDS_Edge& theE1,
                                                   const TopoDS_Face& theF2,
@@ -383,12 +389,12 @@ static
 }
 //=======================================================================
 //function : GetEdgeOff
-//purpose  : 
+//purpose  :
 //=======================================================================
-  Standard_Boolean GEOMAlgo_Tools3D::GetEdgeOff(const TopoDS_Edge& theE1,
+Standard_Boolean GEOMAlgo_Tools3D::GetEdgeOff (const TopoDS_Edge& theE1,
                                                const TopoDS_Face& theF2,
                                                TopoDS_Edge& theE2)
-     
+
 {
   Standard_Boolean bFound;
   TopAbs_Orientation aOr1, aOr1C, aOr2;
@@ -414,19 +420,19 @@ static
 }
 //=======================================================================
 // function:  ComputeState
-// purpose: 
+// purpose:
 //=======================================================================
   TopAbs_State GEOMAlgo_Tools3D::ComputeState(const TopoDS_Face& theF,
                                              const TopoDS_Solid& theRef,
                                              const Standard_Real theTol,
                                              const TopTools_IndexedMapOfShape& theBounds,
-                                             IntTools_Context& theCtx)
+                                             const Handle(IntTools_Context)& theCtx)
 {
   TopAbs_State aState;
-  TopExp_Explorer aExp; 
+  TopExp_Explorer aExp;
   TopoDS_Edge aE1;
   gp_Pnt2d aP2D;
-  gp_Pnt aP3D; 
+  gp_Pnt aP3D;
   //
   aState=TopAbs_UNKNOWN;
   //
@@ -456,12 +462,12 @@ static
 }
 //=======================================================================
 // function:  ComputeStateByOnePoint
-// purpose: 
+// purpose:
 //=======================================================================
   TopAbs_State GEOMAlgo_Tools3D::ComputeStateByOnePoint(const TopoDS_Shape& theS,
                                                        const TopoDS_Solid& theRef,
                                                        const Standard_Real theTol,
-                                                       IntTools_Context& theCtx)
+                                                       const Handle(IntTools_Context)& theCtx)
 {
   TopAbs_State aState;
   TopAbs_ShapeEnum aType;
@@ -480,15 +486,15 @@ static
 }
 //=======================================================================
 // function:  ComputeState
-// purpose: 
+// purpose:
 //=======================================================================
   TopAbs_State GEOMAlgo_Tools3D::ComputeState(const TopoDS_Vertex& theV,
                                              const TopoDS_Solid& theRef,
                                              const Standard_Real theTol,
-                                             IntTools_Context& theCtx)
+                                             const Handle(IntTools_Context)& theCtx)
 {
   TopAbs_State aState;
-  gp_Pnt aP3D; 
+  gp_Pnt aP3D;
   //
   aP3D=BRep_Tool::Pnt(theV);
   aState=GEOMAlgo_Tools3D::ComputeState(aP3D, theRef, theTol, theCtx);
@@ -496,17 +502,17 @@ static
 }
 //=======================================================================
 // function:  ComputeState
-// purpose: 
+// purpose:
 //=======================================================================
   TopAbs_State GEOMAlgo_Tools3D::ComputeState(const TopoDS_Edge& theE,
                                              const TopoDS_Solid& theRef,
                                              const Standard_Real theTol,
-                                             IntTools_Context& theCtx)
+                                             const Handle(IntTools_Context)& theCtx)
 {
   Standard_Real aT1, aT2, aT = 0.;
   TopAbs_State aState;
   Handle(Geom_Curve) aC3D;
-  gp_Pnt aP3D; 
+  gp_Pnt aP3D;
   //
   aC3D = BRep_Tool::Curve(theE, aT1, aT2);
   //
@@ -546,16 +552,16 @@ static
 }
 //=======================================================================
 // function:  ComputeState
-// purpose: 
+// purpose:
 //=======================================================================
   TopAbs_State GEOMAlgo_Tools3D::ComputeState(const gp_Pnt& theP,
                                              const TopoDS_Solid& theRef,
                                              const Standard_Real theTol,
-                                             IntTools_Context& theCtx)
+                                             const Handle(IntTools_Context)& theCtx)
 {
   TopAbs_State aState;
   //
-  BRepClass3d_SolidClassifier& aSC=theCtx.SolidClassifier(theRef);
+  BRepClass3d_SolidClassifier& aSC=theCtx->SolidClassifier(theRef);
   aSC.Perform(theP, theTol);
   //
   aState=aSC.State();
@@ -564,11 +570,11 @@ static
 }
 //=======================================================================
 // function: IsSplitToReverse
-// purpose: 
+// purpose:
 //=======================================================================
   Standard_Boolean GEOMAlgo_Tools3D::IsSplitToReverse(const TopoDS_Shape& theSp,
                                                      const TopoDS_Shape& theSr,
-                                                     IntTools_Context& theCtx)
+                                                     const Handle(IntTools_Context)& theCtx)
 {
   Standard_Boolean bRet;
   TopAbs_ShapeEnum aType;
@@ -598,11 +604,11 @@ static
 }
 //=======================================================================
 //function :IsSplitToReverse
-//purpose  : 
+//purpose  :
 //=======================================================================
   Standard_Boolean GEOMAlgo_Tools3D::IsSplitToReverse(const TopoDS_Face& theFSp,
                                                      const TopoDS_Face& theFSr,
-                                                     IntTools_Context& theContext)
+                                                     const Handle(IntTools_Context)& theContext)
 {
   Standard_Boolean bRet, bFound, bInFace;
   Standard_Real aT1, aT2, aT, aU, aV, aScPr;
@@ -636,16 +642,42 @@ static
       }
     }
   }
+  //
+  //modified by NIZNHY-PKV Tue Nov 22 10:50:30 2011f
+  if (!bFound) {
+    Standard_Boolean bFlag;
+    Standard_Integer iErr;
+    gp_Pnt2d aP2DFSp;
+    //
+    iErr=GEOMAlgo_Tools3D::PntInFace(theFSp, aPFSp, aP2DFSp);
+    if (iErr) {
+      return bRet;
+    }
+    //
+    aP2DFSp.Coord(aU, aV);
+    bFlag=BOPTools_Tools3D::GetNormalToSurface(aSp, aU, aV, aDNFSp);
+    if (!bFlag) {
+      return bRet;
+    }
+  }
+  else {
+    BRep_Tool::Range(aESp, aT1, aT2);
+    aT=BOPTools_Tools2D::IntermediatePoint(aT1, aT2);
+    BOPTools_Tools3D::GetApproxNormalToFaceOnEdge(aESp, theFSp, aT, aPFSp, aDNFSp);
+  }
+  //
+  /*
   if (!bFound) {
     return bRet;
   }
-  //
   BRep_Tool::Range(aESp, aT1, aT2);
   aT=BOPTools_Tools2D::IntermediatePoint(aT1, aT2);
   BOPTools_Tools3D::GetApproxNormalToFaceOnEdge(aESp, theFSp, aT, aPFSp, aDNFSp);
+  */
+  //modified by NIZNHY-PKV Tue Nov 22 10:50:37 2011t
   //
-  // Parts of theContext.ComputeVS(..) 
-  GeomAPI_ProjectPointOnSurf& aProjector=theContext.ProjPS(theFSr);
+  // Parts of theContext.ComputeVS(..)
+  GeomAPI_ProjectPointOnSurf& aProjector=theContext->ProjPS(theFSr);
   aProjector.Perform(aPFSp);
   if (!aProjector.IsDone()) {
     return bRet;
@@ -653,15 +685,15 @@ static
   //
   aProjector.LowerDistanceParameters(aU, aV);
   gp_Pnt2d aP2D(aU, aV);
-  bInFace=theContext.IsPointInFace (theFSr, aP2D);
+  bInFace=theContext->IsPointInFace (theFSr, aP2D);
   if (!bInFace) {
     return bRet;
   }
   //
   aSr->D1(aU, aV, aPFSr, aD1U, aD1V);
-  gp_Dir aDD1U(aD1U); 
+  gp_Dir aDD1U(aD1U);
   gp_Dir aDD1V(aD1V);
-  gp_Dir aDNFSr=aDD1U^aDD1V; 
+  gp_Dir aDNFSr=aDD1U^aDD1V;
   if (theFSr.Orientation()==TopAbs_REVERSED){
     aDNFSr.Reverse();
   }
@@ -673,11 +705,11 @@ static
 }
 //=======================================================================
 //function :IsSplitToReverse
-//purpose  : 
+//purpose  :
 //=======================================================================
   Standard_Boolean GEOMAlgo_Tools3D::IsSplitToReverse(const TopoDS_Edge& theSplit,
                                                      const TopoDS_Edge& theEdge,
-                                                     IntTools_Context& theContext)
+                                                     const Handle(IntTools_Context)& theContext)
 {
   Standard_Boolean bRet, aFlag, bIsDegenerated;
   Standard_Real aTE, aTS, aScPr, aTa, aTb, aT1, aT2;
@@ -688,7 +720,7 @@ static
   //
   bRet=Standard_False;
   //
-  bIsDegenerated=(BRep_Tool::Degenerated(theSplit) || 
+  bIsDegenerated=(BRep_Tool::Degenerated(theSplit) ||
                   BRep_Tool::Degenerated(theEdge));
   if (bIsDegenerated) {
     return bRet;
@@ -709,7 +741,7 @@ static
   aFlag=BOPTools_Tools2D::EdgeTangent(theSplit, aTS, aVS);
   gp_Dir aDTS(aVS);
   //
-  aFlag=theContext.ProjectPointOnEdge(aP, theEdge, aTE);
+  aFlag=theContext->ProjectPointOnEdge(aP, theEdge, aTE);
   aFlag=BOPTools_Tools2D::EdgeTangent(theEdge, aTE, aVE);
   gp_Dir aDTE(aVE);
   //
@@ -721,7 +753,7 @@ static
 
 //=======================================================================
 // function: Sense
-// purpose: 
+// purpose:
 //=======================================================================
   Standard_Integer GEOMAlgo_Tools3D::Sense (const TopoDS_Face& theF1,
                                            const TopoDS_Face& theF2)
@@ -767,7 +799,7 @@ static
 }
 //=======================================================================
 // function: CopyFace
-// purpose: 
+// purpose:
 //=======================================================================
   void GEOMAlgo_Tools3D::CopyFace (const TopoDS_Face& theF1,
                                   TopoDS_Face& theF2)
@@ -793,7 +825,7 @@ static
 }
 //=======================================================================
 // function: MakeContainer
-// purpose: 
+// purpose:
 //=======================================================================
   void GEOMAlgo_Tools3D::MakeContainer(const TopAbs_ShapeEnum theType,
                                       TopoDS_Shape& theC)
@@ -819,7 +851,7 @@ static
       TopoDS_Solid aSolid;
       aBB.MakeSolid(aSolid);
       theC=aSolid;
-    }  
+    }
       break;
       //
       //
@@ -827,7 +859,7 @@ static
       TopoDS_Shell aShell;
       aBB.MakeShell(aShell);
       theC=aShell;
-    }  
+    }
       break;
       //
     case TopAbs_WIRE: {
@@ -843,7 +875,7 @@ static
 }
 //=======================================================================
 // function: MakeConnexityBlock.
-// purpose: 
+// purpose:
 //=======================================================================
   void GEOMAlgo_Tools3D::MakeConnexityBlock (const TopTools_ListOfShape& theLFIn,
                                              const TopTools_IndexedMapOfShape& theMEAvoid,
@@ -860,7 +892,7 @@ static
   aNbF=theLFIn.Extent();
   aIt.Initialize(theLFIn);
   for (; aIt.More(); aIt.Next()) {
-    const TopoDS_Shape& aF=aIt.Value();      
+    const TopoDS_Shape& aF=aIt.Value();
     TopExp::MapShapesAndAncestors(aF, TopAbs_EDGE, TopAbs_FACE, aMEF);
   }
   //
@@ -911,7 +943,7 @@ static
     }
     //
   }//while(1) {
-  
+
   //
   aNbF=aMCB.Extent();
   aItM.Initialize(aMCB);
@@ -922,7 +954,7 @@ static
 }
 //=======================================================================
 //function : FindFacePairs
-//purpose  : 
+//purpose  :
 //=======================================================================
 Standard_Boolean FindFacePairs (const TopoDS_Edge& theE,
                                 const TopTools_ListOfShape& thLF,
@@ -943,7 +975,7 @@ Standard_Boolean FindFacePairs (const TopoDS_Edge& theE,
   //
   // Preface aLCEF
   aItLF.Initialize(thLF);
-  for (; aItLF.More(); aItLF.Next()) { 
+  for (; aItLF.More(); aItLF.Next()) {
     const TopoDS_Face& aFL=TopoDS::Face(aItLF.Value());
     //
     bFound=GEOMAlgo_Tools3D::GetEdgeOnFace(theE, aFL, aEL);
@@ -1014,7 +1046,7 @@ Standard_Boolean FindFacePairs (const TopoDS_Edge& theE,
 //
 //=======================================================================
 //function : AngleWithRef
-//purpose  : 
+//purpose  :
 //=======================================================================
 Standard_Real AngleWithRef(const gp_Dir& theD1,
                            const gp_Dir& theD2,
@@ -1047,14 +1079,14 @@ Standard_Real AngleWithRef(const gp_Dir& theD1,
 }
 //=======================================================================
 //function : GetApproxNormalToFaceOnEdge
-//purpose  : 
+//purpose  :
 //=======================================================================
-void GetApproxNormalToFaceOnEdge (const TopoDS_Edge& aEx, 
-                                  const TopoDS_Face& aFx, 
-                                  Standard_Real aT, 
-                                  gp_Pnt& aPF, 
+void GetApproxNormalToFaceOnEdge (const TopoDS_Edge& aEx,
+                                  const TopoDS_Face& aFx,
+                                  Standard_Real aT,
+                                  gp_Pnt& aPF,
                                   gp_Dir& aDNF,
-                                  IntTools_Context& aCtx)
+                                  const Handle(IntTools_Context)& aCtx)
 {
   Standard_Boolean bReverse;
   Standard_Real aT1, aT2, dT, aU, aV;
@@ -1083,7 +1115,7 @@ void GetApproxNormalToFaceOnEdge (const TopoDS_Edge& aEx,
   //
   // Normal at aT
   BOPTools_Tools3D::GetNormalToFaceOnEdge (aE, aF, aT, aDNFT);
-  
+
   // Tangent at aT
   BOPTools_Tools3D::GetTangentToEdge(aE, aT, aDTT);
   //
@@ -1099,7 +1131,7 @@ void GetApproxNormalToFaceOnEdge (const TopoDS_Edge& aEx,
     aTS=aGAS.GetType();
     if (aTS==GeomAbs_BSplineSurface ||
         aTS==GeomAbs_BezierSurface ||
-        aTS==GeomAbs_Plane) {
+        aTS==GeomAbs_Plane){
       Standard_Real aTolEx, aTolFx, aTol, dUR, dVR, dR;
       //
       aTolEx=BRep_Tool::Tolerance(aEx);
@@ -1112,7 +1144,6 @@ void GetApproxNormalToFaceOnEdge (const TopoDS_Edge& aEx,
         dT=dR;
       }
     }
-    //modified by NIZNHY-PKV Thu Dec 02 10:39:09 2010f
     else if (GeomAbs_Torus ||
              aTS==GeomAbs_Cylinder){
       Standard_Real aTolEx, aTolFx, aTol;
@@ -1124,7 +1155,6 @@ void GetApproxNormalToFaceOnEdge (const TopoDS_Edge& aEx,
         dT=aTol;
       }
     }
-    //modified by NIZNHY-PKV Thu Dec 02 10:39:13 2010t
   }
   //----------------------------------------------
   //
@@ -1136,7 +1166,7 @@ void GetApproxNormalToFaceOnEdge (const TopoDS_Edge& aEx,
     aDNF.Reverse();
   }
   //
-  GeomAPI_ProjectPointOnSurf& aProjector=aCtx.ProjPS(aF);
+  GeomAPI_ProjectPointOnSurf& aProjector=aCtx->ProjPS(aF);
   //
   aProjector.Perform(aPFx);
   if(aProjector.IsDone()) {
@@ -1148,3 +1178,124 @@ void GetApproxNormalToFaceOnEdge (const TopoDS_Edge& aEx,
     }
   }
 }
+
+//modified by NIZNHY-PKV Tue Nov 22 10:36:59 2011f
+//=======================================================================
+//function : PntInFace
+//purpose  :
+//=======================================================================
+Standard_Integer GEOMAlgo_Tools3D::PntInFace(const TopoDS_Face& aF,
+                                             gp_Pnt& theP,
+                                             gp_Pnt2d& theP2D)
+{
+  Standard_Boolean bIsDone, bHasFirstPoint, bHasSecondPoint;
+  Standard_Integer iErr, aIx, aNbDomains, i;
+  Standard_Real aUMin, aUMax, aVMin, aVMax;
+  Standard_Real aVx, aUx, aV1, aV2, aU1, aU2, aEpsT;
+  Standard_Real aTotArcIntr, aTolTangfIntr, aTolHatch2D, aTolHatch3D;
+  gp_Dir2d aD2D (0., 1.);
+  gp_Pnt2d aP2D;
+  gp_Pnt aPx;
+  Handle(Geom2d_Curve) aC2D;
+  Handle(Geom2d_TrimmedCurve) aCT2D;
+  Handle(Geom2d_Line) aL2D;
+  Handle(Geom_Surface) aS;
+  TopAbs_Orientation aOrE;
+  TopoDS_Face aFF;
+  TopExp_Explorer aExp;
+  //
+  aTolHatch2D=1.e-8;
+  aTolHatch3D=1.e-8;
+  aTotArcIntr=1.e-10;
+  aTolTangfIntr=1.e-10;
+  //
+  Geom2dHatch_Intersector aIntr(aTotArcIntr, aTolTangfIntr);
+  Geom2dHatch_Hatcher aHatcher(aIntr,
+                               aTolHatch2D, aTolHatch3D,
+                               Standard_True, Standard_False);
+  //
+  iErr=0;
+  aEpsT=1.e-12;
+  //
+  aFF=aF;
+  aFF.Orientation (TopAbs_FORWARD);
+  //
+  aS=BRep_Tool::Surface(aFF);
+  BRepTools::UVBounds(aFF, aUMin, aUMax, aVMin, aVMax);
+  //
+  // 1
+  aExp.Init (aFF, TopAbs_EDGE);
+  for (; aExp.More() ; aExp.Next()) {
+    const TopoDS_Edge& aE=*((TopoDS_Edge*)&aExp.Current());
+    aOrE=aE.Orientation();
+    //
+    aC2D=BRep_Tool::CurveOnSurface (aE, aFF, aU1, aU2);
+    if (aC2D.IsNull() ) {
+      iErr=1;
+      return iErr;
+    }
+    if (fabs(aU1-aU2) < aEpsT) {
+      iErr=2;
+      return iErr;
+    }
+    //
+    aCT2D=new Geom2d_TrimmedCurve(aC2D, aU1, aU2);
+    aHatcher.AddElement(aCT2D, aOrE);
+  }// for (; aExp.More() ; aExp.Next()) {
+  //
+  // 2
+  aUx=IntTools_Tools::IntermediatePoint(aUMin, aUMax);
+  aP2D.SetCoord(aUx, 0.);
+  aL2D=new Geom2d_Line (aP2D, aD2D);
+  Geom2dAdaptor_Curve aHCur(aL2D);
+  //
+  aIx=aHatcher.AddHatching(aHCur) ;
+  //
+  // 3.
+  aHatcher.Trim();
+  bIsDone=aHatcher.TrimDone(aIx);
+  if (!bIsDone) {
+    iErr=3;
+    return iErr;
+  }
+  //
+  aHatcher.ComputeDomains(aIx);
+  bIsDone=aHatcher.IsDone(aIx);
+  if (!bIsDone) {
+    iErr=4;
+    return iErr;
+  }
+  //
+  // 4.
+  aNbDomains=aHatcher.NbDomains(aIx);
+  for (i=1; i<=aNbDomains; ++i) {
+    const HatchGen_Domain& aDomain=aHatcher.Domain (aIx, i) ;
+    bHasFirstPoint=aDomain.HasFirstPoint();
+    if (!bHasFirstPoint) {
+      iErr=5;
+      return iErr;
+    }
+    //
+    aV1=aDomain.FirstPoint().Parameter();
+    //
+    bHasSecondPoint=aDomain.HasSecondPoint();
+    if (!bHasSecondPoint) {
+      iErr=6;
+      return iErr;
+    }
+    //
+    aV2=aDomain.SecondPoint().Parameter();
+    //
+    aVx=IntTools_Tools::IntermediatePoint(aV1, aV2);
+    //
+    break;
+  }
+  //
+  aS->D0(aUx, aVx, aPx);
+  //
+  theP2D.SetCoord(aUx, aVx);
+  theP=aPx;
+  //
+  return iErr;
+}
+//modified by NIZNHY-PKV Tue Nov 22 10:37:01 2011t

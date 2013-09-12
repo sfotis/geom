@@ -1,30 +1,32 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
-//  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-//  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 //
-//  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free Software Foundation; either
-//  version 2.1 of the License.
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License.
 //
-//  This library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  Lesser General Public License for more details.
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
 //
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 //
-//  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+// See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-// File:	GEOMAlgo_ClsfSurf.cxx
-// Created:	Wed Nov 22 10:41:47 2006
-// Author:	Peter KURNEV
-//		<pkv@irinox>
+
+// File:        GEOMAlgo_ClsfBox.cxx
+// Created:     Wed Nov 22 10:41:47 2006
+// Author:      Peter KURNEV
+//              <pkv@irinox>
 //
-#include <GEOMAlgo_ClsfBox.ixx>
+#include <GEOMAlgo_ClsfBox.hxx>
+
 #include <GeomAbs_SurfaceType.hxx>
 #include <GEOMAlgo_SurfaceTools.hxx>
 #include <TopAbs_ShapeEnum.hxx>
@@ -38,12 +40,15 @@
 #include <gp_Pnt.hxx>
 #include <gp_Dir.hxx>
 #include <gp_Pln.hxx>
-#include <gp_Ax1.hxx>
+#include <gp_Ax3.hxx>
 #include <Geom_Plane.hxx>
 
+IMPLEMENT_STANDARD_HANDLE(GEOMAlgo_ClsfBox, GEOMAlgo_Clsf)
+IMPLEMENT_STANDARD_RTTIEXT(GEOMAlgo_ClsfBox, GEOMAlgo_Clsf)
+
 //=======================================================================
-//function : 
-//purpose  : 
+//function :
+//purpose  :
 //=======================================================================
   GEOMAlgo_ClsfBox::GEOMAlgo_ClsfBox()
 :
@@ -52,14 +57,14 @@
 }
 //=======================================================================
 //function : ~
-//purpose  : 
+//purpose  :
 //=======================================================================
   GEOMAlgo_ClsfBox::~GEOMAlgo_ClsfBox()
 {
 }
 //=======================================================================
 //function : SetBox
-//purpose  : 
+//purpose  :
 //=======================================================================
   void GEOMAlgo_ClsfBox::SetBox(const TopoDS_Shape& aBox)
 {
@@ -67,7 +72,7 @@
 }
 //=======================================================================
 //function : Box
-//purpose  : 
+//purpose  :
 //=======================================================================
   const TopoDS_Shape& GEOMAlgo_ClsfBox::Box() const
 {
@@ -75,10 +80,10 @@
 }
 //=======================================================================
 //function : CheckData
-//purpose  : 
+//purpose  :
 //=======================================================================
   void GEOMAlgo_ClsfBox::CheckData()
-{ 
+{
   Standard_Integer i, aNbF;
   TopAbs_ShapeEnum aTypeShape;
   TopAbs_Orientation aOr;
@@ -117,23 +122,28 @@
     aS=BRep_Tool::Surface(aF);
     myGAS[i-1].Load(aS);
     aType=myGAS[i-1].GetType();
-    if (!aType==GeomAbs_Plane) { 
+    if (!aType==GeomAbs_Plane) {
       myErrorStatus=13; // unallowed surface type
       return;
     }
     //
     if(aOr==TopAbs_REVERSED) {
-      gp_Ax1 aAx1;
+      gp_Ax3 aPos;
       gp_Pln aPln;
       gp_Pnt aP;
       gp_Dir aD;
       Handle(Geom_Plane) aSR;
       //
       aPln=myGAS[i-1].Plane();
-      aAx1=aPln.Axis();
-      aP=aAx1.Location();
-      aD=aAx1.Direction();
-      aD.Reverse();
+      aPos=aPln.Position();
+      aP=aPos.Location();
+      aD=aPos.Direction();
+
+      // Is aPos is not direct, aD is already a reversed direction.
+      if (aPos.Direct()) {
+        aD.Reverse();
+      }
+
       aSR=new Geom_Plane(aP, aD);
       myGAS[i-1].Load(aSR);
     }
@@ -141,7 +151,7 @@
 }
 //=======================================================================
 //function : Perform
-//purpose  : 
+//purpose  :
 //=======================================================================
   void GEOMAlgo_ClsfBox::Perform()
 {
@@ -157,7 +167,7 @@
   }
   */
   iNext=1;
-  aNbON=0; 
+  aNbON=0;
   aNbIN=0;
   for(i=0; i<aNbS && iNext; i++) {
     GEOMAlgo_SurfaceTools::GetState(myPnt, myGAS[i], myTolerance, aSt);
@@ -165,18 +175,18 @@
     switch (aSt) {
       case TopAbs_OUT:
         myState=aSt;
-	iNext=0;
-	break;
+        iNext=0;
+        break;
       case TopAbs_ON:
-	++aNbON;
-	break;
+        ++aNbON;
+        break;
       case TopAbs_IN:
-	++aNbIN;
-	break;
+        ++aNbIN;
+        break;
       default:
-	myState=TopAbs_UNKNOWN;
-	iNext=0;
-	break; 
+        myState=TopAbs_UNKNOWN;
+        iNext=0;
+        break;
     }
   }
   //
@@ -193,7 +203,7 @@
 }
 //=======================================================================
 //function : CanBeON
-//purpose  : 
+//purpose  :
 //=======================================================================
   Standard_Boolean GEOMAlgo_ClsfBox::CanBeON(const Handle(Geom_Curve)& aC) const
 {
@@ -201,7 +211,7 @@
 }
 //=======================================================================
 //function : CanBeON
-//purpose  : 
+//purpose  :
 //=======================================================================
   Standard_Boolean GEOMAlgo_ClsfBox::CanBeON(const Handle(Geom_Surface)& aS1) const
 {

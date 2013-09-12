@@ -1,29 +1,32 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
-//  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-//  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 //
-//  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free Software Foundation; either
-//  version 2.1 of the License.
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License.
 //
-//  This library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  Lesser General Public License for more details.
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
 //
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 //
-//  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+// See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+
 //  File:    BlockFix_UnionFaces.cxx
 //  Created: Tue Dec  7 17:15:42 2004
 //  Author:  Pavel DURANDIN
 
-#include <BlockFix_UnionFaces.ixx>
+#include <BlockFix_UnionFaces.hxx>
+
+#include <Basics_OCCTVersion.hxx>
 
 #include <ShapeAnalysis_WireOrder.hxx>
 #include <ShapeAnalysis_Edge.hxx>
@@ -41,7 +44,11 @@
 #include <ShapeFix_Wire.hxx>
 #include <ShapeFix_Edge.hxx>
 
+#if OCC_VERSION_LARGE > 0x06040000 // Porting to OCCT6.5.1
 #include <IntPatch_ImpImpIntersection.hxx>
+#else
+#include <IntPatch_TheIIIntOfIntersection.hxx>
+#endif
 
 #include <BRep_Tool.hxx>
 #include <BRep_Builder.hxx>
@@ -66,6 +73,7 @@
 #include <TopoDS_Vertex.hxx>
 #include <TopoDS_Shell.hxx>
 #include <TopoDS_Iterator.hxx>
+#include <TopoDS_Shape.hxx>
 
 #include <TColGeom_HArray2OfSurface.hxx>
 
@@ -97,43 +105,37 @@
 //function : BlockFix_UnionFaces
 //purpose  :
 //=======================================================================
-
 BlockFix_UnionFaces::BlockFix_UnionFaces()
   : myTolerance(Precision::Confusion()),
     myOptimumNbFaces(6)
 {
 }
 
-
 //=======================================================================
 //function : GetTolerance
 //purpose  :
 //=======================================================================
-
 Standard_Real& BlockFix_UnionFaces::GetTolerance()
 {
   return myTolerance;
 }
 
-
 //=======================================================================
 //function : GetOptimumNbFaces
 //purpose  :
 //=======================================================================
-
 Standard_Integer& BlockFix_UnionFaces::GetOptimumNbFaces()
 {
   return myOptimumNbFaces;
 }
 
-
 //=======================================================================
 //function : AddOrdinaryEdges
 //purpose  : auxilary
+//           adds edges from the shape to the sequence
+//           seams and equal edges are dropped
+//           Returns true if one of original edges dropped
 //=======================================================================
-// adds edges from the shape to the sequence
-// seams and equal edges are dropped
-// Returns true if one of original edges dropped
 static Standard_Boolean AddOrdinaryEdges(TopTools_SequenceOfShape& edges,
                                          const TopoDS_Shape aShape,
                                          Standard_Integer& anIndex)
@@ -173,7 +175,6 @@ static Standard_Boolean AddOrdinaryEdges(TopTools_SequenceOfShape& edges,
   return isDropped;
 }
 
-
 //=======================================================================
 //function : ClearRts
 //purpose  : auxilary
@@ -188,12 +189,10 @@ static Handle(Geom_Surface) ClearRts(const Handle(Geom_Surface)& aSurface)
   return aSurface;
 }
 
-
 //=======================================================================
 //function : Perform
 //purpose  :
 //=======================================================================
-
 TopoDS_Shape BlockFix_UnionFaces::Perform(const TopoDS_Shape& Shape)
 {
   Handle(ShapeBuild_ReShape) myContext = new ShapeBuild_ReShape;
@@ -512,12 +511,10 @@ TopoDS_Shape BlockFix_UnionFaces::Perform(const TopoDS_Shape& Shape)
   return aResShape;
 }
 
-
 //=======================================================================
 //function : IsSameDomain
 //purpose  :
 //=======================================================================
-
 bool getCylinder (Handle(Geom_Surface)& theInSurface, gp_Cylinder& theOutCylinder)
 {
   bool isCylinder = false;
@@ -613,10 +610,15 @@ Standard_Boolean BlockFix_UnionFaces::IsSameDomain(const TopoDS_Face& aFace,
     Handle(BRepTopAdaptor_TopolTool) aTT2 = new BRepTopAdaptor_TopolTool();
 
     try {
-#if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
+#if OCC_VERSION_LARGE > 0x06010000
       OCC_CATCH_SIGNALS;
 #endif
+
+#if OCC_VERSION_LARGE > 0x06040000 // Porting to OCCT6.5.1
       IntPatch_ImpImpIntersection anIIInt (aGA1, aTT1, aGA2, aTT2, aPrec, aPrec);
+#else
+      IntPatch_TheIIIntOfIntersection anIIInt (aGA1, aTT1, aGA2, aTT2, aPrec, aPrec);
+#endif
       if (!anIIInt.IsDone() || anIIInt.IsEmpty())
         return false;
 
@@ -671,12 +673,10 @@ Standard_Boolean BlockFix_UnionFaces::IsSameDomain(const TopoDS_Face& aFace,
   return false;
 }
 
-
 //=======================================================================
 //function : MovePCurves
 //purpose  :
 //=======================================================================
-
 void BlockFix_UnionFaces::MovePCurves(TopoDS_Face& aTarget,
                                       const TopoDS_Face& aSource) const
 {

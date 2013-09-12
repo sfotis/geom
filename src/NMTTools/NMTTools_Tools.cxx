@@ -1,30 +1,31 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
-//  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-//  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 //
-//  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free Software Foundation; either
-//  version 2.1 of the License.
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License.
 //
-//  This library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  Lesser General Public License for more details.
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
 //
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 //
-//  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+// See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-// File:	NMTTools_Tools.cxx
-// Created:	Mon Dec  8 10:35:15 2003
-// Author:	Peter KURNEV
-//		<pkv@irinox>
+
+// File:        NMTTools_Tools.cxx
+// Created:     Mon Dec  8 10:35:15 2003
+// Author:      Peter KURNEV
+//              <pkv@irinox>
 //
-#include <NMTTools_Tools.ixx>
+#include <NMTTools_Tools.hxx>
 
 #include <TColStd_IndexedMapOfInteger.hxx>
 
@@ -72,26 +73,27 @@
 #include <TopTools_MapOfShape.hxx>
 #include <TopTools_MapIteratorOfMapOfShape.hxx>
 #include <TopoDS_Iterator.hxx>
+#include <Precision.hxx>
 
-static 
+static
   void ProcessBlock(const Standard_Integer iV,
-		    const BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCV,
-		    TColStd_IndexedMapOfInteger& aProcessed,
-		    TColStd_IndexedMapOfInteger& aChain);
+                    const BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCV,
+                    TColStd_IndexedMapOfInteger& aProcessed,
+                    TColStd_IndexedMapOfInteger& aChain);
 static
   void ProcessBlock(const TopoDS_Shape& aF,
-		    const NMTTools_IndexedDataMapOfShapeIndexedMapOfShape& aMCV,
-		    TopTools_IndexedMapOfShape& aProcessed,
-		    TopTools_IndexedMapOfShape& aChain);
+                    const NMTTools_IndexedDataMapOfShapeIndexedMapOfShape& aMCV,
+                    TopTools_IndexedMapOfShape& aProcessed,
+                    TopTools_IndexedMapOfShape& aChain);
 
 //modified by NIZNHY-PKV Thu Nov 16 10:46:53 2006f SKL/PartC5
 //=======================================================================
 // function: UpdateEdge
-// purpose: 
+// purpose:
 //=======================================================================
   void  NMTTools_Tools::UpdateEdge(const TopoDS_Edge& aE,
-				   const Standard_Real aTolR)
-{ 
+                                   const Standard_Real aTolR)
+{
   Standard_Real aTolE, aTolES, aTolV;
   TopoDS_Iterator aIt;
   BRep_Builder aBB;
@@ -111,12 +113,12 @@ static
 }
 //=======================================================================
 // function: MakePCurve
-// purpose: 
+// purpose:
 //=======================================================================
   void  NMTTools_Tools::MakePCurve(const TopoDS_Edge& aE,
-				    const TopoDS_Face& aF,
-				    const Handle(Geom2d_Curve)& aC2Dx1)
-				    
+                                    const TopoDS_Face& aF,
+                                    const Handle(Geom2d_Curve)& aC2Dx1)
+
 {
   Standard_Real aTolE, aT1, aT2, aOutFirst, aOutLast, aOutTol;
   Handle(Geom2d_Curve) aC2D, aC2DA;
@@ -138,10 +140,10 @@ static
   }
   //
   if (aC3DE->IsPeriodic()) {
-    BOPTools_Tools2D::AdjustPCurveOnFace(aFFWD, aT1, aT2,  aC2D, aC2DA); 
+    BOPTools_Tools2D::AdjustPCurveOnFace(aFFWD, aT1, aT2,  aC2D, aC2DA);
   }
   else {
-    BOPTools_Tools2D::AdjustPCurveOnFace(aFFWD, aC3DETrim, aC2D, aC2DA); 
+    BOPTools_Tools2D::AdjustPCurveOnFace(aFFWD, aC3DETrim, aC2D, aC2DA);
   }
   //
   aBB.UpdateEdge(aE, aC2DA, aFFWD, aTolE);
@@ -150,14 +152,14 @@ static
 /*
 //=======================================================================
 // function: MakePCurve
-// purpose: 
+// purpose:
 //=======================================================================
   void  NMTTools_Tools::MakePCurve(const TopoDS_Edge& aE,
-				   const TopoDS_Face& aF,
-				   const Handle(Geom2d_Curve)& aC2Dx,
-				   const Standard_Real aTolR2D)
+                                   const TopoDS_Face& aF,
+                                   const Handle(Geom2d_Curve)& aC2Dx,
+                                   const Standard_Real aTolR2D)
 {
-  Standard_Integer k, aNbV;   
+  Standard_Integer k, aNbV;
   Standard_Real aTolEdge, aTolFact, aTolV, aTolVmax;
   Standard_Real aTFirst, aTLast, aOutFirst, aOutLast, aOutTol;
   TopoDS_Face aFFWD;
@@ -197,24 +199,24 @@ static
     BOPTools_Tools2D::CurveOnSurface(aE, aFFWD, aC2D, aOutFirst, aOutLast, aOutTol, Standard_True);
   }
   if (aC3DE->IsPeriodic()) {
-    BOPTools_Tools2D::AdjustPCurveOnFace(aFFWD, aTFirst, aTLast,  aC2D, aC2DA); 
+    BOPTools_Tools2D::AdjustPCurveOnFace(aFFWD, aTFirst, aTLast,  aC2D, aC2DA);
   }
   else {
-    BOPTools_Tools2D::AdjustPCurveOnFace(aFFWD, aC3DETrim, aC2D, aC2DA); 
+    BOPTools_Tools2D::AdjustPCurveOnFace(aFFWD, aC3DETrim, aC2D, aC2DA);
   }
   //
   aBB.UpdateEdge(aE, aC2DA, aFFWD, aTolFact);
   BRepLib::SameParameter(aE);
 }
 */
-//modified by NIZNHY-PKV Thu Nov 16 10:46:55 2006t 
+//modified by NIZNHY-PKV Thu Nov 16 10:46:55 2006t
 //=======================================================================
 // function: IsSplitInOnFace
-// purpose: 
+// purpose:
 //=======================================================================
   Standard_Boolean NMTTools_Tools::IsSplitInOnFace(const TopoDS_Edge& aE,
-						   const TopoDS_Face& aF,
-						   IntTools_Context& aContext)
+                                                   const TopoDS_Face& aF,
+                                                   const Handle(IntTools_Context)& aContext)
 {
   Standard_Boolean bFlag;
   Standard_Real aT, aTolE, aTolF, aTol, aDist, aU, aV;
@@ -225,7 +227,7 @@ static
   aTolF=BRep_Tool::Tolerance(aF);
   aTol=aTolE+aTolF;
   //
-  GeomAPI_ProjectPointOnSurf& aProjector=aContext.ProjPS(aF);
+  GeomAPI_ProjectPointOnSurf& aProjector=aContext->ProjPS(aF);
   //
   aT=BOPTools_Tools2D::IntermediatePoint(aE);
   BOPTools_Tools::PointOnEdge(aE, aT, aP);
@@ -244,15 +246,15 @@ static
   //
   aProjector.LowerDistanceParameters(aU, aV);
   aP2D.SetCoord(aU, aV);
-  bFlag=aContext.IsPointInOnFace (aF, aP2D);
+  bFlag=aContext->IsPointInOnFace (aF, aP2D);
   return bFlag;
 }
 //=======================================================================
 // function: NMTTools_Tools::MakeNewVertex
-// purpose : 
+// purpose :
 //=======================================================================
   void NMTTools_Tools::MakeNewVertex(const TopTools_ListOfShape& aLVs,
-				     TopoDS_Vertex& aNewVertex)
+                                     TopoDS_Vertex& aNewVertex)
 {
   Standard_Integer aNb;
   Standard_Real aTi, aDi, aDmax=-1.e5;
@@ -292,10 +294,10 @@ static
 }
 //=======================================================================
 // function: FindChains
-// purpose : 
+// purpose :
 //=======================================================================
   void NMTTools_Tools::FindChains(const BOPTools_CArray1OfSSInterference& FFs,
-				  BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMapChains)
+                                  BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMapChains)
 {
   Standard_Boolean bIsTangentFaces;
   Standard_Integer j, aNb, anIndex1, anIndex2;
@@ -340,10 +342,10 @@ static
 }
 //=======================================================================
 // function: FindChains
-// purpose : 
+// purpose :
 //=======================================================================
   void NMTTools_Tools::FindChains(const BOPTools_CArray1OfVVInterference& VVs,
-				  BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMapChains)
+                                  BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMapChains)
 {
   Standard_Integer j, aNb, anIndex1, anIndex2;
   BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger aMCV;
@@ -382,10 +384,10 @@ static
 
 //=======================================================================
 // function: FindChains
-// purpose : 
+// purpose :
 //=======================================================================
   void NMTTools_Tools::FindChains(const BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCV,
-				  BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMapChains)
+                                  BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMapChains)
 {
   Standard_Integer  i, j, aNbCV, aNbV, iV, iVx;
   TColStd_IndexedMapOfInteger aProcessed, aChain;
@@ -412,12 +414,12 @@ static
 }
 //=======================================================================
 // function: ProcessBlock
-// purpose: 
+// purpose:
 //=======================================================================
 void ProcessBlock(const Standard_Integer iV,
-		  const BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCV,
-		  TColStd_IndexedMapOfInteger& aProcessed,
-		  TColStd_IndexedMapOfInteger& aChain)
+                  const BOPTColStd_IndexedDataMapOfIntegerIndexedMapOfInteger& aMCV,
+                  TColStd_IndexedMapOfInteger& aProcessed,
+                  TColStd_IndexedMapOfInteger& aChain)
 {
   Standard_Integer j, aNbV, iVx;
   //
@@ -436,14 +438,14 @@ void ProcessBlock(const Standard_Integer iV,
 }
 //=======================================================================
 // function: AreFacesSameDomain
-// purpose : 
+// purpose :
 //=======================================================================
   Standard_Boolean NMTTools_Tools::AreFacesSameDomain(const TopoDS_Face& aF1x,
-						      const TopoDS_Face& aF2y,
-						      IntTools_Context& aCtx)
+                                                      const TopoDS_Face& aF2y,
+                                                      const Handle(IntTools_Context)& aCtx)
 {
   Standard_Boolean bFlag;
-  // Modified  Thu Sep 14 14:35:18 2006 
+  // Modified  Thu Sep 14 14:35:18 2006
   // Contribution of Samtech www.samcef.com BEGIN
   Standard_Integer aNbE1, aNbE2;
   Standard_Real aTolF1, aTolF2, aTol;
@@ -462,7 +464,7 @@ void ProcessBlock(const Standard_Integer iV,
   aF2=aF2y;
   aF2.Orientation(TopAbs_FORWARD);
   //
-  // Modified  Thu Sep 14 14:35:18 2006 
+  // Modified  Thu Sep 14 14:35:18 2006
   // Contribution of Samtech www.samcef.com BEGIN
   //
   // 1
@@ -479,7 +481,7 @@ void ProcessBlock(const Standard_Integer iV,
     const TopoDS_Edge& aE=TopoDS::Edge(aExp.Current());
     if (!BRep_Tool::Degenerated(aE)) {
       if (!aME1.Contains(aE)) {
-	return bFlag;
+        return bFlag;
       }
       aME2.Add(aE);
     }
@@ -507,7 +509,7 @@ void ProcessBlock(const Standard_Integer iV,
   for (; aIt.More(); aIt.Next()) {
     const TopoDS_Edge& aE=TopoDS::Edge(aIt.Key());
     BOPTools_Tools3D::PointNearEdge(aE, aF1, aP2D, aP);
-    bFlag=aCtx.IsValidPointForFace(aP, aF2, aTol);
+    bFlag=aCtx->IsValidPointForFace(aP, aF2, aTol);
     break;
   }
   //
@@ -515,12 +517,12 @@ void ProcessBlock(const Standard_Integer iV,
 }
 //=======================================================================
 // function: FindChains
-// purpose : 
+// purpose :
 //=======================================================================
   void NMTTools_Tools::FindChains(const NMTTools_ListOfCoupleOfShape& aLCS,
-				  NMTTools_IndexedDataMapOfShapeIndexedMapOfShape& aMapChains)
+                                  NMTTools_IndexedDataMapOfShapeIndexedMapOfShape& aMapChains)
 {
-  NMTTools_ListIteratorOfListOfCoupleOfShape aItCS; 
+  NMTTools_ListIteratorOfListOfCoupleOfShape aItCS;
   NMTTools_IndexedDataMapOfShapeIndexedMapOfShape aMCV;
   //
   aItCS.Initialize(aLCS);
@@ -559,10 +561,10 @@ void ProcessBlock(const Standard_Integer iV,
 }
 //=======================================================================
 // function: FindChains
-// purpose : 
+// purpose :
 //=======================================================================
   void NMTTools_Tools::FindChains(const NMTTools_IndexedDataMapOfShapeIndexedMapOfShape& aMCV,
-				  NMTTools_IndexedDataMapOfShapeIndexedMapOfShape& aMapChains)
+                                  NMTTools_IndexedDataMapOfShapeIndexedMapOfShape& aMapChains)
 {
   Standard_Integer  i, j, aNbCV, aNbV;
   TopTools_IndexedMapOfShape aProcessed, aChain;
@@ -589,12 +591,12 @@ void ProcessBlock(const Standard_Integer iV,
 }
 //=======================================================================
 // function: ProcessBlock
-// purpose: 
+// purpose:
 //=======================================================================
 void ProcessBlock(const TopoDS_Shape& aF,
-		  const NMTTools_IndexedDataMapOfShapeIndexedMapOfShape& aMCV,
-		  TopTools_IndexedMapOfShape& aProcessed,
-		  TopTools_IndexedMapOfShape& aChain)
+                  const NMTTools_IndexedDataMapOfShapeIndexedMapOfShape& aMCV,
+                  TopTools_IndexedMapOfShape& aProcessed,
+                  TopTools_IndexedMapOfShape& aChain)
 {
   Standard_Integer j, aNbV;
   //
@@ -610,4 +612,40 @@ void ProcessBlock(const TopoDS_Shape& aF,
     const TopoDS_Shape& aFx=aMV(j);
     ProcessBlock(aFx, aMCV, aProcessed, aChain);
   }
+}
+
+//=======================================================================
+// function: IsDegenerated
+// purpose :
+//=======================================================================
+Standard_Boolean NMTTools_Tools::IsDegenerated(const TopoDS_Edge &theEdge)
+{
+  Standard_Boolean aResult = BRep_Tool::Degenerated(theEdge);
+
+  if (!aResult) {
+    // Check if there is a null-length 3d curve.
+    Standard_Real aF;
+    Standard_Real aL;
+    Handle(Geom_Curve) aCrv = BRep_Tool::Curve(theEdge, aF, aL);
+
+    aResult = aCrv.IsNull();
+
+    if (!aResult) {
+      const Standard_Real aTolConf2 =
+          Precision::Confusion()*Precision::Confusion();
+      gp_Pnt aPnt[2] = { aCrv->Value(aF), aCrv->Value(aL) };
+
+      if (aPnt[0].SquareDistance(aPnt[1]) <= aTolConf2) {
+        // Check the middle point.
+        const gp_Pnt aPMid = aCrv->Value(0.5*(aF + aL));
+
+        if (aPnt[0].SquareDistance(aPMid) <= aTolConf2) {
+          // 3D curve is degenerated.
+          aResult = Standard_True;
+        }
+      }
+    }
+  }
+
+  return aResult;
 }

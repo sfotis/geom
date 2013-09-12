@@ -1,64 +1,61 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
-//  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-//  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 //
-//  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free Software Foundation; either
-//  version 2.1 of the License.
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License.
 //
-//  This library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  Lesser General Public License for more details.
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
 //
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 //
-//  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+// See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+
 //  File:      BlockFix_CheckTool.cxx
 //  Created:   17.12.04 11:15:25
 //  Author:    Sergey KUUL
 
-#include <BlockFix_CheckTool.ixx>
-
-//#include <BlockFix_UnionEdges.hxx>
-//#include <BlockFix_UnionFaces.hxx>
+#include <BlockFix_CheckTool.hxx>
 
 #include <BRep_Tool.hxx>
 
 #include <TopExp.hxx>
 #include <TopExp_Explorer.hxx>
+
 #include <TopoDS.hxx>
 #include <TopoDS_Edge.hxx>
 #include <TopoDS_Face.hxx>
 #include <TopoDS_Solid.hxx>
+#include <TopoDS_Shape.hxx>
+
 #include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
 #include <TopTools_MapOfShape.hxx>
 #include <TopTools_ListOfShape.hxx>
 #include <TopTools_ListIteratorOfListOfShape.hxx>
 
-
 //=======================================================================
 //function : BlockFix_CheckTool()
 //purpose  : Constructor
 //=======================================================================
-
 BlockFix_CheckTool::BlockFix_CheckTool( )
 {
   myHasCheck = Standard_False;
   myPossibleBlocks.Clear();
 }
 
-
 //=======================================================================
 //function : SetShape
-//purpose  : 
+//purpose  :
 //=======================================================================
-
 void BlockFix_CheckTool::SetShape(const TopoDS_Shape& aShape)
 {
   myHasCheck = Standard_False;
@@ -66,13 +63,11 @@ void BlockFix_CheckTool::SetShape(const TopoDS_Shape& aShape)
   myPossibleBlocks.Clear();
 }
 
-
 //=======================================================================
 //function : Perform
-//purpose  : 
+//purpose  :
 //=======================================================================
-
-void BlockFix_CheckTool::Perform() 
+void BlockFix_CheckTool::Perform()
 {
   myNbSolids=0;
   myNbBlocks=0;
@@ -208,7 +203,7 @@ void BlockFix_CheckTool::Perform()
       }
     }
 
-    if (IsBlock) 
+    if (IsBlock)
       myNbBlocks++;
     else {
       if (MayBeUF) {
@@ -228,37 +223,31 @@ void BlockFix_CheckTool::Perform()
   myHasCheck = Standard_True;
 }
 
-
 //=======================================================================
 //function : NbPossibleBlocks
-//purpose  : 
+//purpose  :
 //=======================================================================
-
 Standard_Integer BlockFix_CheckTool::NbPossibleBlocks() const
 {
   return myPossibleBlocks.Length();
 }
 
-
 //=======================================================================
 //function : PossibleBlock
-//purpose  : 
+//purpose  :
 //=======================================================================
-
 TopoDS_Shape BlockFix_CheckTool::PossibleBlock(const Standard_Integer num) const
 {
   TopoDS_Shape res;
-  if( num>0 && num<=myPossibleBlocks.Length() ) 
+  if( num>0 && num<=myPossibleBlocks.Length() )
     res = myPossibleBlocks.Value(num);
   return res;
 }
 
-
 //=======================================================================
 //function : DumpCheckResult
-//purpose  : 
+//purpose  :
 //=======================================================================
-
 void BlockFix_CheckTool::DumpCheckResult(Standard_OStream& S) const
 {
   if(!myHasCheck)
