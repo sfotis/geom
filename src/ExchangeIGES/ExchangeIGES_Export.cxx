@@ -137,9 +137,6 @@ SALOME_WNT_EXPORT
     // inappropriate error message instead, it is disturbing for the user and for us
     //try
     {
-      // Set "C" numeric locale to save numbers correctly
-      Kernel_Utils::Localizer loc;
-
       // initialize writer
       IGESControl_Controller::Init();
       //IGESControl_Writer ICW (Interface_Static::CVal("write.iges.unit"),

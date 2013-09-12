@@ -77,9 +77,6 @@ extern "C"
       return aValue;
     }
 
-    // Set "C" numeric locale to save numbers correctly
-    Kernel_Utils::Localizer loc;
-
     IGESControl_Reader aReader;
 
     Interface_Static::SetCVal("xstep.cascade.unit","M");
@@ -112,16 +109,13 @@ extern "C"
     return aValue;
   }
 
-IGESIMPORT_EXPORT
+SALOME_WNT_EXPORT
   TopoDS_Shape Import (const TCollection_AsciiString& theFileName,
                        const TCollection_AsciiString& theFormatName,
                        TCollection_AsciiString&       theError,
 		               const TDF_Label&               theShapeLabel)
   {
     TopoDS_Shape aResShape;
-
-    // Set "C" numeric locale to save numbers correctly
-    Kernel_Utils::Localizer loc;
 
     IGESControl_Reader aReader;
 
