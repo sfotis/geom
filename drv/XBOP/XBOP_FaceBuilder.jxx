@@ -1,0 +1,12 @@
+#ifndef _XIntTools_Context_HeaderFile
+#include <XIntTools_Context.hxx>
+#endif
+#ifndef _XBOP_WireEdgeSet_HeaderFile
+#include <XBOP_WireEdgeSet.hxx>
+#endif
+#ifndef _TopTools_ListOfShape_HeaderFile
+#include <TopTools_ListOfShape.hxx>
+#endif
+#ifndef _XBOP_FaceBuilder_HeaderFile
+#include <XBOP_FaceBuilder.hxx>
+#endif

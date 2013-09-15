@@ -1,0 +1,3 @@
+#ifndef _XIntTools_Root_HeaderFile
+#include <XIntTools_Root.hxx>
+#endif

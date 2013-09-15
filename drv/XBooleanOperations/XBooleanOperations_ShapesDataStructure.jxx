@@ -1,0 +1,27 @@
+#ifndef _XBooleanOperations_Explorer_HeaderFile
+#include <XBooleanOperations_Explorer.hxx>
+#endif
+#ifndef _XBooleanOperations_OnceExplorer_HeaderFile
+#include <XBooleanOperations_OnceExplorer.hxx>
+#endif
+#ifndef _TopoDS_Shape_HeaderFile
+#include <TopoDS_Shape.hxx>
+#endif
+#ifndef _XBooleanOperations_AncestorsSeqAndSuccessorsSeq_HeaderFile
+#include <XBooleanOperations_AncestorsSeqAndSuccessorsSeq.hxx>
+#endif
+#ifndef _XBooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors_HeaderFile
+#include <XBooleanOperations_IndexedDataMapOfShapeAncestorsSuccessors.hxx>
+#endif
+#ifndef _Bnd_Box_HeaderFile
+#include <Bnd_Box.hxx>
+#endif
+#ifndef _XBooleanOperations_ShapeAndInterferences_HeaderFile
+#include <XBooleanOperations_ShapeAndInterferences.hxx>
+#endif
+#ifndef _XBooleanOperations_IndexedDataMapOfShapeInteger_HeaderFile
+#include <XBooleanOperations_IndexedDataMapOfShapeInteger.hxx>
+#endif
+#ifndef _XBooleanOperations_ShapesDataStructure_HeaderFile
+#include <XBooleanOperations_ShapesDataStructure.hxx>
+#endif

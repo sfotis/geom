@@ -1,0 +1,12 @@
+#ifndef _XBOPTools_HArray2OfIntersectionStatus_HeaderFile
+#include <XBOPTools_HArray2OfIntersectionStatus.hxx>
+#endif
+#ifndef _Standard_NoSuchObject_HeaderFile
+#include <Standard_NoSuchObject.hxx>
+#endif
+#ifndef _XBOPTools_ListOfCoupleOfInteger_HeaderFile
+#include <XBOPTools_ListOfCoupleOfInteger.hxx>
+#endif
+#ifndef _XBOPTools_IteratorOfCoupleOfShape_HeaderFile
+#include <XBOPTools_IteratorOfCoupleOfShape.hxx>
+#endif

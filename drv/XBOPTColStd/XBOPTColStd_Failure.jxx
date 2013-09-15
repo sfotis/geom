@@ -1,0 +1,3 @@
+#ifndef _XBOPTColStd_Failure_HeaderFile
+#include <XBOPTColStd_Failure.hxx>
+#endif

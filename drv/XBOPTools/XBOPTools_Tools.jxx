@@ -1,0 +1,33 @@
+#ifndef _gp_Pnt_HeaderFile
+#include <gp_Pnt.hxx>
+#endif
+#ifndef _TopoDS_Vertex_HeaderFile
+#include <TopoDS_Vertex.hxx>
+#endif
+#ifndef _TopoDS_Edge_HeaderFile
+#include <TopoDS_Edge.hxx>
+#endif
+#ifndef _TopoDS_Face_HeaderFile
+#include <TopoDS_Face.hxx>
+#endif
+#ifndef _XIntTools_Curve_HeaderFile
+#include <XIntTools_Curve.hxx>
+#endif
+#ifndef _XBOPTools_PaveBlock_HeaderFile
+#include <XBOPTools_PaveBlock.hxx>
+#endif
+#ifndef _XIntTools_Context_HeaderFile
+#include <XIntTools_Context.hxx>
+#endif
+#ifndef _TopoDS_Shape_HeaderFile
+#include <TopoDS_Shape.hxx>
+#endif
+#ifndef _TopTools_IndexedMapOfShape_HeaderFile
+#include <TopTools_IndexedMapOfShape.hxx>
+#endif
+#ifndef _XIntTools_Range_HeaderFile
+#include <XIntTools_Range.hxx>
+#endif
+#ifndef _XBOPTools_Tools_HeaderFile
+#include <XBOPTools_Tools.hxx>
+#endif

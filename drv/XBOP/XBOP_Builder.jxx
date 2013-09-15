@@ -1,0 +1,15 @@
+#ifndef _XBOP_HistoryCollector_HeaderFile
+#include <XBOP_HistoryCollector.hxx>
+#endif
+#ifndef _TopoDS_Shape_HeaderFile
+#include <TopoDS_Shape.hxx>
+#endif
+#ifndef _XBOPTools_DSFiller_HeaderFile
+#include <XBOPTools_DSFiller.hxx>
+#endif
+#ifndef _TopTools_ListOfShape_HeaderFile
+#include <TopTools_ListOfShape.hxx>
+#endif
+#ifndef _XBOP_Builder_HeaderFile
+#include <XBOP_Builder.hxx>
+#endif

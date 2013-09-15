@@ -1,0 +1,15 @@
+#ifndef _XBOP_ShellFaceSet_HeaderFile
+#include <XBOP_ShellFaceSet.hxx>
+#endif
+#ifndef _TopoDS_Shell_HeaderFile
+#include <TopoDS_Shell.hxx>
+#endif
+#ifndef _TopoDS_Face_HeaderFile
+#include <TopoDS_Face.hxx>
+#endif
+#ifndef _XBOP_ShapeSet_HeaderFile
+#include <XBOP_ShapeSet.hxx>
+#endif
+#ifndef _XBOP_SolidBuilder_HeaderFile
+#include <XBOP_SolidBuilder.hxx>
+#endif

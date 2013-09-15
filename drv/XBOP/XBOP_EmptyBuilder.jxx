@@ -1,0 +1,6 @@
+#ifndef _XBOPTools_DSFiller_HeaderFile
+#include <XBOPTools_DSFiller.hxx>
+#endif
+#ifndef _XBOP_EmptyBuilder_HeaderFile
+#include <XBOP_EmptyBuilder.hxx>
+#endif

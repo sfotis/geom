@@ -1,0 +1,6 @@
+#ifndef _TopoDS_Shape_HeaderFile
+#include <TopoDS_Shape.hxx>
+#endif
+#ifndef _XBOP_CorrectTolerances_HeaderFile
+#include <XBOP_CorrectTolerances.hxx>
+#endif

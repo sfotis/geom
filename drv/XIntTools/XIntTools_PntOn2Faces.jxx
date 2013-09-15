@@ -1,0 +1,6 @@
+#ifndef _XIntTools_PntOnFace_HeaderFile
+#include <XIntTools_PntOnFace.hxx>
+#endif
+#ifndef _XIntTools_PntOn2Faces_HeaderFile
+#include <XIntTools_PntOn2Faces.hxx>
+#endif

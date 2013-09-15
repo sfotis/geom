@@ -1,0 +1,9 @@
+#ifndef _XBOPTools_ListOfPave_HeaderFile
+#include <XBOPTools_ListOfPave.hxx>
+#endif
+#ifndef _XBOPTools_Pave_HeaderFile
+#include <XBOPTools_Pave.hxx>
+#endif
+#ifndef _XBOPTools_PaveSet_HeaderFile
+#include <XBOPTools_PaveSet.hxx>
+#endif

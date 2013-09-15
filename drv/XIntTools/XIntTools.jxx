@@ -1,0 +1,19 @@
+#ifndef _TopoDS_Edge_HeaderFile
+#include <TopoDS_Edge.hxx>
+#endif
+#ifndef _XIntTools_SequenceOfRoots_HeaderFile
+#include <XIntTools_SequenceOfRoots.hxx>
+#endif
+#ifndef _gp_Pnt_HeaderFile
+#include <gp_Pnt.hxx>
+#endif
+#ifndef _Geom_Curve_HeaderFile
+#include <Geom_Curve.hxx>
+#endif
+#ifndef _BRepAdaptor_Curve_HeaderFile
+#include <BRepAdaptor_Curve.hxx>
+#endif
+#ifndef _XIntTools_CArray1OfReal_HeaderFile
+#include <XIntTools_CArray1OfReal.hxx>
+#endif
+#include <XIntTools.hxx>

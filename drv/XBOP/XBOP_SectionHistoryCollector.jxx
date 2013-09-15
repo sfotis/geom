@@ -1,0 +1,12 @@
+#ifndef _TopoDS_Shape_HeaderFile
+#include <TopoDS_Shape.hxx>
+#endif
+#ifndef _TopTools_IndexedMapOfShape_HeaderFile
+#include <TopTools_IndexedMapOfShape.hxx>
+#endif
+#ifndef _TopTools_IndexedDataMapOfShapeListOfShape_HeaderFile
+#include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
+#endif
+#ifndef _XBOP_SectionHistoryCollector_HeaderFile
+#include <XBOP_SectionHistoryCollector.hxx>
+#endif

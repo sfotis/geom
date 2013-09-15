@@ -1,0 +1,9 @@
+#ifndef _XBOPTools_ListOfInterference_HeaderFile
+#include <XBOPTools_ListOfInterference.hxx>
+#endif
+#ifndef _XBOPTools_Interference_HeaderFile
+#include <XBOPTools_Interference.hxx>
+#endif
+#ifndef _XBOPTools_InterferenceLine_HeaderFile
+#include <XBOPTools_InterferenceLine.hxx>
+#endif

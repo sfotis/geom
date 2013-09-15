@@ -1,0 +1,6 @@
+#ifndef _XIntTools_CommonPrt_HeaderFile
+#include <XIntTools_CommonPrt.hxx>
+#endif
+#ifndef _XBOPTools_EEInterference_HeaderFile
+#include <XBOPTools_EEInterference.hxx>
+#endif

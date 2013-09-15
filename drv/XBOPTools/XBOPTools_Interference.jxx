@@ -1,0 +1,3 @@
+#ifndef _XBOPTools_Interference_HeaderFile
+#include <XBOPTools_Interference.hxx>
+#endif

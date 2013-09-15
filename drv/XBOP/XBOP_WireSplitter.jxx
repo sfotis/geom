@@ -1,0 +1,12 @@
+#ifndef _TopoDS_Face_HeaderFile
+#include <TopoDS_Face.hxx>
+#endif
+#ifndef _TopTools_ListOfShape_HeaderFile
+#include <TopTools_ListOfShape.hxx>
+#endif
+#ifndef _XBOPTColStd_ListOfListOfShape_HeaderFile
+#include <XBOPTColStd_ListOfListOfShape.hxx>
+#endif
+#ifndef _XBOP_WireSplitter_HeaderFile
+#include <XBOP_WireSplitter.hxx>
+#endif

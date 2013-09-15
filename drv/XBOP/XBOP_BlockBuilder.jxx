@@ -1,0 +1,12 @@
+#ifndef _XBOP_ShapeSet_HeaderFile
+#include <XBOP_ShapeSet.hxx>
+#endif
+#ifndef _XBOP_BlockIterator_HeaderFile
+#include <XBOP_BlockIterator.hxx>
+#endif
+#ifndef _TopoDS_Shape_HeaderFile
+#include <TopoDS_Shape.hxx>
+#endif
+#ifndef _XBOP_BlockBuilder_HeaderFile
+#include <XBOP_BlockBuilder.hxx>
+#endif

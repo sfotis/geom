@@ -1,0 +1,6 @@
+#ifndef _XBOPTools_PaveFiller_HeaderFile
+#include <XBOPTools_PaveFiller.hxx>
+#endif
+#ifndef _XBOPTools_SolidStateFiller_HeaderFile
+#include <XBOPTools_SolidStateFiller.hxx>
+#endif

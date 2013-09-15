@@ -1,0 +1,6 @@
+#ifndef _XBOP_WireEdgeSet_HeaderFile
+#include <XBOP_WireEdgeSet.hxx>
+#endif
+#ifndef _XBOP_WESCorrector_HeaderFile
+#include <XBOP_WESCorrector.hxx>
+#endif

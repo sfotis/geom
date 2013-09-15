@@ -1,0 +1,45 @@
+#ifndef _Geom_Surface_HeaderFile
+#include <Geom_Surface.hxx>
+#endif
+#ifndef _XIntTools_Context_HeaderFile
+#include <XIntTools_Context.hxx>
+#endif
+#ifndef _TopoDS_Edge_HeaderFile
+#include <TopoDS_Edge.hxx>
+#endif
+#ifndef _TopoDS_Face_HeaderFile
+#include <TopoDS_Face.hxx>
+#endif
+#ifndef _BRepAdaptor_Curve_HeaderFile
+#include <BRepAdaptor_Curve.hxx>
+#endif
+#ifndef _BRepAdaptor_Surface_HeaderFile
+#include <BRepAdaptor_Surface.hxx>
+#endif
+#ifndef _XIntTools_SequenceOfRanges_HeaderFile
+#include <XIntTools_SequenceOfRanges.hxx>
+#endif
+#ifndef _XIntTools_CurveRangeSample_HeaderFile
+#include <XIntTools_CurveRangeSample.hxx>
+#endif
+#ifndef _Bnd_Box_HeaderFile
+#include <Bnd_Box.hxx>
+#endif
+#ifndef _XIntTools_SurfaceRangeSample_HeaderFile
+#include <XIntTools_SurfaceRangeSample.hxx>
+#endif
+#ifndef _XIntTools_CurveRangeLocalizeData_HeaderFile
+#include <XIntTools_CurveRangeLocalizeData.hxx>
+#endif
+#ifndef _XIntTools_SurfaceRangeLocalizeData_HeaderFile
+#include <XIntTools_SurfaceRangeLocalizeData.hxx>
+#endif
+#ifndef _XIntTools_ListOfCurveRangeSample_HeaderFile
+#include <XIntTools_ListOfCurveRangeSample.hxx>
+#endif
+#ifndef _XIntTools_ListOfSurfaceRangeSample_HeaderFile
+#include <XIntTools_ListOfSurfaceRangeSample.hxx>
+#endif
+#ifndef _XIntTools_BeanFaceIntersector_HeaderFile
+#include <XIntTools_BeanFaceIntersector.hxx>
+#endif

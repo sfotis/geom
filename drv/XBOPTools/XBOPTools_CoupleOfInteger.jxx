@@ -1,0 +1,3 @@
+#ifndef _XBOPTools_CoupleOfInteger_HeaderFile
+#include <XBOPTools_CoupleOfInteger.hxx>
+#endif

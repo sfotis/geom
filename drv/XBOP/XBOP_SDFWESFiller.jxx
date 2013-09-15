@@ -1,0 +1,18 @@
+#ifndef _XBOPTools_DSFiller_HeaderFile
+#include <XBOPTools_DSFiller.hxx>
+#endif
+#ifndef _XBOPTools_IndexedDataMapOfIntegerState_HeaderFile
+#include <XBOPTools_IndexedDataMapOfIntegerState.hxx>
+#endif
+#ifndef _XBOP_WireEdgeSet_HeaderFile
+#include <XBOP_WireEdgeSet.hxx>
+#endif
+#ifndef _TopoDS_Face_HeaderFile
+#include <TopoDS_Face.hxx>
+#endif
+#ifndef _TopTools_ListOfShape_HeaderFile
+#include <TopTools_ListOfShape.hxx>
+#endif
+#ifndef _XBOP_SDFWESFiller_HeaderFile
+#include <XBOP_SDFWESFiller.hxx>
+#endif

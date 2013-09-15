@@ -1,0 +1,12 @@
+#ifndef _XIntTools_CArray1OfReal_HeaderFile
+#include <XIntTools_CArray1OfReal.hxx>
+#endif
+#ifndef _XIntTools_Range_HeaderFile
+#include <XIntTools_Range.hxx>
+#endif
+#ifndef _TColStd_SequenceOfInteger_HeaderFile
+#include <TColStd_SequenceOfInteger.hxx>
+#endif
+#ifndef _XIntTools_MarkedRangeSet_HeaderFile
+#include <XIntTools_MarkedRangeSet.hxx>
+#endif

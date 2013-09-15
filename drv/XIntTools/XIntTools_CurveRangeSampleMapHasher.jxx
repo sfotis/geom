@@ -1,0 +1,6 @@
+#ifndef _XIntTools_CurveRangeSample_HeaderFile
+#include <XIntTools_CurveRangeSample.hxx>
+#endif
+#ifndef _XIntTools_CurveRangeSampleMapHasher_HeaderFile
+#include <XIntTools_CurveRangeSampleMapHasher.hxx>
+#endif

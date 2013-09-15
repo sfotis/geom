@@ -1,0 +1,3 @@
+#ifndef _XIntTools_Range_HeaderFile
+#include <XIntTools_Range.hxx>
+#endif

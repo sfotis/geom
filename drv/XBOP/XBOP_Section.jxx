@@ -1,0 +1,9 @@
+#ifndef _XBOPTools_DSFiller_HeaderFile
+#include <XBOPTools_DSFiller.hxx>
+#endif
+#ifndef _XBOP_HistoryCollector_HeaderFile
+#include <XBOP_HistoryCollector.hxx>
+#endif
+#ifndef _XBOP_Section_HeaderFile
+#include <XBOP_Section.hxx>
+#endif

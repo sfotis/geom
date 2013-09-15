@@ -1,0 +1,9 @@
+#ifndef _XBOP_ListOfLoop_HeaderFile
+#include <XBOP_ListOfLoop.hxx>
+#endif
+#ifndef _XBOP_Loop_HeaderFile
+#include <XBOP_Loop.hxx>
+#endif
+#ifndef _XBOP_LoopSet_HeaderFile
+#include <XBOP_LoopSet.hxx>
+#endif

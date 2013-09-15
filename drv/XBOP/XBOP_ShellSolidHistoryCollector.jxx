@@ -1,0 +1,6 @@
+#ifndef _TopoDS_Shape_HeaderFile
+#include <TopoDS_Shape.hxx>
+#endif
+#ifndef _XBOP_ShellSolidHistoryCollector_HeaderFile
+#include <XBOP_ShellSolidHistoryCollector.hxx>
+#endif

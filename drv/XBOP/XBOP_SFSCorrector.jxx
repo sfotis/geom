@@ -1,0 +1,6 @@
+#ifndef _XBOP_ShellFaceSet_HeaderFile
+#include <XBOP_ShellFaceSet.hxx>
+#endif
+#ifndef _XBOP_SFSCorrector_HeaderFile
+#include <XBOP_SFSCorrector.hxx>
+#endif

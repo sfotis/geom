@@ -1,0 +1,3 @@
+#ifndef _XBOPTools_ShapeShapeInterference_HeaderFile
+#include <XBOPTools_ShapeShapeInterference.hxx>
+#endif

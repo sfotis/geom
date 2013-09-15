@@ -1,0 +1,12 @@
+#ifndef _XBOPTools_PaveFiller_HeaderFile
+#include <XBOPTools_PaveFiller.hxx>
+#endif
+#ifndef _TopoDS_Edge_HeaderFile
+#include <TopoDS_Edge.hxx>
+#endif
+#ifndef _TopoDS_Shape_HeaderFile
+#include <TopoDS_Shape.hxx>
+#endif
+#ifndef _XBOPTools_StateFiller_HeaderFile
+#include <XBOPTools_StateFiller.hxx>
+#endif
