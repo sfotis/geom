@@ -1,0 +1,6 @@
+#ifndef _XBOPTColStd_ShapeWithRank_HeaderFile
+#include <XBOPTColStd_ShapeWithRank.hxx>
+#endif
+#ifndef _XBOPTColStd_ShapeWithRankHasher_HeaderFile
+#include <XBOPTColStd_ShapeWithRankHasher.hxx>
+#endif

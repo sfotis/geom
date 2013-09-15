@@ -1,0 +1,6 @@
+#ifndef _XBOPTools_CoupleOfInteger_HeaderFile
+#include <XBOPTools_CoupleOfInteger.hxx>
+#endif
+#ifndef _XBOPTools_CoupleOfIntegerMapHasher_HeaderFile
+#include <XBOPTools_CoupleOfIntegerMapHasher.hxx>
+#endif

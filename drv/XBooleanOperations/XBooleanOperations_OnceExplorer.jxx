@@ -1,0 +1,6 @@
+#ifndef _XBooleanOperations_ShapesDataStructure_HeaderFile
+#include <XBooleanOperations_ShapesDataStructure.hxx>
+#endif
+#ifndef _XBooleanOperations_OnceExplorer_HeaderFile
+#include <XBooleanOperations_OnceExplorer.hxx>
+#endif

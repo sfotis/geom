@@ -1,0 +1,9 @@
+#ifndef _XBOP_LoopSet_HeaderFile
+#include <XBOP_LoopSet.hxx>
+#endif
+#ifndef _XBOP_LoopClassifier_HeaderFile
+#include <XBOP_LoopClassifier.hxx>
+#endif
+#ifndef _XBOP_Area3dBuilder_HeaderFile
+#include <XBOP_Area3dBuilder.hxx>
+#endif

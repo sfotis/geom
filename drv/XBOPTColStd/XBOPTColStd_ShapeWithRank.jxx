@@ -1,0 +1,6 @@
+#ifndef _TopoDS_Shape_HeaderFile
+#include <TopoDS_Shape.hxx>
+#endif
+#ifndef _XBOPTColStd_ShapeWithRank_HeaderFile
+#include <XBOPTColStd_ShapeWithRank.hxx>
+#endif

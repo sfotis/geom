@@ -1,0 +1,12 @@
+#ifndef _XBOPTools_ListOfCommonBlock_HeaderFile
+#include <XBOPTools_ListOfCommonBlock.hxx>
+#endif
+#ifndef _XBOPTools_ListOfPaveBlock_HeaderFile
+#include <XBOPTools_ListOfPaveBlock.hxx>
+#endif
+#ifndef _XBOPTools_PaveBlock_HeaderFile
+#include <XBOPTools_PaveBlock.hxx>
+#endif
+#ifndef _XBOPTools_CommonBlockAPI_HeaderFile
+#include <XBOPTools_CommonBlockAPI.hxx>
+#endif

@@ -1,0 +1,3 @@
+#ifndef _XBOPTools_SSIntersectionAttribute_HeaderFile
+#include <XBOPTools_SSIntersectionAttribute.hxx>
+#endif

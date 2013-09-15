@@ -1,0 +1,3 @@
+#ifndef _XBooleanOperations_AncestorsSeqAndSuccessorsSeq_HeaderFile
+#include <XBooleanOperations_AncestorsSeqAndSuccessorsSeq.hxx>
+#endif

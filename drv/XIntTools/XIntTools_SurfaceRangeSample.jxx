@@ -1,0 +1,9 @@
+#ifndef _XIntTools_CurveRangeSample_HeaderFile
+#include <XIntTools_CurveRangeSample.hxx>
+#endif
+#ifndef _XIntTools_Range_HeaderFile
+#include <XIntTools_Range.hxx>
+#endif
+#ifndef _XIntTools_SurfaceRangeSample_HeaderFile
+#include <XIntTools_SurfaceRangeSample.hxx>
+#endif

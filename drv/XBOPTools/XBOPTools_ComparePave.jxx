@@ -1,0 +1,6 @@
+#ifndef _XBOPTools_Pave_HeaderFile
+#include <XBOPTools_Pave.hxx>
+#endif
+#ifndef _XBOPTools_ComparePave_HeaderFile
+#include <XBOPTools_ComparePave.hxx>
+#endif

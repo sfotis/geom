@@ -1,0 +1,12 @@
+#ifndef _TopoDS_Shape_HeaderFile
+#include <TopoDS_Shape.hxx>
+#endif
+#ifndef _XBOPTools_InterferencePool_HeaderFile
+#include <XBOPTools_InterferencePool.hxx>
+#endif
+#ifndef _XBOPTools_ListOfCheckResults_HeaderFile
+#include <XBOPTools_ListOfCheckResults.hxx>
+#endif
+#ifndef _XBOPTools_Checker_HeaderFile
+#include <XBOPTools_Checker.hxx>
+#endif

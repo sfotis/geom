@@ -1,0 +1,3 @@
+#ifndef _XBOP_WireShape_HeaderFile
+#include <XBOP_WireShape.hxx>
+#endif

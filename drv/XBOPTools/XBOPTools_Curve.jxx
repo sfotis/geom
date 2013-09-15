@@ -1,0 +1,18 @@
+#ifndef _XIntTools_Curve_HeaderFile
+#include <XIntTools_Curve.hxx>
+#endif
+#ifndef _XBOPTools_PaveSet_HeaderFile
+#include <XBOPTools_PaveSet.hxx>
+#endif
+#ifndef _XBOPTools_PaveBlock_HeaderFile
+#include <XBOPTools_PaveBlock.hxx>
+#endif
+#ifndef _XBOPTools_ListOfPaveBlock_HeaderFile
+#include <XBOPTools_ListOfPaveBlock.hxx>
+#endif
+#ifndef _TColStd_ListOfInteger_HeaderFile
+#include <TColStd_ListOfInteger.hxx>
+#endif
+#ifndef _XBOPTools_Curve_HeaderFile
+#include <XBOPTools_Curve.hxx>
+#endif

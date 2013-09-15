@@ -1,0 +1,6 @@
+#ifndef _XBOPTools_PaveFiller_HeaderFile
+#include <XBOPTools_PaveFiller.hxx>
+#endif
+#ifndef _XBOPTools_WireStateFiller_HeaderFile
+#include <XBOPTools_WireStateFiller.hxx>
+#endif

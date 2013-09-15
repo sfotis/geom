@@ -1,0 +1,6 @@
+#ifndef _XBOPTools_PaveBlock_HeaderFile
+#include <XBOPTools_PaveBlock.hxx>
+#endif
+#ifndef _XBOPTools_CommonBlock_HeaderFile
+#include <XBOPTools_CommonBlock.hxx>
+#endif

@@ -1,0 +1,9 @@
+#ifndef _TopoDS_Shape_HeaderFile
+#include <TopoDS_Shape.hxx>
+#endif
+#ifndef _XBOP_ListOfCheckResult_HeaderFile
+#include <XBOP_ListOfCheckResult.hxx>
+#endif
+#ifndef _XBOP_ArgumentAnalyzer_HeaderFile
+#include <XBOP_ArgumentAnalyzer.hxx>
+#endif

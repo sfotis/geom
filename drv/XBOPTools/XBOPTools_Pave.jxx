@@ -1,0 +1,3 @@
+#ifndef _XBOPTools_Pave_HeaderFile
+#include <XBOPTools_Pave.hxx>
+#endif

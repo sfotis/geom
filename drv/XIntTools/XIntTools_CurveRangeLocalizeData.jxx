@@ -1,0 +1,12 @@
+#ifndef _XIntTools_CurveRangeSample_HeaderFile
+#include <XIntTools_CurveRangeSample.hxx>
+#endif
+#ifndef _Bnd_Box_HeaderFile
+#include <Bnd_Box.hxx>
+#endif
+#ifndef _XIntTools_ListOfCurveRangeSample_HeaderFile
+#include <XIntTools_ListOfCurveRangeSample.hxx>
+#endif
+#ifndef _XIntTools_CurveRangeLocalizeData_HeaderFile
+#include <XIntTools_CurveRangeLocalizeData.hxx>
+#endif

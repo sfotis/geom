@@ -1,0 +1,12 @@
+#ifndef _XBooleanOperations_ShapesDataStructure_HeaderFile
+#include <XBooleanOperations_ShapesDataStructure.hxx>
+#endif
+#ifndef _TopoDS_Shape_HeaderFile
+#include <TopoDS_Shape.hxx>
+#endif
+#ifndef _Bnd_Box_HeaderFile
+#include <Bnd_Box.hxx>
+#endif
+#ifndef _XBooleanOperations_ShapeAndInterferences_HeaderFile
+#include <XBooleanOperations_ShapeAndInterferences.hxx>
+#endif

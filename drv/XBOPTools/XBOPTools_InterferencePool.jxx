@@ -1,0 +1,27 @@
+#ifndef _XBooleanOperations_ShapesDataStructure_HeaderFile
+#include <XBooleanOperations_ShapesDataStructure.hxx>
+#endif
+#ifndef _XBOPTools_CArray1OfInterferenceLine_HeaderFile
+#include <XBOPTools_CArray1OfInterferenceLine.hxx>
+#endif
+#ifndef _XBOPTools_CArray1OfSSInterference_HeaderFile
+#include <XBOPTools_CArray1OfSSInterference.hxx>
+#endif
+#ifndef _XBOPTools_CArray1OfESInterference_HeaderFile
+#include <XBOPTools_CArray1OfESInterference.hxx>
+#endif
+#ifndef _XBOPTools_CArray1OfVSInterference_HeaderFile
+#include <XBOPTools_CArray1OfVSInterference.hxx>
+#endif
+#ifndef _XBOPTools_CArray1OfEEInterference_HeaderFile
+#include <XBOPTools_CArray1OfEEInterference.hxx>
+#endif
+#ifndef _XBOPTools_CArray1OfVEInterference_HeaderFile
+#include <XBOPTools_CArray1OfVEInterference.hxx>
+#endif
+#ifndef _XBOPTools_CArray1OfVVInterference_HeaderFile
+#include <XBOPTools_CArray1OfVVInterference.hxx>
+#endif
+#ifndef _XBOPTools_InterferencePool_HeaderFile
+#include <XBOPTools_InterferencePool.hxx>
+#endif

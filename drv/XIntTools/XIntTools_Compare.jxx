@@ -1,0 +1,6 @@
+#ifndef _XIntTools_Root_HeaderFile
+#include <XIntTools_Root.hxx>
+#endif
+#ifndef _XIntTools_Compare_HeaderFile
+#include <XIntTools_Compare.hxx>
+#endif

@@ -1,0 +1,30 @@
+#ifndef _XIntTools_Context_HeaderFile
+#include <XIntTools_Context.hxx>
+#endif
+#ifndef _TopoDS_Edge_HeaderFile
+#include <TopoDS_Edge.hxx>
+#endif
+#ifndef _TopoDS_Face_HeaderFile
+#include <TopoDS_Face.hxx>
+#endif
+#ifndef _XIntTools_Range_HeaderFile
+#include <XIntTools_Range.hxx>
+#endif
+#ifndef _XIntTools_SequenceOfCommonPrts_HeaderFile
+#include <XIntTools_SequenceOfCommonPrts.hxx>
+#endif
+#ifndef _gp_Pnt_HeaderFile
+#include <gp_Pnt.hxx>
+#endif
+#ifndef _BRepAdaptor_Surface_HeaderFile
+#include <BRepAdaptor_Surface.hxx>
+#endif
+#ifndef _XIntTools_CArray1OfReal_HeaderFile
+#include <XIntTools_CArray1OfReal.hxx>
+#endif
+#ifndef _XIntTools_CommonPrt_HeaderFile
+#include <XIntTools_CommonPrt.hxx>
+#endif
+#ifndef _XIntTools_EdgeFace_HeaderFile
+#include <XIntTools_EdgeFace.hxx>
+#endif

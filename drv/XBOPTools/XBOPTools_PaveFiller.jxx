@@ -1,0 +1,60 @@
+#ifndef _XIntTools_Context_HeaderFile
+#include <XIntTools_Context.hxx>
+#endif
+#ifndef _XBOPTools_InterferencePool_HeaderFile
+#include <XBOPTools_InterferencePool.hxx>
+#endif
+#ifndef _XBOPTools_SSIntersectionAttribute_HeaderFile
+#include <XBOPTools_SSIntersectionAttribute.hxx>
+#endif
+#ifndef _TColStd_SetOfInteger_HeaderFile
+#include <TColStd_SetOfInteger.hxx>
+#endif
+#ifndef _XBOPTools_PavePool_HeaderFile
+#include <XBOPTools_PavePool.hxx>
+#endif
+#ifndef _XBOPTools_CommonBlockPool_HeaderFile
+#include <XBOPTools_CommonBlockPool.hxx>
+#endif
+#ifndef _XBOPTools_SplitShapesPool_HeaderFile
+#include <XBOPTools_SplitShapesPool.hxx>
+#endif
+#ifndef _XBOPTools_IteratorOfCoupleOfShape_HeaderFile
+#include <XBOPTools_IteratorOfCoupleOfShape.hxx>
+#endif
+#ifndef _XBOPTools_Pave_HeaderFile
+#include <XBOPTools_Pave.hxx>
+#endif
+#ifndef _XIntTools_ShrunkRange_HeaderFile
+#include <XIntTools_ShrunkRange.hxx>
+#endif
+#ifndef _XBOPTools_PaveBlock_HeaderFile
+#include <XBOPTools_PaveBlock.hxx>
+#endif
+#ifndef _TColStd_ListOfInteger_HeaderFile
+#include <TColStd_ListOfInteger.hxx>
+#endif
+#ifndef _XBOPTools_ListOfPaveBlock_HeaderFile
+#include <XBOPTools_ListOfPaveBlock.hxx>
+#endif
+#ifndef _XBOPTools_PaveSet_HeaderFile
+#include <XBOPTools_PaveSet.hxx>
+#endif
+#ifndef _XBOPTools_Curve_HeaderFile
+#include <XBOPTools_Curve.hxx>
+#endif
+#ifndef _XBOPTools_SSInterference_HeaderFile
+#include <XBOPTools_SSInterference.hxx>
+#endif
+#ifndef _gp_Pnt_HeaderFile
+#include <gp_Pnt.hxx>
+#endif
+#ifndef _TopoDS_Vertex_HeaderFile
+#include <TopoDS_Vertex.hxx>
+#endif
+#ifndef _TColStd_IndexedMapOfInteger_HeaderFile
+#include <TColStd_IndexedMapOfInteger.hxx>
+#endif
+#ifndef _XBOPTools_PaveFiller_HeaderFile
+#include <XBOPTools_PaveFiller.hxx>
+#endif

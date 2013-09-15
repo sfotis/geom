@@ -1,0 +1,6 @@
+#ifndef _XBOP_Loop_HeaderFile
+#include <XBOP_Loop.hxx>
+#endif
+#ifndef _XBOP_LoopClassifier_HeaderFile
+#include <XBOP_LoopClassifier.hxx>
+#endif

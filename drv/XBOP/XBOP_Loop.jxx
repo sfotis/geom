@@ -1,0 +1,9 @@
+#ifndef _TopoDS_Shape_HeaderFile
+#include <TopoDS_Shape.hxx>
+#endif
+#ifndef _XBOP_BlockIterator_HeaderFile
+#include <XBOP_BlockIterator.hxx>
+#endif
+#ifndef _XBOP_Loop_HeaderFile
+#include <XBOP_Loop.hxx>
+#endif
