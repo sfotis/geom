@@ -28,12 +28,12 @@ static Standard_Boolean HasDoubleRepresantation(const TCollection_AsciiString& a
 	char *ptr;
 	if(anAsciiString.ToCString()) {
 	  strtod(anAsciiString.ToCString(),&ptr);
-	  if (ptr != anAsciiString.ToCString())
+	  if (ptr != anAsciiString.ToCString()) {
 		if (strcmp(ptr, "") == 0  ) // <- the difference with TCollection_AsciiString::IsRealValue
 		  return Standard_True;
-
 	  else
-		return Standard_False;
+		  return Standard_False;
+    }
 	}
 	return Standard_False;
 }
