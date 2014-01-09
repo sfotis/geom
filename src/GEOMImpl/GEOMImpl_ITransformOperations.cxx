@@ -1560,12 +1560,12 @@ Handle(GEOM_Object) GEOMImpl_ITransformOperations::PositionShape
   GEOMImpl_IPosition aTI (aFunction);
   aTI.SetShape(anOriginal);
   aTI.SetEndLCS(theEndLCS->GetLastFunction());
-  if (!theStartLCS.IsNull())
+  if (!theStartLCS.IsNull()) {
     if (theObject == theStartLCS)
       aTI.SetStartLCS(anOriginal);
     else
       aTI.SetStartLCS(theStartLCS->GetLastFunction());
-
+    }
   //Compute the Position
   try {
 #if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
