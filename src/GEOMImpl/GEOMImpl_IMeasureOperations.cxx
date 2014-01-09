@@ -745,6 +745,8 @@ GEOMImpl_IMeasureOperations::ShapeKind GEOMImpl_IMeasureOperations::KindOfShape
       theDoubles->Append(aP.Z());
     }
     break;
+  default:
+    break;
   }
 
   SetErrorCode(GEOM_OK);
