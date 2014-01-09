@@ -48,8 +48,8 @@ void Sketcher_Arc::SetParam(const gp_Pnt2d& start,const gp_Pnt2d& mid,const gp_P
   Standard_Real u = ElCLib::Parameter(Circ2d(),mid);
   CheckParam();
 
-  if ((myFirstParam < u) && (u < myLastParam) ||
-      (myFirstParam < u + 2*M_PI) && (u + 2*M_PI < myLastParam));
+  if (((myFirstParam < u) && (u < myLastParam)) ||
+      ((myFirstParam < u + 2*M_PI) && (u + 2*M_PI < myLastParam)));
   else {
     Standard_Real u;
 
