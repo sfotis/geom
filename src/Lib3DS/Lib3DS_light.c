@@ -30,7 +30,6 @@
 /*!
  * \defgroup light Lights
  */
-/*!
 
 
 /*!
