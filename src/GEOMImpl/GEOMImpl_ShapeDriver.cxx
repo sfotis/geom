@@ -702,6 +702,8 @@ Standard_Integer GEOMImpl_ShapeDriver::Execute(TFunction_Logbook& log) const
 	      }
 	      break;
 	    }
+    default:
+      break;
 	  } //end of switch (aType)
 	} // end of else if (aType == CurType && ...
 	if (Done)

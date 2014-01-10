@@ -269,6 +269,7 @@ Standard_Integer GEOMImpl_ChamferDriver::Execute(TFunction_Logbook& log) const
 			if (!BRepTools::IsReallyClosed(E, F) &&
 				!BRep_Tool::Degenerated(E) &&
 				M.FindFromKey(E).Extent() == 2)
+              {
 			  if (aType == CHAMFER_SHAPE_FACES)
 				{
 				  double aD1 = aCI.GetD1();
@@ -282,6 +283,7 @@ Standard_Integer GEOMImpl_ChamferDriver::Execute(TFunction_Logbook& log) const
 				  if ( (anAngle > 0) && (anAngle < (M_PI/2)) )
 				fill.AddDA(aD, anAngle, E, F);
 				}
+              }
 			  }
 		  }
 		}
