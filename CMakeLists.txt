@@ -180,10 +180,10 @@ ENDIF(MINGW)
 IF(UNIX)
     # Setup install paths
     IF(NOT LIB_INSTALL_DIR)
-        SET(LIB_INSTALL_DIR /usr/local/lib${LIB_SUFFIX})
+        SET(LIB_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/lib)
     ENDIF()
     IF(NOT INCLUDE_INSTALL_DIR)
-        SET(INCLUDE_INSTALL_DIR /usr/local/include)
+        SET(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include/geom)
     ENDIF()
     # Set soname version
     SET_TARGET_PROPERTIES(TKXBO TKGeom TKExchangeBREP TKExchangeCSFDB TKExchangeIGES TKExchangeSTEP TKExchangeSTL TKExchangeVRML TKExchangeOBJ TKExchange3DS
