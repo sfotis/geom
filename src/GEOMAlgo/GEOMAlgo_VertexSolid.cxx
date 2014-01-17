@@ -44,19 +44,16 @@
 
 #include <BRep_Tool.hxx>
 #include <BRepClass3d_SolidClassifier.hxx>
-
-#include <XBOPTColStd_Dump.hxx>
-
-#include <XIntTools_Context.hxx>
-
-#include <XBooleanOperations_StateOfShape.hxx>
-#include <XBooleanOperations_ShapesDataStructure.hxx>
-
-#include <XBOPTools_InterferencePool.hxx>
-#include <XBOPTools_CArray1OfVVInterference.hxx>
-#include <XBOPTools_VVInterference.hxx>
-#include <XBOPTools_PaveFiller.hxx>
-#include <XBOPTools_DSFiller.hxx>
+//
+#include <BOPCol_ListOfShape.hxx>
+#include <BOPInt_Context.hxx>
+//
+#include <BOPDS_DS.hxx>
+#include <BOPDS_IndexRange.hxx>
+#include <BOPDS_VectorOfInterfVV.hxx>
+#include <BOPDS_VectorOfInterfVE.hxx>
+#include <BOPDS_VectorOfInterfVF.hxx>
+#include <BOPDS_Interf.hxx>
 
 //=======================================================================
 //function : GEOMAlgo_VertexSolid
@@ -87,28 +84,28 @@ void GEOMAlgo_VertexSolid::Perform()
       myErrorStatus=10;
       return;
     }
-    if(!myDSFiller->IsDone()) {
+    if(myDSFiller->ErrorStatus()) {
       myErrorStatus=11;
       return;
     }
     //
-    Standard_Boolean bIsNewFiller;
-    Standard_Integer aNbF;
+    Standard_Integer aNbF, aNbArgs;
     TopTools_IndexedMapOfShape aM;
     //
-    const XBooleanOperations_ShapesDataStructure& aDS=myDSFiller->DS();
-    const TopoDS_Shape& aObj=aDS.Object();
+    const BOPDS_DS& aDS=myDSFiller->DS();
+    const BOPCol_ListOfShape& aLS=aDS.Arguments();
+    aNbArgs=aLS.Extent();
+    if (aNbArgs!=2) {
+      myErrorStatus=14;
+      return;
+    }
+    
+    const TopoDS_Shape& aObj=aLS.First();
     //
     TopExp::MapShapes(aObj, TopAbs_FACE, aM);
     aNbF=aM.Extent();
-    myRank=(aNbF) ? 2 : 1;
+    myRank=(aNbF) ? 1 : 0;
     //
-    bIsNewFiller=myDSFiller->IsNewFiller();
-
-    if (bIsNewFiller) {
-      Prepare();
-      myDSFiller->SetNewFiller(!bIsNewFiller);
-    }
     BuildResult();
   }
   //
@@ -117,123 +114,102 @@ void GEOMAlgo_VertexSolid::Perform()
   }
 }
 //=======================================================================
-// function: Prepare
-// purpose:
-//=======================================================================
-void GEOMAlgo_VertexSolid::Prepare()
-{
-  Standard_Integer i, iBeg, iEnd, aNbVV, j, n1, n2, iFound;
-  Standard_Real aTol;
-  TopAbs_State aSt;
-  TopAbs_ShapeEnum aType;
-  XBooleanOperations_StateOfShape aState;
-  gp_Pnt aP3D;
-  //
-  const XBooleanOperations_ShapesDataStructure& aDS=myDSFiller->DS();
-  XBooleanOperations_ShapesDataStructure* pDS=(XBooleanOperations_ShapesDataStructure*)&aDS;
-  const XBOPTools_InterferencePool& aIP=myDSFiller->InterfPool();
-  XBOPTools_InterferencePool* pIP=(XBOPTools_InterferencePool*) &aIP;
-  XBOPTools_CArray1OfVVInterference& aVVs=pIP->VVInterferences();
-  const XBOPTools_PaveFiller& aPF=myDSFiller->PaveFiller();
-  XBOPTools_PaveFiller* pPF=(XBOPTools_PaveFiller*)&aPF;
-  const Handle(XIntTools_Context)& aCtx=pPF->Context();
-  //
-  const TopoDS_Shape& aObj=aDS.Object();
-  const TopoDS_Shape& aTool=aDS.Tool();
-  //
-  const TopoDS_Solid& aSolid=(myRank==1) ? TopoDS::Solid(aTool) : TopoDS::Solid(aObj);
-  //
-  BRepClass3d_SolidClassifier& aSC=aCtx->SolidClassifier(aSolid);
-  //
-  iBeg=1;
-  iEnd=aDS.NumberOfShapesOfTheObject();
-  if (myRank==2) {
-    iBeg=iEnd+1;
-    iEnd=aDS.NumberOfSourceShapes();
-  }
-  //
-  for (i=iBeg; i<=iEnd; ++i) {
-    aType=aDS.GetShapeType(i);
-    if (aType!=TopAbs_VERTEX) {
-      continue;
-    }
-    //
-    const TopoDS_Vertex& aV=TopoDS::Vertex(aDS.Shape(i));
-    //
-    aState=aDS.GetState(i);
-    if (aState==XBooleanOperations_ON ||
-        aState==XBooleanOperations_IN ||
-        aState==XBooleanOperations_OUT) {
-      continue;
-    }
-    //
-    iFound=0;
-    aNbVV=aVVs.Extent();
-    for (j=1; j<=aNbVV; ++j) {
-      XBOPTools_VVInterference& aVV=aVVs(j);
-      aVV.Indices(n1, n2);
-      if (n1==i || n2==i) {
-        pDS->SetState (n1, XBooleanOperations_ON);
-        pDS->SetState (n2, XBooleanOperations_ON);
-        iFound=1;
-        break;
-      }
-    }
-    if (iFound) {
-      continue;
-    }
-    //
-    aP3D=BRep_Tool::Pnt(aV);
-    aTol=1.E-7;
-    aSC.Perform(aP3D, aTol);
-    aSt=aSC.State();
-    if (aSt==TopAbs_IN) {
-      pDS->SetState (i, XBooleanOperations_IN);
-    }
-    else if (aSt==TopAbs_OUT) {
-      pDS->SetState (i, XBooleanOperations_OUT);
-    }
-  }
-}
-//=======================================================================
 // function: BuildResult
 // purpose:
 //=======================================================================
 void GEOMAlgo_VertexSolid::BuildResult()
 {
-  const XBooleanOperations_ShapesDataStructure& aDS=myDSFiller->DS();
-  //
-  Standard_Integer i, iBeg, iEnd;
+  Standard_Integer i, iBeg, iEnd, aNbVV, aNbVE, aNbVF, j, iFound, aNbRanges;
+  Standard_Real aTol;
+  TopAbs_State aSt;
   TopAbs_ShapeEnum aType;
-  XBooleanOperations_StateOfShape aState;
+  gp_Pnt aP3D;
   //
   myLSIN.Clear();
   myLSOUT.Clear();
   myLSON.Clear();
   //
-  iBeg=1;
-  iEnd=aDS.NumberOfShapesOfTheObject();
-  if (myRank==2) {
-    iBeg=iEnd+1;
-    iEnd=aDS.NumberOfSourceShapes();
-  }
+  const BOPDS_DS& aDS=myDSFiller->DS();
+  BOPDS_DS* pDS=(BOPDS_DS*)&aDS;
+  //
+  BOPDS_VectorOfInterfVV& aVVs=pDS->InterfVV();
+  BOPDS_VectorOfInterfVE& aVEs=pDS->InterfVE();
+  BOPDS_VectorOfInterfVF& aVFs=pDS->InterfVF();
+  //
+  const BOPCol_ListOfShape& aLS=aDS.Arguments();
+  const TopoDS_Shape& aObj=aLS.First();
+  //
+  const TopoDS_Shape& aTool=aLS.Last();
+  const TopoDS_Solid& aSolid=(myRank==0) ? TopoDS::Solid(aTool) : TopoDS::Solid(aObj);
+  //
+  Handle(BOPInt_Context) aCtx=myDSFiller->Context();
+  BRepClass3d_SolidClassifier& aSC=aCtx->SolidClassifier(aSolid);
+  //
+  aNbRanges=aDS.NbRanges();
+  const BOPDS_IndexRange& aRange=aDS.Range(myRank);
+  aRange.Indices(iBeg, iEnd);
   //
   for (i=iBeg; i<=iEnd; ++i) {
-    aType=aDS.GetShapeType(i);
+    const TopoDS_Shape& aS=aDS.Shape(i);
+    aType=aS.ShapeType();
     if (aType!=TopAbs_VERTEX) {
-      continue;
+      continue; 
     }
-    const TopoDS_Shape& aV=aDS.Shape(i);
-    aState=aDS.GetState(i);
     //
-    if (aState==XBooleanOperations_IN) {
+    const TopoDS_Vertex& aV=TopoDS::Vertex(aS);
+    //
+    iFound=0;
+    //
+    // 1
+    aNbVV=aVVs.Extent();
+    for (j=0; j<aNbVV; ++j) {
+      BOPDS_InterfVV& aVV=aVVs(j);
+      if (aVV.Contains(i)) {
+	myLSON.Append(aV);
+	iFound=1;
+	break;
+      }
+    }
+    if (iFound) {
+      continue; 
+    }
+    // 2
+    aNbVE=aVEs.Extent();
+    for (j=0; j<aNbVE; ++j) {
+      BOPDS_InterfVE& aVE=aVEs(j);
+      if (aVE.Contains(i)) {
+	myLSON.Append(aV);
+	iFound=1;
+	break;
+      }
+    }
+    if (iFound) {
+      continue; 
+    }
+    // 3
+    aNbVF=aVFs.Extent();
+    for (j=0; j<aNbVF; ++j) {
+      BOPDS_InterfVF& aVF=aVFs(j);
+      if (aVF.Contains(i)) {
+	myLSON.Append(aV);
+	iFound=1;
+	break;
+      }
+    }
+    if (iFound) {
+      continue; 
+    }
+    //
+    // 4
+    aP3D=BRep_Tool::Pnt(aV);
+    aTol=1.e-7;
+    aSC.Perform(aP3D, aTol);
+    aSt=aSC.State();
+    if (aSt==TopAbs_IN) {
       myLSIN.Append(aV);
     }
-    else if (aState==XBooleanOperations_OUT) {
+    else if (aSt==TopAbs_OUT) {
       myLSOUT.Append(aV);
     }
-    else if (aState==XBooleanOperations_ON) {
-      myLSON.Append(aV);
-    }
-  }
+  }//for (i=iBeg; i<iEnd; ++i) {
 }

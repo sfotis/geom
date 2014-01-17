@@ -57,10 +57,9 @@
 #include <BRepTools.hxx>
 #include <BRepClass3d_SolidClassifier.hxx>
 
-#include <XIntTools_Tools.hxx>
+#include <IntTools_Tools.hxx>
 
-#include <XBOPTools_Tools3D.hxx>
-#include <XBOPTools_Tools2D.hxx>
+#include <GEOMAlgo_AlgoTools.hxx>
 
 
 
@@ -222,7 +221,7 @@ Standard_Integer PntInEdge(const TopoDS_Edge& aE,
   iErr=0;
   //
   aC3D=BRep_Tool::Curve(aE, aT1, aT2);
-  aT=XIntTools_Tools::IntermediatePoint(aT1, aT2);
+  aT=IntTools_Tools::IntermediatePoint(aT1, aT2);
   aC3D->D0(aT, aP);
   //
   return iErr;
@@ -259,7 +258,7 @@ Standard_Integer PntInSolid(const TopoDS_Solid& aZ,
   }
   //
   aP2Dx.Coord(aUx, aVx);
-  XBOPTools_Tools2D::FaceNormal(aF, aUx, aVx, aDNx);
+  GEOMAlgo_AlgoTools::FaceNormal(aF, aUx, aVx, aDNx);
   aDNx.Reverse();
   //
   aP.SetXYZ(aPx.XYZ()+aCoef*aTol*aDNx.XYZ());
@@ -345,7 +344,7 @@ Standard_Integer PntInFace(const TopoDS_Face& aF,
   }// for (; aExp.More() ; aExp.Next()) {
   //
   // 2
-  aUx=XIntTools_Tools::IntermediatePoint(aUMin, aUMax);
+  aUx=IntTools_Tools::IntermediatePoint(aUMin, aUMax);
   aP2D.SetCoord(aUx, 0.);
   aL2D=new Geom2d_Line (aP2D, aD2D);
   Geom2dAdaptor_Curve aHCur(aL2D);
@@ -387,7 +386,7 @@ Standard_Integer PntInFace(const TopoDS_Face& aF,
     //
     aV2=aDomain.SecondPoint().Parameter();
     //
-    aVx=XIntTools_Tools::IntermediatePoint(aV1, aV2);
+    aVx=IntTools_Tools::IntermediatePoint(aV1, aV2);
     //
     break;
   }

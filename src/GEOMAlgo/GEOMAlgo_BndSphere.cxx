@@ -1,7 +1,4 @@
-// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
-//
-// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-// CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// Copyright (C) 2007-2012  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -20,45 +17,41 @@
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
 
-#include <GEOMAlgo_Builder.hxx>
-
-#include <NMTDS_ShapesDataStructure.hxx>
-//#include <NMTTools_DSFiller.hxx>
-#include <NMTTools_PaveFiller.hxx>
-#include <XIntTools_Context.hxx>
-#include <TopoDS_Shape.hxx>
-#include <XBOPTools_ListIteratorOfListOfPaveBlock.hxx>
-#include <TopTools_MapOfShape.hxx>
-#include <TopTools_ListOfShape.hxx>
-#include <XBOPTools_ListOfPaveBlock.hxx>
-#include <XBOPTools_PaveBlock.hxx>
+// File:	GEOMAlgo_BndSphere.cxx
+// Created:	
+// Author:	Peter KURNEV
+//		<pkv@irinox>
+//
+#include <GEOMAlgo_BndSphere.hxx>
 
 //=======================================================================
-//function : Shapes1
-//purpose  :
+//function : 
+//purpose  : 
 //=======================================================================
-  const TopTools_ListOfShape& GEOMAlgo_Builder::Shapes1(const Standard_Integer theType)const
+  GEOMAlgo_BndSphere::GEOMAlgo_BndSphere()
 {
-  return myShapes1[theType];
+  myCenter.SetCoord(0., 0., 0.);
+  myRadius=0.;
+  myGap=0.;
 }
 //=======================================================================
-//function : Images
-//purpose  :
+//function : ~
+//purpose  : 
 //=======================================================================
-  const BRepAlgo_Image& GEOMAlgo_Builder::Images()const
+  GEOMAlgo_BndSphere::~GEOMAlgo_BndSphere()
 {
-  return myImages;
 }
 //=======================================================================
-//function : InParts
-//purpose  :
+//function : IsOut
+//purpose  : 
 //=======================================================================
-  const TopTools_ListOfShape& GEOMAlgo_Builder::InParts(const TopoDS_Shape& theS)const
+  Standard_Boolean GEOMAlgo_BndSphere::IsOut(const GEOMAlgo_BndSphere& theOther)const
 {
-  static TopTools_ListOfShape sLS;
+  Standard_Real aD2, aT2;
   //
-  if (myInParts.Contains(theS)) {
-    return myInParts.FindFromKey(theS);
-  }
-  return sLS;
+  aD2=myCenter.SquareDistance(theOther.myCenter);
+  aT2=myRadius+myGap+theOther.myRadius+theOther.myGap;
+  aT2=aT2*aT2;
+  //
+  return aD2>aT2;
 }

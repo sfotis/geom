@@ -27,7 +27,7 @@
 //
 #include <GEOMAlgo_Gluer.hxx>
 
-#include <NMTDS_BoxBndTree.hxx>
+
 #include <NCollection_UBTreeFiller.hxx>
 
 #include <TColStd_MapIteratorOfMapOfInteger.hxx>
@@ -75,23 +75,22 @@
 #include <BRepLib.hxx>
 #include <BRepTools.hxx>
 #include <BRepBndLib.hxx>
+//
+#include <IntTools_Tools.hxx>
+#include <BOPInt_Context.hxx>
+#include <BOPTools_AlgoTools.hxx>
+#include <BOPTools_AlgoTools3D.hxx>
+#include <BOPTools_AlgoTools2D.hxx>
 
-#include <XIntTools_Context.hxx>
-#include <XBOPTools_Tools.hxx>
-#include <XBOPTools_Tools3D.hxx>
-#include <XBOPTools_Tools2D.hxx>
-#include <XBOP_CorrectTolerances.hxx>
-
+#include <GEOMAlgo_BoxBndTree.hxx>
+#include <GEOMAlgo_AlgoTools.hxx>
 #include <GEOMAlgo_IndexedDataMapOfIntegerShape.hxx>
 #include <GEOMAlgo_IndexedDataMapOfShapeBox.hxx>
 #include <GEOMAlgo_IndexedDataMapOfPassKeyShapeListOfShape.hxx>
 #include <GEOMAlgo_PassKeyShape.hxx>
-#include <GEOMAlgo_Tools.hxx>
-//
-
-#include <NMTDS_BndSphereTree.hxx>
-#include <NMTDS_BndSphere.hxx>
-#include <NMTDS_IndexedDataMapOfShapeBndSphere.hxx>
+#include <GEOMAlgo_BndSphereTree.hxx>
+#include <GEOMAlgo_BndSphere.hxx>
+#include <GEOMAlgo_IndexedDataMapOfShapeBndSphere.hxx>
 
 //
 static
@@ -226,12 +225,12 @@ void GEOMAlgo_Gluer::MakeVertices()
   GEOMAlgo_IndexedDataMapOfIntegerShape aMIS;
   //modified by NIZNHY-PKV Thu Jan 21 10:03:07 2010f
   //GEOMAlgo_IndexedDataMapOfShapeBox aMSB;
-  NMTDS_IndexedDataMapOfShapeBndSphere aMSB;
+  GEOMAlgo_IndexedDataMapOfShapeBndSphere aMSB;
   //modified by NIZNHY-PKV Thu Jan 21 10:03:10 2010t
   //
-  NMTDS_BndSphereTreeSelector aSelector;
-  NMTDS_BndSphereTree aBBTree;
-  NCollection_UBTreeFiller <Standard_Integer, NMTDS_BndSphere> aTreeFiller(aBBTree);
+  GEOMAlgo_BndSphereTreeSelector aSelector;
+  GEOMAlgo_BndSphereTree aBBTree;
+  NCollection_UBTreeFiller <Standard_Integer, GEOMAlgo_BndSphere> aTreeFiller(aBBTree);
   //
   TopExp::MapShapes(myShape, TopAbs_VERTEX, aMV);
   aNbV=aMV.Extent();
@@ -241,7 +240,7 @@ void GEOMAlgo_Gluer::MakeVertices()
   }
   //
   for (i=1; i<=aNbV; ++i) {
-    NMTDS_BndSphere aBox;
+    GEOMAlgo_BndSphere aBox;
     //
     const TopoDS_Vertex& aV=*((TopoDS_Vertex*)&aMV(i));
     aPV=BRep_Tool::Pnt(aV);
@@ -285,7 +284,7 @@ void GEOMAlgo_Gluer::MakeVertices()
         //
         const TopoDS_Shape& aVP=aMIS.FindFromKey(aIP);
         //modified by NIZNHY-PKV Thu Jan 21 10:04:09 2010f
-        const NMTDS_BndSphere& aBoxVP=aMSB.FindFromKey(aVP);
+	const GEOMAlgo_BndSphere& aBoxVP=aMSB.FindFromKey(aVP);
         //const Bnd_Box& aBoxVP=aMSB.FindFromKey(aVP);
         //modified by NIZNHY-PKV Thu Jan 21 10:04:11 2010t
         //
@@ -463,14 +462,8 @@ void GEOMAlgo_Gluer::MakeSubShapes (const TopoDS_Shape&  theShape,
           //
           aER.Orientation(TopAbs_FORWARD);
           if (!BRep_Tool::Degenerated(aER)) {
-            // build p-curve
-            //if (bIsUPeriodic) {
-            //  GEOMAlgo_Tools::RefinePCurveForEdgeOnFace(aER, aFFWD, aUMin, aUMax);
-            //}
-            //XBOPTools_Tools2D::BuildPCurveForEdgeOnFace(aER, aFFWD);
-            //
             // orient image
-            Standard_Boolean bIsToReverse=XBOPTools_Tools3D::IsSplitToReverse1(aER, aE, myContext);
+            Standard_Boolean bIsToReverse=GEOMAlgo_AlgoTools::IsSplitToReverse(aER, aE, myContext);
             if (bIsToReverse) {
               aER.Reverse();
             }
@@ -522,7 +515,7 @@ void GEOMAlgo_Gluer::MakeSolids()
   myResult=aCmp;
   //
   if (aMS.Extent()) {
-    XBOP_CorrectTolerances::CorrectCurveOnSurface(myResult);
+    BOPTools_AlgoTools::CorrectCurveOnSurface(myResult, 0.0001);
   }
 }
 //=======================================================================
@@ -637,7 +630,7 @@ void GEOMAlgo_Gluer::MakeShapes(const TopAbs_ShapeEnum aType)
   }
   // check geometric coincidence
   if (myCheckGeometry) {
-    iErr=GEOMAlgo_Tools::RefineSDShapes(aMPKLF, myTol, myContext);
+    iErr=GEOMAlgo_AlgoTools::RefineSDShapes(aMPKLF, myTol, myContext);
     if (iErr) {
       myErrorStatus=200;
       return;
@@ -933,7 +926,7 @@ void GEOMAlgo_Gluer::MakeEdge(const TopoDS_Edge& aE,
   }
   //
   else {
-    XBOPTools_Tools::MakeSplitEdge(aEx, aVR1, aT1, aVR2, aT2, aNewEdge);
+    BOPTools_AlgoTools::MakeSplitEdge(aEx, aVR1, aT1, aVR2, aT2, aNewEdge);
   }
 }
 //=======================================================================
@@ -960,7 +953,7 @@ void GEOMAlgo_Gluer::MakeFace(const TopoDS_Face& aF,
   aFFWD.Orientation(TopAbs_FORWARD);
   //
   aS=BRep_Tool::Surface(aFFWD, aLoc);
-  bIsUPeriodic=GEOMAlgo_Tools::IsUPeriodic(aS);
+  bIsUPeriodic=GEOMAlgo_AlgoTools::IsUPeriodic(aS);
   aTol=BRep_Tool::Tolerance(aFFWD);
   BRepTools::UVBounds(aF, aUMin, aUMax, aVMin, aVMax);
   //
@@ -979,12 +972,12 @@ void GEOMAlgo_Gluer::MakeFace(const TopoDS_Face& aF,
       if (!BRep_Tool::Degenerated(aER)) {
         // build p-curve
         if (bIsUPeriodic) {
-          GEOMAlgo_Tools::RefinePCurveForEdgeOnFace(aER, aFFWD, aUMin, aUMax);
+	  GEOMAlgo_AlgoTools::RefinePCurveForEdgeOnFace(aER, aFFWD, aUMin, aUMax);
         }
-        XBOPTools_Tools2D::BuildPCurveForEdgeOnFace(aER, aFFWD);
+	BOPTools_AlgoTools2D::BuildPCurveForEdgeOnFace(aER, aFFWD);
 
         // orient image
-        bIsToReverse=XBOPTools_Tools3D::IsSplitToReverse1(aER, aE, myContext);
+	bIsToReverse=GEOMAlgo_AlgoTools::IsSplitToReverse(aER, aE, myContext);
         if (bIsToReverse) {
           aER.Reverse();
         }
@@ -1033,16 +1026,16 @@ Standard_Boolean GEOMAlgo_Gluer::IsToReverse(const TopoDS_Face& aFR,
     const TopoDS_Edge& aER=TopoDS::Edge(myOrigins.Find(aE));
     //
     aC3D=BRep_Tool::Curve(aE, aT1, aT2);
-    aT=XBOPTools_Tools2D::IntermediatePoint(aT1, aT2);
+    aT=IntTools_Tools::IntermediatePoint(aT1, aT2);
     aC3D->D0(aT, aP);
     myContext->ProjectPointOnEdge(aP, aER, aTR);
     //
-    XBOPTools_Tools3D::GetNormalToFaceOnEdge (aE, aF, aT, aDNF);
+    BOPTools_AlgoTools3D::GetNormalToFaceOnEdge (aE, aF, aT, aDNF);
     if (aF.Orientation()==TopAbs_REVERSED) {
       aDNF.Reverse();
     }
     //
-    XBOPTools_Tools3D::GetNormalToFaceOnEdge (aER, aFR, aTR, aDNFR);
+    BOPTools_AlgoTools3D::GetNormalToFaceOnEdge (aER, aFR, aTR, aDNFR);
     if (aFR.Orientation()==TopAbs_REVERSED) {
       aDNFR.Reverse();
     }

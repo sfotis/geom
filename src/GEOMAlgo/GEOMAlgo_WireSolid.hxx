@@ -50,9 +50,6 @@ class GEOMAlgo_WireSolid  : public GEOMAlgo_ShapeSolid
 
  protected:
   Standard_EXPORT
-    virtual  void Prepare() ;
-
-  Standard_EXPORT
     virtual  void BuildResult() ;
 };
 #endif

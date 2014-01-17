@@ -88,9 +88,9 @@
 #include <TColStd_ListIteratorOfListOfInteger.hxx>
 #include <HatchGen_Domain.hxx>
 #include <Geom2dHatch_Hatcher.hxx>
-#include <XIntTools_Context.hxx>
+#include <BOPInt_Context.hxx>
 #include <BRepTools.hxx>
-#include <XIntTools_Tools.hxx>
+#include <IntTools_Tools.hxx>
 
 //=======================================================================
 //function : GEOMAlgo_FinderShapeOn1
@@ -737,7 +737,7 @@ void GEOMAlgo_FinderShapeOn2::InnerPoints(const TopoDS_Face& aF,
         // 2
         aV1=aDomain.FirstPoint().Parameter();
         aV2=aDomain.SecondPoint().Parameter();
-        aVx=XIntTools_Tools::IntermediatePoint(aV1, aV2);
+        aVx=IntTools_Tools::IntermediatePoint(aV1, aV2);
         // 3
         aS->D0(aUx, aVx, aPx);
         aLP.Append(aPx);

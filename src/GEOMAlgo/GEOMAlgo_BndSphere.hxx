@@ -1,7 +1,4 @@
-// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
-//
-// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-// CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// Copyright (C) 2007-2012  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -20,29 +17,57 @@
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
 
-// File:        GEOMAlgo_BuilderTools.hxx
-// Author:      Peter KURNEV
+// File:	GEOMAlgo_BndSphere.hxx
+// Created:	
+// Author:	Peter KURNEV
+//		<pkv@irinox>
 
-#ifndef _GEOMAlgo_BuilderTools_HeaderFile
-#define _GEOMAlgo_BuilderTools_HeaderFile
+#ifndef _GEOMAlgo_BndSphere_HeaderFile
+#define _GEOMAlgo_BndSphere_HeaderFile
 
 #include <Standard.hxx>
 #include <Standard_Macro.hxx>
+#include <gp_Pnt.hxx>
+#include <Standard_Real.hxx>
 #include <Standard_Boolean.hxx>
-#include <TopoDS_Shape.hxx>
 
 //=======================================================================
-//class    : GEOMAlgo_BuilderTools
-//purpose  :
+//class : GEOMAlgo_BndSphere
+//purpose  : 
 //=======================================================================
-class GEOMAlgo_BuilderTools
-{
+class GEOMAlgo_BndSphere  {
  public:
-  Standard_EXPORT
-    static  Standard_Boolean IsHole(const TopoDS_Shape& aW,
-                                    const TopoDS_Shape& aF) ;
+  Standard_EXPORT   
+    GEOMAlgo_BndSphere();
+  
+  Standard_EXPORT 
+    virtual ~GEOMAlgo_BndSphere();
+  
+  void SetCenter(const gp_Pnt& theP) ;
+  
+  const gp_Pnt& Center() const;
+  
+  void SetRadius(const Standard_Real theR) ;
+  
+  Standard_Real Radius() const;
+  
+  void SetGap(const Standard_Real theGap) ;
+  
+  Standard_Real Gap() const;
+  
+  void Add(const GEOMAlgo_BndSphere& theOther) ;
+  
+  Standard_EXPORT 
+    Standard_Boolean IsOut(const GEOMAlgo_BndSphere& theOther) const;
+  
+  Standard_Real SquareExtent() const;
 
-  Standard_EXPORT
-    static  Standard_Boolean IsHole(const TopoDS_Shape& aShell) ;
+ protected:
+  gp_Pnt myCenter;
+  Standard_Real myRadius;
+  Standard_Real myGap;
 };
+
+#include <GEOMAlgo_BndSphere.lxx>
+
 #endif

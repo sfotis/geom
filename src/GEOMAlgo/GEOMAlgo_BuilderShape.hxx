@@ -29,10 +29,11 @@
 
 #include <Standard.hxx>
 #include <Standard_Macro.hxx>
+#include <Standard_Boolean.hxx>
+
 #include <TopoDS_Shape.hxx>
 #include <TopTools_ListOfShape.hxx>
 #include <TopTools_MapOfShape.hxx>
-#include <Standard_Boolean.hxx>
 #include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
 #include <GEOMAlgo_Algo.hxx>
 

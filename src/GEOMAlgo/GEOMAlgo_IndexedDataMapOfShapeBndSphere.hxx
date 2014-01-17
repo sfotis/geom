@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2012  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -16,16 +16,30 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-// File:        GEOMAlgo_DataMapIteratorOfDataMapOfShapeMapOfShape.hxx
-// Created:     Wed Feb 22 11:08:26 2012
-// Author:
-//              <pkv@BDEURI37616>
+
+// File:	GEOMAlgo_IndexedDataMapOfShapeBndSphere.hxx
+// Created:	Mon Feb 20 09:17:01 2012
+// Author:	
+//		<pkv@BDEURI37616>
 
 
-#ifndef GEOMAlgo_DataMapIteratorOfDataMapOfShapeMapOfShape_HeaderFile
-#define GEOMAlgo_DataMapIteratorOfDataMapOfShapeMapOfShape_HeaderFile
+#ifndef GEOMAlgo_IndexedDataMapOfShapeBndSphere_HeaderFile
+#define GEOMAlgo_IndexedDataMapOfShapeBndSphere_HeaderFile
 
-#ifndef GEOMAlgo_DataMapOfShapeMapOfShape_HeaderFile
-#include <GEOMAlgo_DataMapOfShapeMapOfShape.hxx>
-#endif
+#include <TopoDS_Shape.hxx>  
+#include <TopTools_ShapeMapHasher.hxx>
+#include <GEOMAlgo_BndSphere.hxx>
+
+#define _NCollection_MapHasher
+#include <NCollection_IndexedDataMap.hxx>
+
+
+
+typedef NCollection_IndexedDataMap<TopoDS_Shape, GEOMAlgo_BndSphere, TopTools_ShapeMapHasher> GEOMAlgo_IndexedDataMapOfShapeBndSphere; 
+ 
+#undef _NCollection_MapHasher
+
+
+
+
 #endif

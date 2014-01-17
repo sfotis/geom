@@ -1,7 +1,4 @@
-// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
-//
-// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-// CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// Copyright (C) 2007-2012  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -20,76 +17,73 @@
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
 
-// File:        GEOMAlgo_WireEdgeSet.cxx
-// Created:
-// Author:      Peter KURNEV
-//              <pkv@irinox>
+// File:	GEOMAlgo_BndSphereTree.cxx
+// Created:	
+// Author:	Peter KURNEV
+//		<pkv@irinox>
 //
-#include <GEOMAlgo_WireEdgeSet.hxx>
-
+#include <GEOMAlgo_BndSphereTree.hxx>
 //=======================================================================
-//function :
-//purpose  :
+//function : 
+//purpose  : 
 //=======================================================================
-  GEOMAlgo_WireEdgeSet::GEOMAlgo_WireEdgeSet()
+  GEOMAlgo_BndSphereTreeSelector::GEOMAlgo_BndSphereTreeSelector()
 {
-  Clear();
 }
-
+//=======================================================================
+//function : ~
+//purpose  : 
+//=======================================================================
+  GEOMAlgo_BndSphereTreeSelector::~GEOMAlgo_BndSphereTreeSelector()
+{
+}
+//=======================================================================
+//function : Reject
+//purpose  : 
+//=======================================================================
+  Standard_Boolean GEOMAlgo_BndSphereTreeSelector::Reject (const GEOMAlgo_BndSphere& aBox) const
+{
+  Standard_Boolean bRet;
+  //
+  bRet=myBox.IsOut(aBox);
+  return bRet;
+}
+//=======================================================================
+//function : Accept
+//purpose  : 
+//=======================================================================
+  Standard_Boolean GEOMAlgo_BndSphereTreeSelector::Accept (const Standard_Integer& aIndex)
+{
+  Standard_Boolean bRet=Standard_False;
+  //
+  if (myFence.Add(aIndex)) {
+    myIndices.Append(aIndex);
+    bRet=!bRet;
+  }
+  return bRet;
+}
+//=======================================================================
+//function : SetBox
+//purpose  : 
+//=======================================================================
+  void GEOMAlgo_BndSphereTreeSelector::SetBox(const GEOMAlgo_BndSphere& aBox)
+{
+  myBox=aBox;
+}
 //=======================================================================
 //function : Clear
-//purpose  :
+//purpose  : 
 //=======================================================================
-  void GEOMAlgo_WireEdgeSet::Clear()
+  void GEOMAlgo_BndSphereTreeSelector::Clear()
 {
-  myStartShapes.Clear();
-  myShapes.Clear();
+  myFence.Clear();
+  myIndices.Clear();
 }
 //=======================================================================
-//function : SetFace
-//purpose  :
+//function : Indices
+//purpose  : 
 //=======================================================================
-  void GEOMAlgo_WireEdgeSet::SetFace(const TopoDS_Face& aF)
+  const TColStd_ListOfInteger& GEOMAlgo_BndSphereTreeSelector::Indices() const
 {
-  myFace=aF;
-}
-//=======================================================================
-//function : Face
-//purpose  :
-//=======================================================================
-  const TopoDS_Face& GEOMAlgo_WireEdgeSet::Face()const
-{
-  return myFace;
-}
-//=======================================================================
-//function : AddStartElement
-//purpose  :
-//=======================================================================
-  void GEOMAlgo_WireEdgeSet::AddStartElement(const TopoDS_Shape& aE)
-{
-  myStartShapes.Append(aE);
-}
-//=======================================================================
-//function : StartElements
-//purpose  :
-//=======================================================================
-  const  TopTools_ListOfShape& GEOMAlgo_WireEdgeSet::StartElements()const
-{
-  return myStartShapes;
-}
-//=======================================================================
-//function : AddShape
-//purpose  :
-//=======================================================================
-  void GEOMAlgo_WireEdgeSet::AddShape(const TopoDS_Shape& aW)
-{
-  myShapes.Append(aW);
-}
-//=======================================================================
-//function : Shapes
-//purpose  :
-//=======================================================================
-  const  TopTools_ListOfShape& GEOMAlgo_WireEdgeSet::Shapes()const
-{
-  return myShapes;
+  return myIndices;
 }
