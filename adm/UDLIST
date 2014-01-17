@@ -9,14 +9,8 @@ n NMTTools
 n ShHealOper
 n Sketcher
 n GEOMIncludes
-p XBooleanOperations
-p XBOP
-p XBOPTColStd
-p XBOPTools
-p XIntTools
 r GEOMResources
 t TKGeom
-t TKXBO
 n Exchange3DS
 n ExchangeBREP
 n ExchangeCSFDB
