@@ -190,6 +190,85 @@ static Handle(Geom_Surface) ClearRts(const Handle(Geom_Surface)& aSurface)
 }
 
 //=======================================================================
+//function : IsFacesOfSameSolids
+//purpose  : auxilary
+//=======================================================================
+static Standard_Boolean IsFacesOfSameSolids
+       (const TopoDS_Face                               &theFace1,
+        const TopoDS_Face                               &theFace2,
+        const TopTools_IndexedDataMapOfShapeListOfShape &theMapFaceSolids)
+{
+  Standard_Boolean isSame = Standard_False;
+
+  if (theMapFaceSolids.Contains(theFace1) &&
+      theMapFaceSolids.Contains(theFace2)) {
+    const TopTools_ListOfShape& aList1 = theMapFaceSolids.FindFromKey(theFace1);
+    const TopTools_ListOfShape& aList2 = theMapFaceSolids.FindFromKey(theFace2);
+
+    if (aList1.Extent() == aList2.Extent()) {
+      TopTools_ListIteratorOfListOfShape anIter1(aList1);
+
+      isSame = Standard_True;
+
+      for (; anIter1.More(); anIter1.Next()) {
+        const TopoDS_Shape                 &aSolid1 = anIter1.Value();
+        TopTools_ListIteratorOfListOfShape  anIter2(aList2);
+
+        for (; anIter2.More(); anIter2.Next()) {
+          if (aSolid1.IsSame(anIter2.Value())) {
+            // Same solid is detected. Break the loop
+            break;
+          }
+        }
+
+        if (!anIter2.More()) {
+          // No same solid is detected. Break the loop.
+          isSame = Standard_False;
+          break;
+        }
+      }
+    }
+  }
+
+  return isSame;
+}
+
+//=======================================================================
+//function : IsEdgeValidToMerge
+//purpose  : Edge is valid if it is not seam or if it is a seam and the face
+//           has another seam edge.
+//=======================================================================
+static Standard_Boolean IsEdgeValidToMerge(const TopoDS_Edge &theEdge,
+                                           const TopoDS_Face &theFace)
+{
+  Standard_Boolean isValid = Standard_True;
+
+  if (BRep_Tool::IsClosed(theEdge, theFace)) {
+    // This is a seam edge. Check if there are another seam edges on the face.
+    TopExp_Explorer anExp(theFace, TopAbs_EDGE);
+
+    for (; anExp.More(); anExp.Next()) {
+      const TopoDS_Shape &aShEdge = anExp.Current();
+
+      // Skip same edge.
+      if (theEdge.IsSame(aShEdge)) {
+        continue;
+      }
+
+      // Check if this edge is a seam.
+      TopoDS_Edge anEdge = TopoDS::Edge(aShEdge);
+
+      if (BRep_Tool::IsClosed(anEdge, theFace)) {
+        isValid = Standard_False;
+        break;
+      }
+    }
+  }
+
+  return isValid;
+}
+
+//=======================================================================
 //function : Perform
 //purpose  :
 //=======================================================================
