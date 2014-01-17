@@ -61,7 +61,7 @@ SALOME_WNT_EXPORT
     }
   catch(Standard_Failure) 
     {
-      Standard_Failure::Raise("Could not export in STEP format");
+      Standard_Failure::Raise("Exception catched in STLExport");
     }
   return 0;
   }
