@@ -24,11 +24,8 @@
 
 #include <GEOMUtils.hxx>
 
-#include <Basics_OCCTVersion.hxx>
 
 #include <utilities.h>
-#include <OpUtil.hxx>
-#include <Utils_ExceptHandlers.hxx>
 
 // OCCT Includes
 #include <BRepMesh_IncrementalMesh.hxx>
@@ -87,6 +84,7 @@
 #include <ElSLib.hxx>
 
 #include <vector>
+#include <algorithm>
 
 #include <Standard_Failure.hxx>
 #include <Standard_NullObject.hxx>
