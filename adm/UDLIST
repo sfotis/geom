@@ -4,8 +4,6 @@ n BlockFix
 n GEOM
 n GEOMAlgo
 n GEOMImpl
-n NMTDS
-n NMTTools
 n ShHealOper
 n Sketcher
 n GEOMIncludes
