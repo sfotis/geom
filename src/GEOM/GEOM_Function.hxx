@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -21,134 +23,26 @@
 #ifndef _GEOM_Function_HeaderFile
 #define _GEOM_Function_HeaderFile
 
-#ifndef _Standard_TypeMismatch_HeaderFile
-#include <Standard_TypeMismatch.hxx>
-#endif
-#ifndef _Standard_HeaderFile
-#include <Standard.hxx>
-#endif
-#ifndef _Standard_Macro_HeaderFile
-#include <Standard_Macro.hxx>
-#endif
-#ifndef _Handle_MMgt_TShared_HeaderFile
-#include <Handle_MMgt_TShared.hxx>
-#endif  
-#ifndef _MMgt_TShared_HeaderFile
-#include <MMgt_TShared.hxx>
-#endif  
-#ifndef _Standard_GUID_HeaderFile
+#include <Standard_Transient.hxx>
 #include <Standard_GUID.hxx>
-#endif
-#ifndef _TopoDS_Shape_HeaderFile
-#include <TopoDS_Shape.hxx>
-#endif
-#ifndef _TDF_Label_HeaderFile
-#include <TDF_Label.hxx>
-#endif
-#ifndef _TDF_LabelSequence_HeaderFile
-#include <TDF_LabelSequence.hxx>
-#endif
-#ifndef _TColStd_HArray1OfExtendedString_HeaderFile
 #include <TColStd_HArray1OfExtendedString.hxx>
-#endif
-#ifndef _TColStd_HArray1OfAsciiString_HeaderFile
-#include <TColStd_HArray1OfAsciiString.hxx>
-#endif
+#include <TCollection_AsciiString.hxx>
+#include <TDF_Label.hxx>
+#include <TDF_LabelSequence.hxx>
+#include <TDataStd_ListOfExtendedString.hxx>
+#include <TopoDS_Shape.hxx>
+#include <TColStd_HArray1OfAsciiString.HXX>
 
 class Handle_TColStd_HArray1OfReal;
 class Handle_TColStd_HArray1OfInteger;
 class Handle_TColStd_HSequenceOfTransient;
-class Handle_TColStd_HArray1OfExtendedString;
-
-class Standard_Transient;
-class Handle_Standard_Type;
-class Handle(MMgt_TShared);
 class GEOM_Function;
+DEFINE_STANDARD_HANDLE (GEOM_Function, Standard_Transient);
 
-#include <TCollection_AsciiString.hxx>
-#include <TDataStd_ListOfExtendedString.hxx>
-
-
-Standard_EXPORT Handle_Standard_Type& STANDARD_TYPE(GEOM_Function);
-
-class Handle(GEOM_Function) : public Handle(MMgt_TShared) {
-  public:
-    inline void* operator new(size_t,void* anAddress) 
-      {
-        return anAddress;
-      }
-    inline void* operator new(size_t size) 
-      { 
-        return Standard::Allocate(size); 
-      }
-    inline void  operator delete(void *anAddress) 
-      { 
-        if (anAddress) Standard::Free((Standard_Address&)anAddress); 
-      }
-
-    Handle(GEOM_Function)():Handle(MMgt_TShared)() {} 
-    Handle(GEOM_Function)(const Handle(GEOM_Function)& aHandle) : Handle(MMgt_TShared)(aHandle) 
-     {
-     }
-
-    Handle(GEOM_Function)(const GEOM_Function* anItem) : Handle(MMgt_TShared)((MMgt_TShared *)anItem) 
-     {
-     }
-
-    Handle(GEOM_Function)& operator=(const Handle(GEOM_Function)& aHandle)
-     {
-      Assign(aHandle.Access());
-      return *this;
-     }
-
-    Handle(GEOM_Function)& operator=(const GEOM_Function* anItem)
-     {
-      Assign((Standard_Transient *)anItem);
-      return *this;
-     }
-
-    GEOM_Function* operator->() 
-     {
-      return (GEOM_Function *)ControlAccess();
-     }
-
-    GEOM_Function* operator->() const 
-     {
-      return (GEOM_Function *)ControlAccess();
-     }
-
-   Standard_EXPORT ~Handle(GEOM_Function)() {};
- 
-   Standard_EXPORT static const Handle(GEOM_Function) DownCast(const Handle(Standard_Transient)& AnObject);
-};
 
 //!Class that manages functions in the Data Framework
-class GEOM_Function : public MMgt_TShared
+class GEOM_Function : public Standard_Transient
 {
-
-public:
-
-    inline void* operator new(size_t,void* anAddress) 
-      {
-        return anAddress;
-      }
-    inline void* operator new(size_t size) 
-      { 
-        return Standard::Allocate(size); 
-      }
-    inline void  operator delete(void *anAddress) 
-      { 
-        if (anAddress) Standard::Free((Standard_Address&)anAddress); 
-      }
-
-    // Type management
-    //
-    Standard_EXPORT friend Handle_Standard_Type& GEOM_Function_Type_();
-    Standard_EXPORT const Handle(Standard_Type)& DynamicType() const  { return STANDARD_TYPE(GEOM_Function) ; }
-    Standard_EXPORT Standard_Boolean IsKind(const Handle(Standard_Type)& AType) const { return (STANDARD_TYPE(GEOM_Function) == AType || MMgt_TShared::IsKind(AType)); } 
-
-
-private:
   GEOM_Function(const TDF_Label& theEntry) { _label = theEntry; }
 
 public:
@@ -164,7 +58,7 @@ public:
 
 
   Standard_EXPORT GEOM_Function(const TDF_Label& theEntry, const Standard_GUID& theGUID, int theType); 
-  Standard_EXPORT ~GEOM_Function() {;}
+  Standard_EXPORT ~GEOM_Function() {}
 
   Standard_EXPORT TDF_Label GetOwnerEntry();
 
@@ -261,6 +155,9 @@ public:
   //!Returns the array of ExtendedString
   Standard_EXPORT Handle(TColStd_HArray1OfExtendedString) GetStringArray(int thePosition);
 
+  //!Returns true if data of given type already exists
+  Standard_EXPORT bool HasData(int thePosition, const Standard_GUID& dataID);
+
   //!Returns a GUID for a references tree
   Standard_EXPORT static const Standard_GUID& GetReferencesTreeID();
 
@@ -280,6 +177,12 @@ public:
   //!Returns true if the last method succided
   Standard_EXPORT bool IsDone() { return _isDone; }
 
+  //!Retuns true if this function is the last one in the study
+  Standard_EXPORT bool IsLastFuntion();
+
+  //!Returns a sequence of the external dependencies of this function
+  Standard_EXPORT void GetDependency(TDF_LabelSequence& theSeq);
+
   //!Add subshape references
   Standard_EXPORT void AddSubShapeReference   (Handle(GEOM_Function) theSubShape);
   
@@ -292,9 +195,6 @@ public:
   //!Get subshape references
   Standard_EXPORT const TDataStd_ListOfExtendedString& GetSubShapeReferences();
   
-  //!Returns a sequence of the external dependencies of this function
-  Standard_EXPORT void GetDependency(TDF_LabelSequence& theSeq);
-
   //!Returns top label of this function's history tree
   Standard_EXPORT TDF_Label GetHistoryEntry (const Standard_Boolean create = Standard_True);
 
@@ -303,17 +203,18 @@ public:
   Standard_EXPORT TDF_Label GetArgumentHistoryEntry (const TDF_Label&       theArgumentRefEntry,
 									 const Standard_Boolean create = Standard_True);
 
+  //!Returns top label of this function's naming tree
+  Standard_EXPORT TDF_Label GetNamingEntry (const Standard_Boolean create = Standard_True);
+
   //!Gets the Value stored in thePosition (if it is an Equation it returns it)
   Standard_EXPORT TCollection_AsciiString GetSingleValueAsString(int thePosition);
 
   //!Gets the Value stored in thePosition (if it is an Equation it returns it)
   Standard_EXPORT Handle(TColStd_HArray1OfExtendedString) GetArrayValueAsString(int thePosition);
 
-  //!Returns top label of this function's naming tree
-  Standard_EXPORT TDF_Label GetNamingEntry (const Standard_Boolean create = Standard_True);
+  DEFINE_STANDARD_RTTI (GEOM_Function);
 
-private:
-
+  private:
 
   TDF_Label    _label;
   bool _isDone;

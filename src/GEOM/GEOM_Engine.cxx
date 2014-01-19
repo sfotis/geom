@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -18,36 +20,37 @@
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
 
-#ifdef WNT
+#ifdef MSVC
 #pragma warning( disable:4786 )
 #endif
 
 #include "GEOM_Engine.hxx"
 
-#include "GEOM_Solver.hxx"
+#include "GEOM_DataMapIteratorOfDataMapOfAsciiStringTransient.hxx"
+#include "GEOM_Field.hxx"
 #include "GEOM_Function.hxx"
 #include "GEOM_ISubShape.hxx"
-#include "GEOM_SubShapeDriver.hxx"
-#include "GEOM_DataMapIteratorOfDataMapOfAsciiStringTransient.hxx"
 #include "GEOM_PythonDump.hxx"
+#include "GEOM_Solver.hxx"
+#include "GEOM_SubShapeDriver.hxx"
+#include "Sketcher_Profile.hxx"
+
 
 #include "utilities.h"
+
 
 #include <TDF_Tool.hxx>
 #include <TDF_Data.hxx>
 #include <TDF_Reference.hxx>
 #include <TDF_LabelSequence.hxx>
-#include <TDF_ChildIterator.hxx>
-#include <TDataStd_Comment.hxx>
 #include <TDataStd_Integer.hxx>
-#include <TDataStd_Real.hxx>
 #include <TDataStd_ChildNodeIterator.hxx>
-#include <TDataStd_Variable.hxx>
-#include <TDataStd_AsciiString.hxx>
-#include <TDataStd_UAttribute.hxx>
-#include <TDataStd_ByteArray.hxx>
 #include <TFunction_Driver.hxx>
 #include <TFunction_DriverTable.hxx>
+#include <TDataStd_ByteArray.hxx>
+#include <TDataStd_UAttribute.hxx>
+#include <TDF_ChildIterator.hxx>
+#include <TDataStd_Comment.hxx>
 
 #include <TopExp.hxx>
 #include <TopTools_IndexedMapOfShape.hxx>
@@ -58,15 +61,18 @@
 #include <TColStd_MapOfTransient.hxx>
 #include <TColStd_HSequenceOfInteger.hxx>
 
-#include <Quantity_Color.hxx>
-#include <Aspect_TypeOfMarker.hxx>
-
+#include <TColStd_HArray1OfByte.hxx>
 #include <TColStd_DataMapIteratorOfDataMapOfIntegerTransient.hxx>
+
 #include <Resource_DataMapIteratorOfDataMapOfAsciiStringAsciiString.hxx>
 
 #include <set>
-#include <map>
-#include <string>
+
+#include <ExprIntrp_Analysis.hxx>
+#include <ExprIntrp_GenExp.hxx>
+#include <Expr_NamedConstant.hxx>
+#include <TDataStd_Variable.hxx>
+#include <TDataStd_AsciiString.hxx>
 
 #include <Standard_Failure.hxx>
 #include <Standard_ErrorHandler.hxx> // CAREFUL ! position of this file is critic : see Lucien PIGNOLONI / OCC
@@ -83,13 +89,6 @@
 #define C_SQR_BRACKET ']'
 #define PY_NULL "None"
 
-#define TEXTURE_LABEL_ID       1
-#define TEXTURE_LABEL_FILE     2
-#define TEXTURE_LABEL_WIDTH    3
-#define TEXTURE_LABEL_HEIGHT   4
-#define TEXTURE_LABEL_DATA     5
-
-//used for replace variables in script
 #ifdef _DEBUG_
 static int MYDEBUG = 0;
 #else
@@ -102,7 +101,8 @@ typedef std::map< TCollection_AsciiString, TObjectData* >            TSting2ObjD
 
 static GEOM_Engine* TheEngine = NULL;
 
-static TCollection_AsciiString BuildIDFromObject(Handle(GEOM_Object)& theObject)
+
+static TCollection_AsciiString BuildIDFromObject(Handle(GEOM_BaseObject)& theObject)
 {
   TCollection_AsciiString anID(theObject->GetDocID()), anEntry;
   TDF_Tool::Entry(theObject->GetEntry(), anEntry);
@@ -158,15 +158,13 @@ void PublishObject (TObjectData&                              theObjectData,
                     std::map< int, TCollection_AsciiString >& theEntryToCmdMap,
                     std::set<TCollection_AsciiString>&        theMapOfPublished);
 
-namespace
-{
   //================================================================================
   /*!
    * \brief Fix up the name of python variable
    */
   //================================================================================
 
-  void healPyName( TCollection_AsciiString&                  pyName,
+void GEOM_Engine::healPyName( TCollection_AsciiString&                  pyName,
                    const TCollection_AsciiString&            anEntry,
                    Resource_DataMapOfAsciiStringAsciiString& aNameToEntry)
   {
@@ -191,7 +189,6 @@ namespace
       pyName = aName2;
     }
   }
-}
 
 //=======================================================================
 //function : GetTextureGUID
@@ -209,7 +206,6 @@ const Standard_GUID& GEOM_Engine::GetTextureGUID()
  */
 //=============================================================================
 GEOM_Engine* GEOM_Engine::GetEngine() { return TheEngine; }
-
 
 //=============================================================================
 /*!
@@ -231,11 +227,9 @@ GEOM_Engine::GEOM_Engine()
   _UndoLimit = 10;
 }
 
-//=============================================================================
 /*!
  *  Destructor
  */
-//=============================================================================
 GEOM_Engine::~GEOM_Engine()
 { 
   GEOM_DataMapIteratorOfDataMapOfAsciiStringTransient It(_objects);
@@ -247,9 +241,12 @@ GEOM_Engine::~GEOM_Engine()
     RemoveObject(*objit);
 
   //Close all documents not closed
-  for(TColStd_DataMapIteratorOfDataMapOfIntegerTransient anItr(_mapIDDocument); anItr.More(); anItr.Next())
+  TColStd_DataMapIteratorOfDataMapOfIntegerTransient anItr (_mapIDDocument);
+  for (; anItr.More(); anItr.Next())
+  {
     Close(anItr.Key());
-
+    anItr.Initialize( _mapIDDocument ); // anItr becomes invalid at _mapIDDocument.UnBind(docId)
+  }
   _mapIDDocument.Clear();
   _objects.Clear();
 }
@@ -295,11 +292,11 @@ Handle(TDocStd_Document) GEOM_Engine::GetDocument(int theDocID, bool force)
 int GEOM_Engine::GetDocID(Handle(TDocStd_Document) theDocument)
 {
   if(theDocument.IsNull()) return -1;
-  for(TColStd_DataMapIteratorOfDataMapOfIntegerTransient anItr(_mapIDDocument); anItr.More(); anItr.Next())
+  TColStd_DataMapIteratorOfDataMapOfIntegerTransient anItr (_mapIDDocument);
+  for (; anItr.More(); anItr.Next())
     if(anItr.Value() == theDocument) return anItr.Key();
 
   return -1;
-
 }
 
 //=============================================================================
@@ -307,23 +304,31 @@ int GEOM_Engine::GetDocID(Handle(TDocStd_Document) theDocument)
  *  GetObject
  */
 //=============================================================================
-Handle(GEOM_Object) GEOM_Engine::GetObject(int theDocID, const char* theEntry, bool force)
+
+Handle(GEOM_BaseObject) GEOM_Engine::GetObject(int theDocID, const char* theEntry, bool force)
 {
-  Handle(GEOM_Object) anObject;
+  Handle(GEOM_BaseObject) anObject;
 
   TCollection_AsciiString anID = BuildID(theDocID, theEntry);
 
   if (_objects.IsBound(anID)) {
-    anObject = Handle(GEOM_Object)::DownCast(_objects(anID));
+    anObject = Handle(GEOM_BaseObject)::DownCast(_objects(anID));
   }
   else if (force) {
     Handle(TDocStd_Document) aDoc = GetDocument(theDocID, force);
     if ( !aDoc.IsNull()) {
       TDF_Label aLabel;
       TDF_Tool::Label(aDoc->Main().Data(), theEntry, aLabel, Standard_True);
-      anObject = new GEOM_Object(aLabel);
+      if ( !aLabel.IsNull() ) {
+        int objType = GEOM_BaseObject::GetType( aLabel );
+        switch ( objType ) {
+        case GEOM_FIELD_OBJTYPE:      anObject = new GEOM_Field    (aLabel); break;
+        case GEOM_FIELD_STEP_OBJTYPE: anObject = new GEOM_FieldStep(aLabel); break;
+        default:                      anObject = new GEOM_Object   (aLabel);
+        }
       _objects.Bind(anID, anObject);
     }
+  }
   }
 
   return anObject;
@@ -331,10 +336,11 @@ Handle(GEOM_Object) GEOM_Engine::GetObject(int theDocID, const char* theEntry, b
 
 //=============================================================================
 /*!
- *  AddObject
+ *  AddBaseObject
  */
 //=============================================================================
-Handle(GEOM_Object) GEOM_Engine::AddObject(int theDocID, int theType)
+
+Handle(GEOM_BaseObject) GEOM_Engine::AddBaseObject(int theDocID, int theType)
 {
   Handle(TDocStd_Document) aDoc = GetDocument(theDocID);
   TDF_Label alab = aDoc->Main().FindChild(GEOM_LABEL,true);
@@ -356,8 +362,12 @@ Handle(GEOM_Object) GEOM_Engine::AddObject(int theDocID, int theType)
   #endif
 	aChild = TDF_TagSource::NewChild(alab);
 
-
-  Handle(GEOM_Object) anObject = new GEOM_Object(aChild, theType);
+  Handle(GEOM_BaseObject) anObject;
+  switch ( theType ) {
+  case GEOM_FIELD_OBJTYPE:      anObject = new GEOM_Field    (aChild, theType); break;
+  case GEOM_FIELD_STEP_OBJTYPE: anObject = new GEOM_FieldStep(aChild, theType); break;
+  default:                      anObject = new GEOM_Object   (aChild, theType);
+  }
 
   //Put an object in the map of created objects
   TCollection_AsciiString anID = BuildIDFromObject(anObject);
@@ -367,16 +377,29 @@ Handle(GEOM_Object) GEOM_Engine::AddObject(int theDocID, int theType)
   return anObject;
 }
 
+//================================================================================
+/*!
+ * \brief Adds a new object of the type theType in the OCAF document
+ */
+//================================================================================
+
+Handle(GEOM_Object) GEOM_Engine::AddObject(int theDocID, int theType)
+{
+  return Handle(GEOM_Object)::DownCast( AddBaseObject(theDocID, theType) );
+}
+
 //=============================================================================
 /*!
  *  AddSubShape
  */
 //=============================================================================
+
 Handle(GEOM_Object) GEOM_Engine::AddSubShape(Handle(GEOM_Object) theMainShape, 
 					     Handle(TColStd_HArray1OfInteger) theIndices,
 					     bool isStandaloneOperation)
 {
   if(theMainShape.IsNull() || theIndices.IsNull()) return NULL;
+
   Handle(TDocStd_Document) aDoc = GetDocument(theMainShape->GetDocID());
   TDF_Label alab = aDoc->Main().FindChild(GEOM_LABEL,true);
   Handle(TDataStd_TreeNode) aRoot = TDataStd_TreeNode::Set(alab);
@@ -408,9 +431,7 @@ Handle(GEOM_Object) GEOM_Engine::AddSubShape(Handle(GEOM_Object) theMainShape,
   aSSI.SetIndices(theIndices);
 
   try {
-#if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
     OCC_CATCH_SIGNALS;
-#endif
     GEOM_Solver aSolver (GEOM_Engine::GetEngine());
     if (!aSolver.ComputeFunction(aFunction)) {
       MESSAGE("GEOM_Engine::AddSubShape Error: Can't build a sub shape");
@@ -428,7 +449,7 @@ Handle(GEOM_Object) GEOM_Engine::AddSubShape(Handle(GEOM_Object) theMainShape,
   if(_objects.IsBound(anID)) _objects.UnBind(anID);
   _objects.Bind(anID, anObject);
 
-  // Put this subshape in the list of subshapes of theMainShape
+  // Put this sub-shape in the list of sub-shapes of theMainShape
   aMainShape->AddSubShapeReference(aFunction);
   
   GEOM::TPythonDump pd (aFunction);
@@ -452,7 +473,7 @@ Handle(GEOM_Object) GEOM_Engine::AddSubShape(Handle(GEOM_Object) theMainShape,
  *  RemoveObject
  */
 //=============================================================================
-bool GEOM_Engine::RemoveObject(Handle(GEOM_Object) theObject)
+bool GEOM_Engine::RemoveObject(Handle(GEOM_BaseObject)& theObject)
 {
   if(theObject.IsNull()) return false;
 
@@ -462,10 +483,16 @@ bool GEOM_Engine::RemoveObject(Handle(GEOM_Object) theObject)
 
   //Remove an object from the map of available objects
   TCollection_AsciiString anID = BuildIDFromObject(theObject);
-  if(_objects.IsBound(anID)) _objects.UnBind(anID);
+  if (_objects.IsBound(anID)) {
+    Handle(GEOM_BaseObject) anObject = Handle(GEOM_BaseObject)::DownCast(_objects(anID));
+    if ( anObject != theObject )
+      anObject->_label = anObject->_label.Root();
+    _objects.UnBind(anID);
+  }
 
-  // If subshape, remove it from the list of subshapes of its main shape
-  if (!theObject->IsMainShape()) {
+  // If sub-shape, remove it from the list of sub-shapes of its main shape
+  Handle(GEOM_Object) aGO = Handle(GEOM_Object)::DownCast( theObject );
+  if ( !aGO.IsNull() && !aGO->IsMainShape()) {
     Handle(GEOM_Function) aFunction = theObject->GetFunction(1);
     GEOM_ISubShape aSSI (aFunction);
     Handle(GEOM_Function) aMainShape = aSSI.GetMainShape();
@@ -488,8 +515,16 @@ bool GEOM_Engine::RemoveObject(Handle(GEOM_Object) theObject)
   // Remember the label to reuse it then
   #ifdef MEM_OPTIMISED_LABEL
   std::list<TDF_Label>& aFreeLabels = _freeLabels[aDocID];
+  if ( aFreeLabels.empty() || aFreeLabels.back() != aLabel )
   aFreeLabels.push_back(aLabel);
   #endif
+
+  // we can't explicitely delete theObject. At least prevent its functioning
+  // as an alive object when aLabel is reused for a new object
+  theObject->_label = aLabel.Root();
+  theObject->_ior.Clear();
+  theObject->_parameters.Clear();
+  theObject->_docID = -1;
 
   theObject.Nullify();
 
@@ -521,7 +556,7 @@ void GEOM_Engine::Redo(int theDocID)
  *  Save
  */
 //=============================================================================
-bool GEOM_Engine::Save(int theDocID, char* theFileName)
+bool GEOM_Engine::Save(int theDocID, const char* theFileName)
 {
   if(!_mapIDDocument.IsBound(theDocID)) return false;
   Handle(TDocStd_Document) aDoc = Handle(TDocStd_Document)::DownCast(_mapIDDocument(theDocID));
@@ -536,7 +571,7 @@ bool GEOM_Engine::Save(int theDocID, char* theFileName)
  *  Load
  */
 //=============================================================================
-bool GEOM_Engine::Load(int theDocID, char* theFileName)
+bool GEOM_Engine::Load(int theDocID, const char* theFileName)
 {
   Handle(TDocStd_Document) aDoc;
   if(_OCAFApp->Open(theFileName, aDoc) != PCDM_RS_OK) {
@@ -749,6 +784,7 @@ TCollection_AsciiString GEOM_Engine::DumpPython(int theDocID,
                                                 bool isMultiFile, 
                                                 bool& aValidScript)
 {
+
   TCollection_AsciiString aScript;
   Handle(TDocStd_Document) aDoc = GetDocument(theDocID);
 
@@ -783,7 +819,7 @@ TCollection_AsciiString GEOM_Engine::DumpPython(int theDocID,
     TDF_Label L;
     TDF_Tool::Label( aDoc->GetData(), data._entry, L );
     if ( L.IsNull() ) continue;
-    Handle(GEOM_Object) obj = GEOM_Object::GetObject( L );
+    Handle(GEOM_BaseObject) obj = GEOM_BaseObject::GetObject( L );
     // fill maps
     if ( !obj.IsNull() ) {
       TSting2ObjDataMap::iterator ent2Data =
@@ -828,7 +864,16 @@ TCollection_AsciiString GEOM_Engine::DumpPython(int theDocID,
         continue;
       // add function description before dump
       if (!aCurScript.IsEmpty())
+      {
+        if ( aFunction->GetDriverGUID() == GEOM_Object::GetSubShapeID() &&
+             aFuncScript.Length() > aCurScript.Length() )
+          // avoid repeated SubShape...() command at the end
+          if (aFuncScript.Location( aCurScript,
+                                    aFuncScript.Length() - aCurScript.Length(),
+                                    aFuncScript.Length()))
+            continue; // aCurScript is already at the end of aFuncScript
         aFuncScript += aCurScript;
+      }
       if (isDumpCollected ) {
         // Replace entries by the names
         ReplaceEntriesByNames( aFuncScript, aEntry2ObjData, isPublished,
@@ -951,6 +996,7 @@ TCollection_AsciiString GEOM_Engine::DumpPython(int theDocID,
 //function : GetDumpName
 //purpose  :
 //=======================================================================
+
 const char* GEOM_Engine::GetDumpName (const char* theStudyEntry) const
 {
   if ( _studyEntry2NameMap.IsBound( (char*)theStudyEntry ))
@@ -963,6 +1009,7 @@ const char* GEOM_Engine::GetDumpName (const char* theStudyEntry) const
 //function : GetAllDumpNames
 //purpose  :
 //=======================================================================
+
 Handle(TColStd_HSequenceOfAsciiString) GEOM_Engine::GetAllDumpNames() const
 {
   Handle(TColStd_HSequenceOfAsciiString) aRetSeq = new TColStd_HSequenceOfAsciiString;
@@ -975,12 +1022,13 @@ Handle(TColStd_HSequenceOfAsciiString) GEOM_Engine::GetAllDumpNames() const
   return aRetSeq;
 }
 
-//=============================================================================
-/*!
- *  AddTexture
- */
-//=============================================================================
-int GEOM_Engine::AddTexture(int theDocID, int theWidth, int theHeight,
+#define TEXTURE_LABEL_ID       1
+#define TEXTURE_LABEL_FILE     2
+#define TEXTURE_LABEL_WIDTH    3
+#define TEXTURE_LABEL_HEIGHT   4
+#define TEXTURE_LABEL_DATA     5
+
+int GEOM_Engine::addTexture(int theDocID, int theWidth, int theHeight,
                             const Handle(TColStd_HArray1OfByte)& theTexture,
                             const TCollection_AsciiString& theFileName)
 {
@@ -1027,12 +1075,7 @@ int GEOM_Engine::AddTexture(int theDocID, int theWidth, int theHeight,
   return aTextureID;
 }
 
-//=============================================================================
-/*!
- *  GetTexture
- */
-//=============================================================================
-Handle(TColStd_HArray1OfByte) GEOM_Engine::GetTexture(int theDocID, int theTextureID,
+Handle(TColStd_HArray1OfByte) GEOM_Engine::getTexture(int theDocID, int theTextureID,
                                                        int& theWidth, int& theHeight,
                                                        TCollection_AsciiString& theFileName)
 {
@@ -1074,12 +1117,7 @@ Handle(TColStd_HArray1OfByte) GEOM_Engine::GetTexture(int theDocID, int theTextu
   return anArray;
 }
 
-//=============================================================================
-/*!
- *  GetAllTextures
- */
-//=============================================================================
-std::list<int> GEOM_Engine::GetAllTextures(int theDocID)
+std::list<int> GEOM_Engine::getAllTextures(int theDocID)
 {
   std::list<int> id_list;
 
@@ -1099,13 +1137,125 @@ std::list<int> GEOM_Engine::GetAllTextures(int theDocID)
   return id_list;
 }
 
+void GEOM_Engine::DocumentModified(const int theDocId, const bool isModified)
+{
+  if (isModified) _mapModifiedDocs.Add(theDocId);
+  else _mapModifiedDocs.Remove(theDocId);
+}
+ 
+bool GEOM_Engine::DocumentModified(const int theDocId)
+{
+  return _mapModifiedDocs.Contains(theDocId);
+}
+
 //===========================================================================
 //                     Internal functions
 //===========================================================================
 
 //=============================================================================
 /*!
- *  ProcessFunction: Dump fucntion description into script
+ *  MakeCommandfor3DSketcher: Make new command for 3DSketcher
+ */
+//=============================================================================
+TCollection_AsciiString MakeCommandfor3DSketcher (const TCollection_AsciiString& theDescr )
+{
+    TCollection_AsciiString aNewDescr;
+    int i = 1;
+    TCollection_AsciiString aSubStr = theDescr.Token("\n\t", i);
+    for (; !aSubStr.IsEmpty(); aSubStr = theDescr.Token("\n\t", i)) {
+      if (aSubStr.Search( "Make3DSketcherCommand" ) != -1) {
+        TCollection_AsciiString aResult = aSubStr.Token(" ", 1);
+        // "3DSketcher:CMD[:CMD[:CMD...]]"
+        TCollection_AsciiString aCommand = aSubStr.Token("\"", 2);
+
+        // Split the command string to separate CMDs
+        int icmd = 2;
+        TColStd_SequenceOfAsciiString aSequence;
+        if (aCommand.Length()) {
+          TCollection_AsciiString aToken = aCommand.Token(":", icmd);
+          while (aToken.Length() > 0) {
+            aSequence.Append(aToken);
+            aToken = aCommand.Token(":", ++icmd);
+          }
+        }
+
+        if (aSequence.Length() > 0) {
+          if (i > 1)
+            aNewDescr += "\n\t";
+
+          aNewDescr += "\nsk = geompy.Sketcher3D()";
+          int nbCMDs = aSequence.Length();
+          for (icmd = 1; icmd <= nbCMDs; icmd++) {
+            aNewDescr += "\n\t";
+
+            TCollection_AsciiString aCMD = aSequence.Value(icmd);
+
+            // Split the CMD into string values
+            TColStd_SequenceOfAsciiString aStrVals;
+            int ival = 1;
+            TCollection_AsciiString aToken = aCMD.Token(" ", ival);
+            while (aToken.Length() > 0) {
+              aStrVals.Append(aToken);
+              aToken = aCMD.Token(" ", ++ival);
+            }
+
+            TCollection_AsciiString aCMDpref = aStrVals.Value(1);
+            if (aCMDpref == "TT") {
+              aNewDescr += "sk.addPointsAbsolute(";
+              aNewDescr += aStrVals.Value(2) + ", " + aStrVals.Value(3) + ", " + aStrVals.Value(4) + ")";
+            }
+            else if (aCMDpref == "T") {
+              aNewDescr += "sk.addPointsRelative(";
+              aNewDescr += aStrVals.Value(2) + ", " + aStrVals.Value(3) + ", " + aStrVals.Value(4) + ")";
+            }
+            else if (aCMDpref == "WW") {
+              aNewDescr += "sk.close()";
+            }
+            else if (aCMDpref.Value(1) == 'O'){
+              TCollection_AsciiString aCMDtrunc = aStrVals.Value(1);
+              aCMDtrunc.Trunc(3);
+              if (aCMDpref.Value(4) == 'C')
+                aNewDescr += "sk.addPointRadiusAngleH";
+              else
+                aNewDescr += "sk.addPointRadiusAngles";
+              if (aCMDpref.Value(5) == 'A')
+                aNewDescr += "Absolute(";
+              else
+                aNewDescr += "Relative(";
+              aNewDescr +=  aStrVals.Value(4) + ", " +
+                aStrVals.Value(2) + ", " + aStrVals.Value(3) + ", " + "\""+aCMDtrunc+"\"" + ")";
+            }
+          }
+          aNewDescr += "\n\t";
+          aNewDescr += aResult + " = sk.wire()";
+        }
+      } // Make3DSketcherCommand
+      else if (aSubStr.Search( "Make3DSketcher" ) != -1) {
+        TCollection_AsciiString aResult = aSubStr.Token(" ", 1);
+        TCollection_AsciiString aCommand = aSubStr.Token("[", 2);
+        aCommand = aCommand.Token("]", 1);
+        if (i > 1)
+          aNewDescr += "\n\t";
+        aNewDescr += "\nsk = geompy.Sketcher3D()";
+        aNewDescr += "\n\t";
+        aNewDescr += "sk.addPointsAbsolute(";
+        aNewDescr += aCommand + ")";
+        aNewDescr += "\n\t";
+        aNewDescr += aResult + " = sk.wire()";
+      }
+      else {
+        if (i > 1)
+          aNewDescr += "\n\t";
+        aNewDescr += aSubStr;
+      }
+      i++;
+    }
+    return aNewDescr;
+}
+
+//=============================================================================
+/*!
+ *  ProcessFunction: Dump function description into script
  */
 //=============================================================================
 bool ProcessFunction(Handle(GEOM_Function)&     theFunction,
@@ -1167,6 +1317,16 @@ bool ProcessFunction(Handle(GEOM_Function)&     theFunction,
   //Check if its internal function which doesn't requires dumping
   if(aDescr == "None") return false;
 
+  //Check the very specific case of RestoreShape function,
+  //which is not dumped, but the result can be published by the user.
+  //We do not publish such objects to decrease danger of dumped script failure.
+  if(aDescr.Value(1) == '#') {
+    TCollection_AsciiString anObjEntry;
+    TDF_Tool::Entry(theFunction->GetOwnerEntry(), anObjEntry);
+    theIgnoreObjs.insert(anObjEntry);
+    return false;
+  }
+
   // 0020001 PTv, check for critical functions, which require dump of objects
   if (theIsPublished)
   {
@@ -1180,6 +1340,17 @@ bool ProcessFunction(Handle(GEOM_Function)&     theFunction,
 
   //Replace parameter by notebook variables
   ReplaceVariables(aDescr,theVariables);
+
+  //Process sketcher functions, replacing string command by calls to Sketcher interface
+  if ( ( aDescr.Search( "MakeSketcherOnPlane" ) != -1 ) || ( aDescr.Search( "MakeSketcher" ) != -1 ) ) {
+    Sketcher_Profile aProfile( aDescr.ToCString());
+    // Make new command for SketcherOnPlane and for Sketcher
+    aDescr = aProfile.GetDump();
+  }
+  if (aDescr.Search( "Make3DSketcher" ) != -1) {
+    aDescr = MakeCommandfor3DSketcher ( aDescr );
+  }
+
   if ( theIsDumpCollected ) {
     int i = 1;
     bool isBefore = true;
@@ -1414,6 +1585,12 @@ void ReplaceVariables(TCollection_AsciiString& theCommand,
 	    else
 	      aEndParamPos = aSection.Length() + 1;
 
+            if(MYDEBUG)
+              cout<<"aParamIndex: "<<aParamIndex<<" aStartParamPos: " <<aStartParamPos<<" aEndParamPos: "<<aEndParamPos<<endl;
+
+            if ( aStartParamPos == aEndParamPos)
+              continue;
+
 	    aParameter = aSection.SubString(aStartParamPos, aEndParamPos-1);
 	    if(MYDEBUG) 
 	      cout<<"aParameter: "<<aParameter<<endl;
@@ -1505,6 +1682,7 @@ void ReplaceEntriesByNames (TCollection_AsciiString&                  theScript,
                             Standard_Integer&                         objectCounter,
                             Resource_DataMapOfAsciiStringAsciiString& aNameToEntry)
 {
+  GEOM_Engine* engine = GEOM_Engine::GetEngine();
   Handle(TColStd_HSequenceOfInteger) aSeq = FindEntries(theScript);
   Standard_Integer aLen = aSeq->Length(), aStart = 1, aScriptLength = theScript.Length();
 
@@ -1522,7 +1700,7 @@ void ReplaceEntriesByNames (TCollection_AsciiString&                  theScript,
     if ( data._pyName.IsEmpty() ) { // encounted for the 1st time
       if ( !data._name.IsEmpty() ) { // published object
         data._pyName = data._name;
-        healPyName( data._pyName, anEntry, aNameToEntry);
+        engine->healPyName( data._pyName, anEntry, aNameToEntry);
       }
       else {
         do {
@@ -1661,7 +1839,7 @@ static TCollection_AsciiString pack_data(const Handle(TColStd_HArray1OfByte)& aD
 void AddTextures (int theDocID, TCollection_AsciiString& theScript)
 {
   GEOM_Engine* engine = GEOM_Engine::GetEngine();
-  std::list<int> allTextures = engine->GetAllTextures(theDocID);
+  std::list<int> allTextures = engine->getAllTextures(theDocID);
   std::list<int>::const_iterator it;
 
   if (allTextures.size() > 0) {
@@ -1671,7 +1849,8 @@ void AddTextures (int theDocID, TCollection_AsciiString& theScript)
       if (*it <= 0) continue;
       Standard_Integer aWidth, aHeight;
       TCollection_AsciiString aFileName;
-      Handle(TColStd_HArray1OfByte) aTexture = engine->GetTexture(theDocID, *it, aWidth, aHeight, aFileName);
+      Handle(TColStd_HArray1OfByte) aTexture =
+        engine->getTexture(theDocID, *it, aWidth, aHeight, aFileName);
       if (aWidth > 0 && aHeight > 0 && !aTexture.IsNull() && aTexture->Length() > 0 ) {
         TCollection_AsciiString aCommand = "\n\t";
         aCommand += "texture_map["; aCommand += *it; aCommand += "] = ";
@@ -1705,6 +1884,7 @@ void PublishObject (TObjectData&                              theObjectData,
                     std::map< int, TCollection_AsciiString >& theEntryToCmdMap,
                     std::set< TCollection_AsciiString>&       theIgnoreMap)
 {
+  GEOM_Engine* engine = GEOM_Engine::GetEngine();
   if ( theObjectData._studyEntry.IsEmpty() )
     return; // was not published
   if ( theIgnoreMap.count( theObjectData._entry ) )
@@ -1730,7 +1910,7 @@ void PublishObject (TObjectData&                              theObjectData,
     if ( data0._pyName.IsEmpty() ) return; // something wrong
 
     theObjectData._pyName = theObjectData._name;
-    healPyName( theObjectData._pyName, theObjectData._entry, theNameToEntry);
+    engine->healPyName( theObjectData._pyName, theObjectData._entry, theNameToEntry);
 
     TCollection_AsciiString aCreationCommand("\n\t");
     aCreationCommand += theObjectData._pyName + " = " + data0._pyName;
@@ -1809,4 +1989,3 @@ void ObjectStates::IncrementState()
 {
   _dumpstate++;
 }
-

@@ -1,4 +1,6 @@
-//  Copyright (C) 2003  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 //  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 //
 //  This library is free software; you can redistribute it and/or
@@ -16,6 +18,7 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+//
 
 #include "GEOM_PythonDump.hxx"
 
@@ -26,13 +29,11 @@
 #include <TColStd_ListOfInteger.hxx>
 #include <TColStd_ListIteratorOfListOfInteger.hxx>
 
-#define SIMPLE_ID
-
 namespace GEOM
 {
   size_t TPythonDump::myCounter = 0;
 
-  TPythonDump::TPythonDump (Handle(GEOM_Function)& theFunction, bool theAppend)
+  TPythonDump::TPythonDump (const Handle(GEOM_Function)& theFunction, bool theAppend)
   {
     myFunction = theFunction;
     myCounter++;
@@ -43,9 +44,12 @@ namespace GEOM
   {
     if (--myCounter == 0) {
       TCollection_AsciiString aDescr;
-      if ( myAppend )
-        aDescr = myFunction->GetScriptCommand() + "\n\t";
-      aDescr += myString.c_str();
+      if ( myAppend ) {
+        aDescr = myFunction->GetScriptCommand();
+        if ( !aDescr.IsEmpty() ) aDescr += "\n\t";
+      }
+      std::string aString = myStream.str();
+      aDescr += (char *)aString.c_str();
       myFunction->SetScriptCommand( aDescr );
     }
   }
@@ -61,103 +65,87 @@ namespace GEOM
 
   TPythonDump& TPythonDump::operator<< (long int theArg)
   {
-    std::ostringstream buffer;
-    buffer<<theArg;
-	myString += buffer.str();
+    myStream<<theArg;
     return *this;
   }
 
   TPythonDump& TPythonDump::operator<< (int theArg)
   {
-    std::ostringstream buffer;
-    buffer<<theArg;
-	myString += buffer.str();
+    myStream<<theArg;
     return *this;
   }
 
   TPythonDump& TPythonDump::operator<< (double theArg)
   {
-    std::ostringstream buffer;
-    buffer.precision(16);
-    buffer<<theArg;
-	myString += buffer.str();
+    myStream.precision(16);
+    myStream<<theArg;
     return *this;
   }
 
   TPythonDump& TPythonDump::operator<< (float theArg)
   {
-    std::ostringstream buffer;
-    buffer.precision(8);
-    buffer<<theArg;
-	myString += buffer.str();
+    myStream.precision(8);
+    myStream<<theArg;
     return *this;
   }
 
   TPythonDump& TPythonDump::operator<< (const void* theArg)
   {
-    std::ostringstream buffer;
-    buffer<<theArg;
-	myString += buffer.str();
+    myStream<<theArg;
     return *this;
   }
 
   TPythonDump& TPythonDump::operator<< (const char* theArg)
   {
-    std::ostringstream buffer;
-    buffer<<theArg;
-	myString += buffer.str();
+    myStream<<theArg;
     return *this;
+  }
+
+  TPythonDump& TPythonDump::operator<< (const TCollection_AsciiString& theArg)
+  {
+    myStream<<theArg.ToCString();;
+	return *this;
   }
 
   TPythonDump& TPythonDump::operator<< (const TopAbs_ShapeEnum theArg)
   {
-    std::ostringstream buffer;
-    buffer<<"geompy.ShapeType[\"";
-    TopAbs::Print(theArg, buffer);
-    buffer<<"\"]";
-	myString += buffer.str();
+    myStream<<"ShapeType[\"";
+    TopAbs::Print(theArg, myStream);
+    myStream<<"\"]";
     return *this;
   }
 
   TPythonDump& TPythonDump::operator<< (const GEOM_Parameter& theArg)
   {
-    std::ostringstream buffer;
-
 	if (theArg.IsString())
-	  buffer<<theArg.GetString();
+	  myStream<<theArg.GetString();
 	else
 	{
-      buffer.precision(16);
-	  buffer<<theArg.GetDouble();
+      myStream.precision(16);
+	  myStream<<theArg.GetDouble();
 	}
-	myString += buffer.str();
 	return *this;
   }
 
-  TPythonDump& TPythonDump::operator<< (const TCollection_AsciiString& theArg)
+  TPythonDump& TPythonDump::operator<< (const Handle(GEOM_BaseObject)& theObject)
   {
-    std::ostringstream buffer;
-	buffer<<theArg.ToCString();
-	myString += buffer.str();
-
-	return *this;
-  }
-
-  TPythonDump& TPythonDump::operator<< (const Handle(GEOM_Object)& theObject)
-  {
-    std::ostringstream buffer;
 	if (theObject.IsNull()) {
-      buffer << "None";
+      myStream << "None";
+    } else {
+      *this << theObject.operator->();
+    }
+    return *this;
+  }
+
+  TPythonDump& TPythonDump::operator<< (const GEOM_BaseObject* theObject)
+  {
+    if ( !theObject ) {
+      myStream << "None";
     } else {
       TCollection_AsciiString anEntry;
 	  TDF_Tool::Entry(theObject->GetEntry(), anEntry);
-	  #ifdef SIMPLE_ID
-	  anEntry = anEntry.Token(":", 4);
-	  anEntry.Prepend("S:");
-	  #endif
-	  buffer << anEntry.ToCString();
+      myStream << anEntry.ToCString();
     }
-	myString += buffer.str();
     return *this;
   }
 

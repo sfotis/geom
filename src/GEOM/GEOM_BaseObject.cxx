@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 //
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License.
 //
-// This library is distributed in the hope that it will be useful
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 // Lesser General Public License for more details.
@@ -17,50 +19,47 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#include <Standard_Stream.hxx>
 
-#include <GEOM_Object.hxx>
-#include <GEOM_Engine.hxx>
-#include <GEOM_Solver.hxx>
-#include <TDF_Tool.hxx>
-#include <TDF_Data.hxx>
-#include <TDF_Reference.hxx>
-#include <TDF_LabelSequence.hxx>
-#include <TDF_ChildIterator.hxx>
-#include <TDocStd_Owner.hxx>
-#include <TDocStd_Document.hxx>
-#include <TDataStd_Integer.hxx>
-#include <TDataStd_ChildNodeIterator.hxx>
-#include <TDataStd_UAttribute.hxx>
-#include <TDataStd_Name.hxx>
-#include <TDataStd_Comment.hxx>
-#include <TDataStd_RealArray.hxx>
-#include <TDataStd_Real.hxx>
-#include <TColStd_HArray1OfReal.hxx>
-#include <TCollection_AsciiString.hxx>
+#include "GEOM_BaseObject.hxx"
+#include "GEOM_Engine.hxx"
+
 #include <TCollection_ExtendedString.hxx>
-#include <TopTools_IndexedMapOfShape.hxx>
-#include <TopExp.hxx>
+#include <TDF_Data.hxx>
+#include <TDF_LabelSequence.hxx>
+#include <TDF_Reference.hxx>
+#include <TDF_Tool.hxx>
+#include <TDataStd_ChildNodeIterator.hxx>
+#include <TDataStd_Comment.hxx>
+#include <TDataStd_Integer.hxx>
+#include <TDataStd_Name.hxx>
+#include <TDataStd_Real.hxx>
+#include <TDataStd_UAttribute.hxx>
+#include <TDocStd_Document.hxx>
+#include <TDocStd_Owner.hxx>
+#include <TFunction_Driver.hxx>
+#include <TFunction_DriverTable.hxx>
+#include <TDF_ChildIterator.hxx>
 
-#define FUNCTION_LABEL	 1
+#include "utilities.h"
+
+#define FUNCTION_LABEL_ID  1
+#define FUNCTION_LABEL(theNb) (_label.FindChild(FUNCTION_LABEL_ID).FindChild((theNb)))
 #define TYPE_LABEL  	 2
 #define FREE_LABEL  	 3
 #define TIC_LABEL   	 4
 #define DIRTY_LABEL 	 5
-#define COLOR_LABEL      6
-#define AUTO_COLOR_LABEL 7
+//#define COLOR_LABEL      6
+//#define AUTO_COLOR_LABEL 7
 #define USER_DATA_LABEL  8
-#define MARKER_LABEL     9
+//#define MARKER_LABEL     9
 
-#define MARKER_LABEL_TYPE 1
-#define MARKER_LABEL_SIZE 2
-#define MARKER_LABEL_ID   3
 
 //=======================================================================
 //function : GetObjectID
 //purpose  :
 //=======================================================================
-const Standard_GUID& GEOM_Object::GetObjectID()
+
+const Standard_GUID& GEOM_BaseObject::GetObjectID()
 {
   static Standard_GUID anObjectID("FF1BBB01-5D14-4df2-980B-3A668264EA16");
   return anObjectID;
@@ -70,7 +69,8 @@ const Standard_GUID& GEOM_Object::GetObjectID()
 //function : GetSubShapeID
 //purpose  :
 //=======================================================================
-const Standard_GUID& GEOM_Object::GetSubShapeID()
+
+const Standard_GUID& GEOM_BaseObject::GetSubShapeID()
 {
   static Standard_GUID anObjectID("FF1BBB68-5D14-4df2-980B-3A668264EA16");
   return anObjectID;
@@ -81,26 +81,23 @@ const Standard_GUID& GEOM_Object::GetSubShapeID()
  *  GetObject
  */
 //=============================================================================
-Handle(GEOM_Object) GEOM_Object::GetObject(TDF_Label& theLabel)
+
+Handle(GEOM_BaseObject) GEOM_BaseObject::GetObject(const TDF_Label& theLabel)
 {
-  Handle(GEOM_Object) retVal;
-  if (!theLabel.IsAttribute(GetObjectID())) return retVal;
+  if (!theLabel.IsAttribute(GetObjectID())) return NULL;
 
   TCollection_AsciiString anEntry;
   TDF_Tool::Entry(theLabel, anEntry);
 
   Handle(TDocStd_Document) aDoc = TDocStd_Owner::GetDocument(theLabel.Data());
-  if(aDoc.IsNull()) return retVal;
+  if(aDoc.IsNull()) return NULL;
 
   Handle(TDataStd_Integer) anID;
-  if(!aDoc->Main().FindAttribute(TDataStd_Integer::GetID(), anID)) return retVal;
-
+  if(!aDoc->Main().FindAttribute(TDataStd_Integer::GetID(), anID)) return NULL;
 
   GEOM_Engine* anEngine = GEOM_Engine::GetEngine();
-  if(anEngine == NULL) return retVal;
-
-  retVal = anEngine->GetObject(anID->Get(), anEntry.ToCString());
-  return retVal;
+  if(anEngine == NULL) return NULL;
+  return anEngine->GetObject(anID->Get(), anEntry.ToCString());
 }
 
 //=============================================================================
@@ -108,40 +105,64 @@ Handle(GEOM_Object) GEOM_Object::GetObject(TDF_Label& theLabel)
  *  GetReferencedObject
  */
 //=============================================================================
-Handle(GEOM_Object) GEOM_Object::GetReferencedObject(TDF_Label& theLabel)
+Handle(GEOM_BaseObject) GEOM_BaseObject::GetReferencedObject(const TDF_Label& theLabel)
 {
-  Handle(GEOM_Object) retVal;
-
   Handle(TDF_Reference) aRef;
-
   if (!theLabel.FindAttribute(TDF_Reference::GetID(), aRef)) {
-    return retVal;
+    return NULL;
   }
   
   if(aRef.IsNull() || aRef->Get().IsNull()) {
-    return retVal;
+    return NULL;
   }
 
 
   // Get TreeNode of a referenced function
   Handle(TDataStd_TreeNode) aT, aFather;
   if (!TDataStd_TreeNode::Find(aRef->Get(), aT)) {
-    return retVal;
+    return NULL;
   }
 
 
   // Get TreeNode of Object of the referenced function
   aFather = aT->Father();
   if (aFather.IsNull()) {
-    return retVal;
+    return NULL;
   }
 
   // Get label of the referenced object
   TDF_Label aLabel = aFather->Label();
 
-  retVal = GEOM_Object::GetObject(aLabel);
 
-  return retVal;
+  return GEOM_BaseObject::GetObject(aLabel);
+}
+
+//=======================================================================
+//function : GetEntryString
+//purpose  : Returns an entry of this GEOM_BaseObject
+//=======================================================================
+
+TCollection_AsciiString GEOM_BaseObject::GetEntryString()
+{
+  TCollection_AsciiString anEntry;
+  TDF_Tool::Entry( GetEntry(), anEntry );
+  return anEntry;
+}
+
+//=======================================================================
+//function : GetType
+//purpose  : Returns type of an object (GEOM_POINT, GEOM_VECTOR...) on theLabel,
+//           -1 if no object is there
+//=======================================================================
+
+int GEOM_BaseObject::GetType(const TDF_Label& theLabel)
+{
+  Handle(TDataStd_Integer) aType;
+  if(theLabel.IsNull() ||
+     !theLabel.FindChild(TYPE_LABEL).FindAttribute(TDataStd_Integer::GetID(), aType))
+    return -1;
+
+  return aType->Get();
 }
 
 //=============================================================================
@@ -149,7 +170,7 @@ Handle(GEOM_Object) GEOM_Object::GetReferencedObject(TDF_Label& theLabel)
  *  Constructor: private
  */
 //=============================================================================
-GEOM_Object::GEOM_Object(TDF_Label& theEntry)
+GEOM_BaseObject::GEOM_BaseObject(const TDF_Label& theEntry)
 : _label(theEntry), _ior(""), _docID(-1)
 {
   Handle(TDocStd_Document) aDoc = TDocStd_Owner::GetDocument(_label.Data());
@@ -167,7 +188,7 @@ GEOM_Object::GEOM_Object(TDF_Label& theEntry)
  *  Constructor: public
  */
 //=============================================================================
-GEOM_Object::GEOM_Object(TDF_Label& theEntry, int theType)
+GEOM_BaseObject::GEOM_BaseObject(const TDF_Label& theEntry, int theType)
 : _label(theEntry), _ior(""), _docID(-1)
 {
   Handle(TDocStd_Document) aDoc = TDocStd_Owner::GetDocument(_label.Data());
@@ -191,7 +212,7 @@ GEOM_Object::GEOM_Object(TDF_Label& theEntry, int theType)
  *  Destructor
  */
 //=============================================================================
-GEOM_Object::~GEOM_Object()
+GEOM_BaseObject::~GEOM_BaseObject()
 {
   //MESSAGE("GEOM_Object::~GEOM_Object()");
 }
@@ -201,12 +222,14 @@ GEOM_Object::~GEOM_Object()
  *  GetType
  */
 //=============================================================================
-int GEOM_Object::GetType()
+int GEOM_BaseObject::GetType()
 {
+  int type = -1;
   Handle(TDataStd_Integer) aType;
-  if(!_label.FindChild(TYPE_LABEL).FindAttribute(TDataStd_Integer::GetID(), aType)) return -1;
+  if(_label.FindChild(TYPE_LABEL).FindAttribute(TDataStd_Integer::GetID(), aType))
+    type = aType->Get();
 
-  return aType->Get();
+  return type;
 }
 
 //=============================================================================
@@ -214,7 +237,7 @@ int GEOM_Object::GetType()
  *  SetType
  */
 //=============================================================================
-void GEOM_Object::SetType(int theType)
+void GEOM_BaseObject::SetType(int theType)
 {
   TDataStd_Integer::Set(_label.FindChild(TYPE_LABEL), theType);
 }
@@ -227,7 +250,7 @@ void GEOM_Object::SetType(int theType)
  *  (on which this object depends) we decide whether this object needs to be updated.
  */
 //=============================================================================
-int GEOM_Object::GetTic()
+int GEOM_BaseObject::GetTic()
 {
   Handle(TDataStd_Integer) aTicAttr;
   if (!_label.FindChild(TIC_LABEL).FindAttribute(TDataStd_Integer::GetID(), aTicAttr))
@@ -245,7 +268,7 @@ int GEOM_Object::GetTic()
  *  This is commonly done in GEOM_Function::GetValue()
  */
 //=============================================================================
-void GEOM_Object::SetTic(int theTic)
+void GEOM_BaseObject::SetTic(int theTic)
 {
   TDataStd_Integer::Set(_label.FindChild(TIC_LABEL), theTic);
 }
@@ -257,7 +280,7 @@ void GEOM_Object::SetTic(int theTic)
  *  Commonly called from GEOM_Function::SetValue()
  */
 //=============================================================================
-void GEOM_Object::IncrementTic()
+void GEOM_BaseObject::IncrementTic()
 {
   TDF_Label aTicLabel = _label.FindChild(TIC_LABEL);
 
@@ -275,27 +298,9 @@ void GEOM_Object::IncrementTic()
  *  GetDocID
  */
 //=============================================================================
-int GEOM_Object::GetDocID()
+int GEOM_BaseObject::GetDocID()
 {
   return _docID;
-}
-
-
-//=============================================================================
-/*!
- *  GetValue
- */
-//=============================================================================
-TopoDS_Shape GEOM_Object::GetValue()
-{
-  TopoDS_Shape aShape;
-
-  Handle(GEOM_Function) aFunction = GetLastFunction();
-
-  if (!aFunction.IsNull())
-    aShape = aFunction->GetValue();
-
-  return aShape;
 }
 
 //=============================================================================
@@ -303,7 +308,7 @@ TopoDS_Shape GEOM_Object::GetValue()
  *  SetName
  */
 //=============================================================================
-void GEOM_Object::SetName(const char* theName)
+void GEOM_BaseObject::SetName(const char* theName)
 {
   TDataStd_Name::Set(_label, (char*)theName);
 }
@@ -313,156 +318,16 @@ void GEOM_Object::SetName(const char* theName)
  *  GetName
  */
 //=============================================================================
-const char* GEOM_Object::GetName()
+TCollection_AsciiString GEOM_BaseObject::GetName()
 {
+  TCollection_AsciiString aName;
   Handle(TDataStd_Name) aNameAttr;
-  if(!_label.FindAttribute(TDataStd_Name::GetID(), aNameAttr)) return NULL;
-
-  TCollection_AsciiString aName(aNameAttr->Get());
-
+  if(_label.FindAttribute(TDataStd_Name::GetID(), aNameAttr))
+    aName = aNameAttr->Get();
   // do not return pointer of local variable
   // return aName.ToCString();
   // the following code could lead to memory leak, so take care about recieved pointer
-  return strdup(aName.ToCString());
-}
-
-//=============================================================================
-/*!
- *  SetColor
- */
-//=============================================================================
-void GEOM_Object::SetColor(const GEOM_Object::Color& theColor)
-{
-  Handle(TDataStd_RealArray) anArray = new TDataStd_RealArray();
-  anArray->Init( 1, 3 );
-  anArray->SetValue( 1, theColor.R );
-  anArray->SetValue( 2, theColor.G );
-  anArray->SetValue( 3, theColor.B );
-
-  Handle(TDataStd_RealArray) anAttr =
-    TDataStd_RealArray::Set(_label.FindChild(COLOR_LABEL), anArray->Lower(), anArray->Upper());
-  anAttr->ChangeArray(anArray->Array());
-}
-
-//=============================================================================
-/*!
- *  GetColor
- */
-//=============================================================================
-GEOM_Object::Color GEOM_Object::GetColor()
-{
-  Handle(TDataStd_RealArray) anArray;
-  bool isFound = _label.FindChild(COLOR_LABEL).FindAttribute(TDataStd_RealArray::GetID(), anArray);
-
-  GEOM_Object::Color aColor;
-  aColor.R = isFound ? anArray->Value( 1 ) : -1;
-  aColor.G = isFound ? anArray->Value( 2 ) : -1;
-  aColor.B = isFound ? anArray->Value( 3 ) : -1;
-
-  return aColor;
-}
-
-//=============================================================================
-/*!
- *  SetAutoColor
- */
-//=============================================================================
-void GEOM_Object::SetAutoColor(bool theAutoColor)
-{
-  TDataStd_Integer::Set(_label.FindChild(AUTO_COLOR_LABEL), (int)theAutoColor);
-}
-
-//=============================================================================
-/*!
- *  GetAutoColor
- */
-//=============================================================================
-bool GEOM_Object::GetAutoColor()
-{
-  Handle(TDataStd_Integer) anAutoColor;
-  if(!_label.FindChild(AUTO_COLOR_LABEL).FindAttribute(TDataStd_Integer::GetID(), anAutoColor)) return false;
-
-  return bool(anAutoColor->Get());
-}
-
-//=============================================================================
-/*!
- *  SetMarkerStd
- */
-//=============================================================================
-void GEOM_Object::SetMarkerStd(const Aspect_TypeOfMarker theType, double theSize)
-{
-  TDF_Label aMarkerLabel = _label.FindChild(MARKER_LABEL);
-  TDataStd_Integer::Set(aMarkerLabel.FindChild(MARKER_LABEL_TYPE), (int)theType);
-  TDataStd_Real::Set(aMarkerLabel.FindChild(MARKER_LABEL_SIZE), theSize);
-}
-  
-//=============================================================================
-/*!
- *  SetMarkerTexture
- */
-//=============================================================================
-void GEOM_Object::SetMarkerTexture(int theTextureId)
-{
-  TDF_Label aMarkerLabel = _label.FindChild(MARKER_LABEL);
-  TDataStd_Integer::Set(aMarkerLabel.FindChild(MARKER_LABEL_TYPE), (int)Aspect_TOM_USERDEFINED);
-  TDataStd_Integer::Set(aMarkerLabel.FindChild(MARKER_LABEL_ID),   theTextureId);
-}
-
-//=============================================================================
-/*!
- *  GetMarkerType
- */
-//=============================================================================
-Aspect_TypeOfMarker GEOM_Object::GetMarkerType()
-{
-  Standard_Integer aType = -1;
-  TDF_Label aMarkerLabel = _label.FindChild(MARKER_LABEL, Standard_False);
-  if(!aMarkerLabel.IsNull()) {
-    TDF_Label aTypeLabel = aMarkerLabel.FindChild(MARKER_LABEL_TYPE, Standard_False);
-    Handle(TDataStd_Integer) aTypeAttr;
-    if (!aTypeLabel.IsNull() && aTypeLabel.FindAttribute(TDataStd_Integer::GetID(), aTypeAttr))
-      aType = aTypeAttr->Get();
-  }
-  return (Aspect_TypeOfMarker)aType;
-}
-
-//=============================================================================
-/*!
- *  GetMarkerSize
- */
-//=============================================================================
-double GEOM_Object::GetMarkerSize()
-{
-  Standard_Real aSize = 0.;
-  TDF_Label aMarkerLabel = _label.FindChild(MARKER_LABEL, Standard_False);
-  if(!aMarkerLabel.IsNull()) {
-    TDF_Label aSizeLabel = aMarkerLabel.FindChild(MARKER_LABEL_SIZE, Standard_False);
-    Handle(TDataStd_Real) aSizeAttr;
-    if (!aSizeLabel.IsNull() && aSizeLabel.FindAttribute(TDataStd_Real::GetID(), aSizeAttr))
-      aSize = aSizeAttr->Get();
-  }
-  return aSize;
-}
-
-//=============================================================================
-/*!
- *  GetMarkerTexture
- */
-//=============================================================================
-int GEOM_Object::GetMarkerTexture()
-{
-  Standard_Integer anId = 0;
-  if ( GetMarkerType() == Aspect_TOM_USERDEFINED) {
-    TDF_Label aMarkerLabel = _label.FindChild(MARKER_LABEL, Standard_False);
-    if(!aMarkerLabel.IsNull()) {
-      TDF_Label aTypeLabel = aMarkerLabel.FindChild(MARKER_LABEL_ID, Standard_False);
-      Handle(TDataStd_Integer) anIdAttr;
-      if (!aTypeLabel.IsNull() && aTypeLabel.FindAttribute(TDataStd_Integer::GetID(), anIdAttr))
-        anId = anIdAttr->Get();
-    }
-  }
-  return anId;
+  return aName;
 }
 
 //=============================================================================
@@ -470,17 +335,7 @@ int GEOM_Object::GetMarkerTexture()
  *  SetAuxData
  */
 //=============================================================================
-void GEOM_Object::UnsetMarker()
-{
-  SetMarkerStd((Aspect_TypeOfMarker)-1, 0.);
-}
-
-//=============================================================================
-/*!
- *  SetAuxData
- */
-//=============================================================================
-void GEOM_Object::SetAuxData(const char* theData)
+void GEOM_BaseObject::SetAuxData(const char* theData)
 {
   TDataStd_Comment::Set(_label, (char*)theData);
 }
@@ -490,7 +345,7 @@ void GEOM_Object::SetAuxData(const char* theData)
  *  GetAuxData
  */
 //=============================================================================
-TCollection_AsciiString GEOM_Object::GetAuxData()
+TCollection_AsciiString GEOM_BaseObject::GetAuxData()
 {
   TCollection_AsciiString aData;
 
@@ -506,7 +361,7 @@ TCollection_AsciiString GEOM_Object::GetAuxData()
  *  SetParameters
  */
 //=============================================================================
-void GEOM_Object::SetParameters(const TCollection_AsciiString& theParameters)
+void GEOM_BaseObject::SetParameters(const TCollection_AsciiString& theParameters)
 {
   if( _parameters.IsEmpty() )
     _parameters = theParameters;
@@ -521,21 +376,9 @@ void GEOM_Object::SetParameters(const TCollection_AsciiString& theParameters)
  *  GetParameters
  */
 //=============================================================================
-TCollection_AsciiString GEOM_Object::GetParameters() const
+TCollection_AsciiString GEOM_BaseObject::GetParameters() const
 {
   return _parameters;
-}
-
-//=============================================================================
-/*!
- *  IsSubShape
- */
-//=============================================================================
-bool GEOM_Object::IsMainShape()
-{
-  Handle(GEOM_Function) aFunction = GetFunction(1);
-  if(aFunction.IsNull() || aFunction->GetDriverGUID() != GetSubShapeID()) return true; // mkr : IPAL9921
-  return false;
 }
 
 //=============================================================================
@@ -543,12 +386,13 @@ bool GEOM_Object::IsMainShape()
  *  AddFunction
  */
 //=============================================================================
-Handle(GEOM_Function) GEOM_Object::AddFunction(const Standard_GUID& theGUID, int theFunctionType)
+Handle(GEOM_Function) GEOM_BaseObject::AddFunction(const Standard_GUID& theGUID,
+                                                   int                  theFunctionType,
+                                                   bool                 allowSubShape)
 {
   Standard_Integer nb = GetNbFunctions();
-  nb++;
-
-  TDF_Label aChild = TDF_TagSource::NewChild( _label.FindChild(FUNCTION_LABEL) );
+  //if(!allowSubShape && nb == 1 && theGUID == GetSubShapeID()) return NULL; //It's impossible to add a function to sub-shape
+  TDF_Label aChild = FUNCTION_LABEL(++nb);
 
   Handle(TDataStd_TreeNode) aNode = TDataStd_TreeNode::Set(aChild);
   _root->Append(aNode);
@@ -603,7 +447,7 @@ Handle(GEOM_Function) GEOM_Object::AddFunction(const Standard_GUID& theGUID, int
  *  RemoveFunction
  */
 //=============================================================================
-Standard_Boolean GEOM_Object::RemoveFunction(Handle(GEOM_Function) aFunction)
+Standard_Boolean GEOM_BaseObject::RemoveFunction(Handle(GEOM_Function) aFunction)
 {
   if (aFunction.IsNull()) return Standard_False;
   Standard_Integer nb = GetNbFunctions();
@@ -669,7 +513,7 @@ Standard_Boolean GEOM_Object::RemoveFunction(Handle(GEOM_Function) aFunction)
  *  GetNbFunctions
  */
 //=============================================================================
-int GEOM_Object::GetNbFunctions()
+int GEOM_BaseObject::GetNbFunctions()
 {
   Standard_Integer nb = 0;
   for(TDataStd_ChildNodeIterator CI(_root); CI.More(); CI.Next()) nb++;
@@ -681,19 +525,10 @@ int GEOM_Object::GetNbFunctions()
  *  GetFunction
  */
 //=============================================================================
-Handle(GEOM_Function) GEOM_Object::GetFunction(int theFunctionNumber)
+Handle(GEOM_Function) GEOM_BaseObject::GetFunction(int theFunctionNumber)
 {
-  Standard_Integer nb = 0;
-  Handle(GEOM_Function) theResult;
-  for(TDataStd_ChildNodeIterator CI(_root); CI.More(); CI.Next()) {
-	nb++;
-	if (nb==theFunctionNumber) {
-	  TDF_Label aChild = CI.Value()->Label();
-	  theResult = GEOM_Function::GetFunction(aChild);
-      break;
-	}
-  }
-  return theResult;
+  TDF_Label aChild = FUNCTION_LABEL(theFunctionNumber);
+  return GEOM_Function::GetFunction(aChild);
 }
 
 //=============================================================================
@@ -701,13 +536,12 @@ Handle(GEOM_Function) GEOM_Object::GetFunction(int theFunctionNumber)
  *  GetlastFunction
  */
 //=============================================================================
-Handle(GEOM_Function) GEOM_Object::GetLastFunction()
+Handle(GEOM_Function) GEOM_BaseObject::GetLastFunction()
 {
   Standard_Integer nb = GetNbFunctions();
   if(nb) return GetFunction(nb);
 
-  Handle(GEOM_Function) voidRetVal;
-  return voidRetVal;
+  return NULL;
 }
 
 //=============================================================================
@@ -715,7 +549,7 @@ Handle(GEOM_Function) GEOM_Object::GetLastFunction()
  *  GetAllDependency
  */
 //=============================================================================
-Handle(TColStd_HSequenceOfTransient) GEOM_Object::GetAllDependency()
+Handle(TColStd_HSequenceOfTransient) GEOM_BaseObject::GetAllDependency()
 {
   Handle(TColStd_HSequenceOfTransient) anArray;
   TDF_LabelSequence aSeq;
@@ -730,9 +564,8 @@ Handle(TColStd_HSequenceOfTransient) GEOM_Object::GetAllDependency()
   Standard_Integer aLength = aSeq.Length();
   if(aLength > 0) {
 	anArray = new TColStd_HSequenceOfTransient;
-
 	for(Standard_Integer j =1; j<=aLength; j++) {
-	  Handle(GEOM_Object) aRefObj = GetReferencedObject(aSeq(j));
+      Handle(GEOM_BaseObject) aRefObj = GetReferencedObject(aSeq(j));
 	  if(!aRefObj.IsNull()) anArray->Append(aRefObj);
 	}
   }
@@ -745,7 +578,7 @@ Handle(TColStd_HSequenceOfTransient) GEOM_Object::GetAllDependency()
  *  GetLastDependency
  */
 //=============================================================================
-Handle(TColStd_HSequenceOfTransient) GEOM_Object::GetLastDependency()
+Handle(TColStd_HSequenceOfTransient) GEOM_BaseObject::GetLastDependency()
 {
   Handle(TColStd_HSequenceOfTransient) anArray;
   Handle(GEOM_Function) aFunction = GetLastFunction();
@@ -763,12 +596,52 @@ Handle(TColStd_HSequenceOfTransient) GEOM_Object::GetLastDependency()
   return anArray;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a driver creator of this object
+ */
+//================================================================================
+
+Handle(TFunction_Driver) GEOM_BaseObject::GetCreationDriver()
+{
+  Handle(TFunction_Driver) aDriver;
+
+  Handle(GEOM_Function) function = GetFunction(1);
+  if ( !function.IsNull() )
+  {
+    Standard_GUID aGUID = function->GetDriverGUID();
+    if ( TFunction_DriverTable::Get()->FindDriver(aGUID, aDriver))
+      aDriver->Init( function->GetEntry() );
+  }
+  return aDriver;
+}
+
+//=============================================================================
+/*!
+ *  GetFreeLabel
+ */
+//=============================================================================
+TDF_Label GEOM_BaseObject::GetFreeLabel()
+{
+  return _label.FindChild(FREE_LABEL);
+}
+
+//=============================================================================
+/*!
+ *  GetUserDataLabel
+ */
+//=============================================================================
+TDF_Label GEOM_BaseObject::GetUserDataLabel()
+{
+  return _label.FindChild(USER_DATA_LABEL);
+}
+
 //=============================================================================
 /*!
  *
  */
 //=============================================================================
-Standard_Boolean GEOM_Object::IsDirty()
+Standard_Boolean GEOM_BaseObject::IsDirty()
 {
   Handle(TDataStd_Integer) aDirtyAttr;
   if (!_label.FindChild(DIRTY_LABEL).FindAttribute(TDataStd_Integer::GetID(), aDirtyAttr))
@@ -787,7 +660,7 @@ Standard_Boolean GEOM_Object::IsDirty()
  *
  */
 //=============================================================================
-void GEOM_Object::SetDirty(Standard_Boolean theFlag)
+void GEOM_BaseObject::SetDirty(Standard_Boolean theFlag)
 {
   Standard_Integer theFlagVal;
 
@@ -799,63 +672,5 @@ void GEOM_Object::SetDirty(Standard_Boolean theFlag)
   TDataStd_Integer::Set(_label.FindChild(DIRTY_LABEL), theFlagVal);
 }
 
-//=============================================================================
-/*!
- *  GetFreeLabel
- */
-//=============================================================================
-TDF_Label GEOM_Object::GetFreeLabel()
-{
-  return _label.FindChild(FREE_LABEL);
-}
-
-//=============================================================================
-/*!
- *  GetUserDataLabel
- */
-//=============================================================================
-TDF_Label GEOM_Object::GetUserDataLabel()
-{
-  return _label.FindChild(USER_DATA_LABEL);
-}
-
-//=======================================================================
-//function :  GEOM_Object_Type_
-//purpose  :
-//=======================================================================
-Standard_EXPORT Handle_Standard_Type& GEOM_Object_Type_()
-{
-
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(MMgt_TShared);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(Standard_Transient);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(Standard_Transient);
-
-
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOM_Object",
-			                                 sizeof(GEOM_Object),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//=======================================================================
-
-const Handle(GEOM_Object) Handle(GEOM_Object)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOM_Object) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOM_Object))) {
-       _anOtherObject = Handle(GEOM_Object)((Handle(GEOM_Object)&)AnObject);
-     }
-  }
-
-  return _anOtherObject ;
-}
-
+IMPLEMENT_STANDARD_HANDLE (GEOM_BaseObject, Standard_Transient );
+IMPLEMENT_STANDARD_RTTIEXT(GEOM_BaseObject, Standard_Transient );

@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -18,40 +20,21 @@
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
 
-#include <Standard_Stream.hxx>
+#include "GEOM_SubShapeDriver.hxx"
 
-#include <GEOM_SubShapeDriver.hxx>
-#include <GEOM_ISubShape.hxx>
-#include <GEOM_Function.hxx>
-#include <GEOM_Object.hxx>
+#include "GEOM_ISubShape.hxx"
+#include "GEOM_Function.hxx"
+#include "GEOM_Object.hxx"
 
-#include <BRep_Tool.hxx>
 #include <BRep_Builder.hxx>
-#include <BRepGProp.hxx>
-
-#include <TopAbs.hxx>
 #include <TopExp.hxx>
-#include <TopoDS.hxx>
-#include <TopoDS_Shape.hxx>
-#include <TopoDS_Edge.hxx>
-#include <TopoDS_Wire.hxx>
-#include <TopoDS_Solid.hxx>
-#include <TopoDS_Compound.hxx>
-#include <TopoDS_Iterator.hxx>
-#include <TopExp_Explorer.hxx>
-#include <TopTools_MapOfShape.hxx>
-#include <TopTools_SequenceOfShape.hxx>
-#include <TopTools_Array1OfShape.hxx>
 #include <TopTools_IndexedMapOfShape.hxx>
+#include <TopTools_MapOfShape.hxx>
+#include <TopoDS_Compound.hxx>
+#include <TopoDS_Shape.hxx>
+#include <TDataStd_Integer.hxx>
 
-#include <GProp_GProps.hxx>
-#include <gp_Pnt.hxx>
-#include <TColStd_Array1OfReal.hxx>
-
-#include <Precision.hxx>
 #include <Standard_NullObject.hxx>
-#include <Standard_TypeMismatch.hxx>
-
 
 //=======================================================================
 //function : GEOM_SubShapeDriver
@@ -86,7 +69,7 @@ Standard_Integer GEOM_SubShapeDriver::Execute(TFunction_Logbook& log) const
   TopoDS_Compound aCompound;
   TopoDS_Shape aShape;
 
-  if (anIndices->Length() == 1 && anIndices->Value(1) == -1) { //The empty subshape
+  if (anIndices->Length() == 1 && anIndices->Value(1) == -1) { //The empty sub-shape
     B.MakeCompound(aCompound);
     aShape = aCompound;
   }
@@ -95,7 +78,6 @@ Standard_Integer GEOM_SubShapeDriver::Execute(TFunction_Logbook& log) const
     TopExp::MapShapes(aMainShape, aMapOfShapes);
 
     if (anIndices->Length() > 1) {
-
       B.MakeCompound(aCompound);
 
       for (int i = anIndices->Lower(); i<= anIndices->Upper(); i++) {
@@ -125,45 +107,54 @@ Standard_Integer GEOM_SubShapeDriver::Execute(TFunction_Logbook& log) const
   return 1;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOM_SubShapeDriver_Type_
-//purpose  :
-//=======================================================================
-Standard_EXPORT Handle_Standard_Type& GEOM_SubShapeDriver_Type_()
+bool GEOM_SubShapeDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
+  GEOM_ISubShape aCI( function );
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared);
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
+  enum { GEOM_SUBSHAPE = 28, GEOM_GROUP = 37 };
 
+  TDF_Label aLabel = function->GetOwnerEntry();
+  if (aLabel.IsRoot()) return false;
+  Handle(GEOM_Object) obj = GEOM_Object::GetObject( aLabel );
+  if ( obj.IsNull() ) return false;
 
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOM_SubShapeDriver",
-			                                 sizeof(GEOM_SubShapeDriver),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
-
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//=======================================================================
-const Handle(GEOM_SubShapeDriver) Handle(GEOM_SubShapeDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOM_SubShapeDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOM_SubShapeDriver))) {
-       _anOtherObject = Handle(GEOM_SubShapeDriver)((Handle(GEOM_SubShapeDriver)&)AnObject);
-     }
+  switch ( obj->GetType() ) {
+  case GEOM_SUBSHAPE:
+    theOperationName = "EXPLODE";
+    AddParam( theParams, "Main Object", aCI.GetMainShape() );
+    AddParam( theParams, "Index", aCI.GetIndices() );
+    break;
+  case GEOM_GROUP:
+  {
+    theOperationName = "GROUP_CREATE";
+    TopAbs_ShapeEnum type = TopAbs_SHAPE;
+    {
+      TDF_Label aFreeLabel = obj->GetFreeLabel();
+      Handle(TDataStd_Integer) anAttrib;
+      if(aFreeLabel.FindAttribute(TDataStd_Integer::GetID(), anAttrib))
+        type = (TopAbs_ShapeEnum) anAttrib->Get();
+    }
+    AddParam( theParams, "Shape Type", type );
+    AddParam( theParams, "Main Shape", aCI.GetMainShape() );
+    AddParam( theParams, "Indices", aCI.GetIndices() );
+    break;
   }
-
-  return _anOtherObject ;
+  default:
+    return false;
+  }
+  
+  return true;
 }
+IMPLEMENT_STANDARD_HANDLE (GEOM_SubShapeDriver,GEOM_BaseDriver);
+
+IMPLEMENT_STANDARD_RTTIEXT (GEOM_SubShapeDriver,GEOM_BaseDriver);

@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -24,29 +26,30 @@
 #include "GEOM_Application.hxx"
 #include "GEOM_Object.hxx"
 #include "GEOM_DataMapOfAsciiStringTransient.hxx"
+
 #include <TColStd_DataMapOfIntegerTransient.hxx>
+
 #include <Resource_DataMapOfAsciiStringAsciiString.hxx>
 #include <TDocStd_Document.hxx>
 #include <TColStd_HArray1OfInteger.hxx>
-#include <TColStd_HArray1OfTransient.hxx>
 #include <TColStd_HSequenceOfAsciiString.hxx>
-#include <TColStd_HArray1OfByte.hxx>
-
-
-//---------------------------------------------------------------------------
-#include <ExprIntrp_Analysis.hxx>
-#include <ExprIntrp_GenExp.hxx>
-#include <Expr_NamedConstant.hxx>
-//---------------------------------------------------------------------------
-
-#ifdef GetObject
-#undef GetObject
-#endif
+#include <TColStd_MapOfInteger.hxx>
+#include <TDF_Label.hxx>
 
 #include <map>
 #include <list>
 #include <vector>
 #include <string>
+
+#include <GEOM_BaseObject.hxx>
+
+#include <TColStd_HArray1OfTransient.hxx>
+#include <TColStd_HArray1OfAsciiString.hxx>
+#include <TColStd_HArray1OfByte.hxx>
+
+#ifdef GetObject
+#undef GetObject
+#endif
 
 /*!
  * \brief Data of GEOM_Object
@@ -60,7 +63,7 @@ struct TObjectData
   bool                    _unpublished;
 };
 
-class Handle_TDataStd_HArray1OfByte;
+class Handle_TColStd_HArray1OfByte;
 
 struct TVariable{
   TCollection_AsciiString myVariable;
@@ -120,19 +123,24 @@ class GEOM_Engine
   Standard_EXPORT Handle(TDocStd_Application) GetApplication() { return _OCAFApp; }
 
   //!Returns a pointer to GEOM_Object defined by a document and the entry
-  Standard_EXPORT Handle(GEOM_Object) GetObject(int theDocID, const char* theEntry, bool force = true);
+  Standard_EXPORT Handle(GEOM_BaseObject) GetObject(int         theDocID,
+                                                    const char* theEntry,
+                                                    bool        force=true);
   
+  //Adds a new object of the type theType in the OCAF document
+  Standard_EXPORT Handle(GEOM_BaseObject) AddBaseObject(int theDocID, int theType);
+
   //!Adds a new object of the type theType in the OCAF document
   Standard_EXPORT Handle(GEOM_Object) AddObject(int theDocID, int theType);
 
   //!Removes the object from the OCAF document
-  Standard_EXPORT bool RemoveObject(Handle(GEOM_Object) theObject);  
+  Standard_EXPORT bool RemoveObject(Handle(GEOM_BaseObject)& theObject);  
 
   //!Saves the OCAF document with ID = theDocID with file with name theFileName
-  Standard_EXPORT bool Save(int theDocID, char* theFileName);
+  Standard_EXPORT bool Save(int theDocID, const char* theFileName);
   
   //!Loads the OCAF document into the application and assigns to it an ID = theDocID
-  Standard_EXPORT bool Load(int theDocID, char* theFileName);
+  Standard_EXPORT bool Load(int theDocID, const char* theFileName);
 
   //!Closes the document with ID =  theDocID
   Standard_EXPORT void Close(int theDocID);
@@ -181,20 +189,28 @@ class GEOM_Engine
   Standard_EXPORT TDF_Label GetUserDataLabel(int theDocID);
 
   //!Adds a texture to be saved in the OCAF DF
-  Standard_EXPORT int AddTexture(int theDocID, int theWidth, int theHeight,
+  Standard_EXPORT int addTexture(int theDocID, int theWidth, int theHeight,
                                  const Handle(TColStd_HArray1OfByte)& theTexture,
                                  const TCollection_AsciiString& theFileName = "");
 
-  //!Gets a texture stored in the OCAF DF
-  Standard_EXPORT Handle(TColStd_HArray1OfByte) GetTexture(int theDocID, int theTextureID,
-                                                            int& theWidth, int& theHeight,
-                                                            TCollection_AsciiString& theFileName);
+  //!Gets a texture stored in the OCAF DF  
+Standard_EXPORT Handle(TColStd_HArray1OfByte) getTexture(int  theDocID, int theTextureID,
+                                                           int& theWidth, int& theHeight,
+                                                           TCollection_AsciiString& theFileName);
 
   //!Gets all the textures stored in the OCAF DF
-  Standard_EXPORT std::list<int> GetAllTextures(int theDocID);
+  Standard_EXPORT std::list<int> getAllTextures(int theDocID);
 
   //!Gets the texture storage driver GUID
   static const Standard_GUID& GetTextureGUID();
+
+  Standard_EXPORT void healPyName( TCollection_AsciiString&                  pyName,
+                                   const TCollection_AsciiString&            anEntry,
+                                   Resource_DataMapOfAsciiStringAsciiString& aNameToEntry);
+
+  Standard_EXPORT void DocumentModified(const int theDocId, const bool isModified);
+  
+  Standard_EXPORT bool DocumentModified(const int theDocId);
 
  protected:
   Standard_EXPORT static void SetEngine(GEOM_Engine* theEngine);
@@ -202,8 +218,8 @@ class GEOM_Engine
  private:
 
   Handle(GEOM_Application)  _OCAFApp;
-
   TColStd_DataMapOfIntegerTransient _mapIDDocument;
+  TColStd_MapOfInteger _mapModifiedDocs; // keeps the identifiers of the modified document ids
 
   int _UndoLimit;
   GEOM_DataMapOfAsciiStringTransient _objects;
@@ -213,7 +229,6 @@ class GEOM_Engine
   #ifdef MEM_OPTIMISED_LABEL
   TFreeLabelsList _freeLabels;
   #endif
-
 };
 
 #endif

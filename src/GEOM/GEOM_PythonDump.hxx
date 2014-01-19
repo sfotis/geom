@@ -1,4 +1,6 @@
-//  Copyright (C) 2003  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 //  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS 
 // 
 //  This library is free software; you can redistribute it and/or 
@@ -16,11 +18,11 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
 // 
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+//
 
 #ifndef _GEOM_PYTHONDUMP_HXX_
 #define _GEOM_PYTHONDUMP_HXX_
 
-//#include <SALOMEconfig.h>
 
 #include "GEOM_Object.hxx"
 #include "GEOM_Function.hxx"
@@ -33,15 +35,14 @@ namespace GEOM
   //!Creates script string using various arguments
   class TPythonDump
   {
-    std::stringstream myStream;
-	std::string myString;
+    std::ostringstream myStream;
     static size_t      myCounter;
     bool               myAppend;
 
     Handle(GEOM_Function) myFunction;
 
   public:
-    Standard_EXPORT TPythonDump (Handle(GEOM_Function)& theFunction, bool theAppend=false);
+    Standard_EXPORT TPythonDump (const Handle(GEOM_Function)& theFunction, bool theAppend=false);
     Standard_EXPORT virtual ~TPythonDump();
 
 //    operator TCollection_AsciiString () const;
@@ -53,10 +54,11 @@ namespace GEOM
     Standard_EXPORT TPythonDump& operator<< (float theArg);
     Standard_EXPORT TPythonDump& operator<< (const void* theArg);
     Standard_EXPORT TPythonDump& operator<< (const char* theArg);
+    Standard_EXPORT TPythonDump& operator<< (const TCollection_AsciiString& theArg);
     Standard_EXPORT TPythonDump& operator<< (const TopAbs_ShapeEnum theArg);
-	Standard_EXPORT TPythonDump& operator<< (const Handle(GEOM_Object)& theObject);
-	Standard_EXPORT TPythonDump& operator<< (const GEOM_Parameter& theArg);
-	Standard_EXPORT	TPythonDump& operator<< (const TCollection_AsciiString& theArg);
+    Standard_EXPORT TPythonDump& operator<< (const Handle(GEOM_BaseObject)& theObject);
+    Standard_EXPORT TPythonDump& operator<< (const GEOM_BaseObject* theObject);
+    Standard_EXPORT TPythonDump& operator<< (const GEOM_Parameter& theArg);
   };
 
   //! Returns an object from two given, which has the latest entry

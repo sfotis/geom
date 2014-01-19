@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,20 +19,16 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-// NOTE: This is an intreface to a function for the Shapes
-// (Wire, Face, Shell, Solid and Compound) creation.
-
 
 #include "GEOM_Function.hxx"
 
 #include "TColStd_HSequenceOfTransient.hxx"
 #include "TColStd_HArray1OfInteger.hxx"
 
-#define SUBSHAPE_ARG_MAIN_SHAPE     1
-#define SUBSHAPE_ARG_INDICES        2
-#define SUBSHAPE_ARG_SORTED         3
+#define SHAPE_ARG_MAIN_SHAPE     1
+#define SHAPE_ARG_INDICES        2
 
-//!Interface class for subshape driver
+//!Interface class for subshape driver. NOTE: This is an interface to a function for the Shapes (Wire, Face, Shell, Solid and Compound) creation.
 class GEOM_ISubShape
 {
  public:
@@ -38,15 +36,15 @@ class GEOM_ISubShape
   GEOM_ISubShape(Handle(GEOM_Function) theFunction): _func(theFunction) {}
 
   void SetMainShape(Handle(GEOM_Function) theRefBase)
-  { _func->SetReference(SUBSHAPE_ARG_MAIN_SHAPE, theRefBase); }
+  { _func->SetReference(SHAPE_ARG_MAIN_SHAPE, theRefBase); }
 
-  Handle(GEOM_Function) GetMainShape() { return _func->GetReference(SUBSHAPE_ARG_MAIN_SHAPE); }
+  Handle(GEOM_Function) GetMainShape() { return _func->GetReference(SHAPE_ARG_MAIN_SHAPE); }
 
   void SetIndices(const Handle(TColStd_HArray1OfInteger)& theIndices)
-  { _func->SetIntegerArray(SUBSHAPE_ARG_INDICES, theIndices); }
+  { _func->SetIntegerArray(SHAPE_ARG_INDICES, theIndices); }
 
   Handle(TColStd_HArray1OfInteger) GetIndices()
-  { return _func->GetIntegerArray(SUBSHAPE_ARG_INDICES); }
+  { return _func->GetIntegerArray(SHAPE_ARG_INDICES); }
 
  private:
 

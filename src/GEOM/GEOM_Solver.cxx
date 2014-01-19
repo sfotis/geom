@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -170,9 +172,7 @@ bool GEOM_Solver::ComputeObject(Handle(GEOM_Object) theObject)
 //=============================================================================
 bool GEOM_Solver::ComputeFunction(Handle(GEOM_Function) theFunction)
 {
-  if(theFunction.IsNull())
-	return false;
-
+  if(theFunction == NULL) return false;
   Standard_GUID aGUID = theFunction->GetDriverGUID();
 
   Handle(TFunction_Driver) aDriver;
@@ -181,9 +181,7 @@ bool GEOM_Solver::ComputeFunction(Handle(GEOM_Function) theFunction)
   aDriver->Init(theFunction->GetEntry());
 
   TFunction_Logbook aLog;
-  
-  if(aDriver->Execute(aLog) == 0)
-	return false;
+  if(aDriver->Execute(aLog) == 0) return false;
 
   return true;
 }

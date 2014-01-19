@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 //
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License.
 //
-// This library is distributed in the hope that it will be useful
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 // Lesser General Public License for more details.
@@ -17,188 +19,75 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#ifndef _GEOM_Object_HeaderFile
-#define _GEOM_Object_HeaderFile
 
-#ifndef _Standard_TypeMismatch_HeaderFile
-#include <Standard_TypeMismatch.hxx>
-#endif
-#ifndef _Standard_HeaderFile
-#include <Standard.hxx>
-#endif
-#ifndef _Standard_Macro_HeaderFile
-#include <Standard_Macro.hxx>
-#endif
-#ifndef _Standard_HeaderFile
-#include <Standard.hxx>
-#endif
-#ifndef _Handle_MMgt_TShared_HeaderFile
-#include <Handle_MMgt_TShared.hxx>
-#endif
-#ifndef _MMgt_TShared_HeaderFile
-#include <MMgt_TShared.hxx>
-#endif
-#ifndef _Standard_GUID_HeaderFile
+#ifndef _GEOM_BaseObject_HeaderFile
+#define _GEOM_BaseObject_HeaderFile
+
+#include "GEOM_Function.hxx"
+
 #include <Standard_GUID.hxx>
-#endif
-#ifndef _TopoDS_Shape_HeaderFile
-#include <TopoDS_Shape.hxx>
-#endif
-#ifndef _TDF_Label_HeaderFile
-#include <TDF_Label.hxx>
-#endif
-#ifndef _TColStd_HSequenceOfTransient_HeaderFile
 #include <TColStd_HSequenceOfTransient.hxx>
-#endif
-#ifndef _TCollection_AsciiString_HeaderFile
 #include <TCollection_AsciiString.hxx>
-#endif
-#ifndef _Quantity_Color_HeaderFile
-#include <Quantity_Color.hxx>
-#endif
-#ifndef _Aspect_TypeOfMarker_HeaderFile
-#include <Aspect_TypeOfMarker.hxx>
-#endif
+#include <TDF_Label.hxx>
+#include <TDataStd_TreeNode.hxx>
 
 #ifdef GetObject
 #undef GetObject
 #endif
 
-class Handle_TColStd_HSequenceOfTransient;
-class Standard_Transient;
-class Handle_Standard_Type;
-class Handle(MMgt_TShared);
-class GEOM_Object;
+class GEOM_BaseObject;
+class Handle(TFunction_Driver);
+class GEOM_Engine;
 
-
-Standard_EXPORT Handle_Standard_Type& STANDARD_TYPE(GEOM_Object);
-
-class Handle(GEOM_Object) : public Handle(MMgt_TShared) {
-  public:
-    inline void* operator new(size_t,void* anAddress)
-      {
-        return anAddress;
-      }
-    inline void* operator new(size_t size)
-      {
-        return Standard::Allocate(size);
-      }
-    inline void  operator delete(void *anAddress)
-      {
-        if (anAddress) Standard::Free((Standard_Address&)anAddress);
-      }
-
-    Handle(GEOM_Object)():Handle(MMgt_TShared)() {}
-    Handle(GEOM_Object)(const Handle(GEOM_Object)& aHandle) : Handle(MMgt_TShared)(aHandle)
-     {
-     }
-
-    Handle(GEOM_Object)(const GEOM_Object* anItem) : Handle(MMgt_TShared)((MMgt_TShared *)anItem)
-     {
-     }
-
-    Handle(GEOM_Object)& operator=(const Handle(GEOM_Object)& aHandle)
-     {
-      Assign(aHandle.Access());
-      return *this;
-     }
-
-    Handle(GEOM_Object)& operator=(const GEOM_Object* anItem)
-     {
-      Assign((Standard_Transient *)anItem);
-      return *this;
-     }
-
-    GEOM_Object* operator->()
-     {
-      return (GEOM_Object *)ControlAccess();
-     }
-
-    GEOM_Object* operator->() const
-     {
-      return (GEOM_Object *)ControlAccess();
-     }
-
-   Standard_EXPORT ~Handle(GEOM_Object)() {};
-
-   Standard_EXPORT static const Handle(GEOM_Object) DownCast(const Handle(Standard_Transient)& AnObject);
-};
-
-
-#include <Standard_GUID.hxx>
-#include <TDataStd_TreeNode.hxx>
-#include "GEOM_Function.hxx"
-#include "GEOM_Engine.hxx"
+DEFINE_STANDARD_HANDLE( GEOM_BaseObject, Standard_Transient );
 
 //!Class that represents a geometric entity in the Data Framework
-class GEOM_Object : public MMgt_TShared
+class GEOM_BaseObject : public Standard_Transient
 {
  friend class GEOM_Engine;
 
- public:
-  struct Color {
-    //! Red component of the color
-    double R;
-    //! Green component of the color
-    double G;
-    //! Blue component  of the color
-    double B;
-  };
+protected:
+  Standard_EXPORT GEOM_BaseObject(const TDF_Label& theLabel);
 
  public:
-  inline void* operator new(size_t,void* anAddress)
-    {
-      return anAddress;
-    }
-  inline void* operator new(size_t size)
-    {
-      return Standard::Allocate(size);
-    }
-  inline void  operator delete(void *anAddress)
-    {
-      if (anAddress) Standard::Free((Standard_Address&)anAddress);
-    }
 
-  // Type management
-  //
-  Standard_EXPORT friend Handle_Standard_Type& GEOM_Object_Type_();
-  Standard_EXPORT const Handle(Standard_Type)& DynamicType() const  { return STANDARD_TYPE(GEOM_Object) ; }
-  Standard_EXPORT Standard_Boolean IsKind(const Handle(Standard_Type)& AType) const
-           { return (STANDARD_TYPE(GEOM_Object) == AType || MMgt_TShared::IsKind(AType)); }
+  Standard_EXPORT GEOM_BaseObject(const TDF_Label& theEntry, int theType);
+  Standard_EXPORT ~GEOM_BaseObject();
 
- private:
-  GEOM_Object(TDF_Label& theLabel);
+  //!Finds a GEOM_BaseObject on the label theLabel
+  Standard_EXPORT static Handle(GEOM_BaseObject) GetObject(const TDF_Label& theLabel);
 
- public:
-  Standard_EXPORT GEOM_Object(TDF_Label& theEntry, int theType);
-  Standard_EXPORT ~GEOM_Object();
+  //!Finds a GEOM_BaseObject by a reference, stored on the label theLabel
+  Standard_EXPORT static Handle(GEOM_BaseObject) GetReferencedObject(const TDF_Label& theLabel);
 
-  //!Finds a GEOM_Object on the label theLabel
-  Standard_EXPORT static Handle(GEOM_Object) GetObject(TDF_Label& theLabel);
+  //!Returns type of a object (GEOM_POINT, GEOM_VECTOR...) on theLabel, -1 if no object is there
+  Standard_EXPORT static int GetType(const TDF_Label& theLabel);
 
-  //!Finds a GEOM_Object by a reference, stored on the label theLabel
-  Standard_EXPORT static Handle(GEOM_Object) GetReferencedObject(TDF_Label& theLabel);
-
-  //!Returns a GEOM_Object common GUID
+  //!Returns a GEOM_BaseObject common GUID.
+  //!This GUID marks the label of any object in GEOM module
   Standard_EXPORT static const Standard_GUID& GetObjectID();
 
-  //!Returns a GUID associated with a sub shape object
+  //!Returns a GUID associated with a sub-shape object
+  //!This GUID corresponds to GEOM_SubShapeDriver
   Standard_EXPORT static const Standard_GUID& GetSubShapeID();
 
   //###########################################################
   //Access to properties
   //###########################################################
 
-  //!Returns a TreeNode that presents a root of a function tree for this GEOM_Object
+  //!Returns a TreeNode that presents a root of a function tree for this GEOM_BaseObject
   Standard_EXPORT Handle(TDataStd_TreeNode) GetRootNode() { return _root; }
 
-  //!Returns a label of this GEOM_Object
-  Standard_EXPORT TDF_Label GetEntry() { return _label; }
+  //!Returns a label of this GEOM_BaseObject
+  Standard_EXPORT TDF_Label GetEntry() const { return _label; }
 
-  //!Returns a type of this GEOM_Object (GEOM_POINT, GEOM_VECTOR...)
+  //!Returns an entry of this GEOM_BaseObject
+  Standard_EXPORT TCollection_AsciiString GetEntryString();
+
+  //!Returns a type of this GEOM_BaseObject (GEOM_POINT, GEOM_VECTOR...)
   Standard_EXPORT int GetType();
 
-  //!Sets the type of this GEOM_Object
+  //!Sets the type of this GEOM_BaseObject
   Standard_EXPORT void SetType(int theType);
 
   //!Modifications counter management
@@ -210,47 +99,14 @@ class GEOM_Object : public MMgt_TShared
   //!Modifications counter management
   Standard_EXPORT void IncrementTic();
 
-  //!Returns an ID of the OCAF document where this GEOM_Object is stored
+  //!Returns an ID of the OCAF document where this GEOM_BaseObject is stored
   Standard_EXPORT int GetDocID();
 
-  //!Returns a value (as TopoDS_Shape) of this GEOM_Object
-  Standard_EXPORT TopoDS_Shape GetValue();
-
-  //!Sets a name of this GEOM_Object
+  //!Sets a name of this GEOM_BaseObject
   Standard_EXPORT void SetName(const char* theName);
 
-  //!Returns a name of this GEOM_Object
-  Standard_EXPORT const char* GetName();
-
-  //!Sets a color of this GEOM_Object
-  Standard_EXPORT void SetColor(const GEOM_Object::Color& theColor);
-
-  //!Returns a color of this GEOM_Object
-  Standard_EXPORT Color GetColor();
-
-  //!Toggles an auto color mode on this GEOM_Object
-  Standard_EXPORT void SetAutoColor(bool theAutoColor);
-
-  //!Returns a flag of auto color mode of this GEOM_Object
-  Standard_EXPORT bool GetAutoColor();
-
-  //!Sets predefined point marker texture
-  Standard_EXPORT void SetMarkerStd(const Aspect_TypeOfMarker theType, double theSize);
-
-  //!Sets custom point marker texture
-  Standard_EXPORT void SetMarkerTexture(int theTextureId);
-
-  //!Gets point marker type
-  Standard_EXPORT Aspect_TypeOfMarker GetMarkerType();
-
-  //!Gets point marker scale factor / size
-  Standard_EXPORT double GetMarkerSize();
-
-  //!Gets custom marker texture ID
-  Standard_EXPORT int GetMarkerTexture();
-
-  //!Unsets point marker
-  Standard_EXPORT void UnsetMarker();
+  //!Returns a name of this GEOM_BaseObject
+  Standard_EXPORT TCollection_AsciiString GetName();
 
   //!Sets an auxiliary data
   Standard_EXPORT void SetAuxData(const char* theData);
@@ -265,20 +121,13 @@ class GEOM_Object : public MMgt_TShared
   Standard_EXPORT TCollection_AsciiString GetParameters() const;
 
   //###########################################################
-  // Sub shape methods
-  //###########################################################
-
-  //!Returns false if the object is a sub shape of another object
-  Standard_EXPORT bool IsMainShape();
-
-  //###########################################################
   // CORBA related methods
   //###########################################################
 
-  //!Sets an IOR of CORBA GEOM_Object_i which refers to this object
+  //!Sets an IOR of CORBA GEOM_BaseObject_i which refers to this object
   Standard_EXPORT void SetIOR(TCollection_AsciiString& theIOR) { _ior = theIOR; }
 
-  //!Returns an IOR of CORBA GEOM_Object_i which refers to this object
+  //!Returns an IOR of CORBA GEOM_BaseObject_i which refers to this object
   Standard_EXPORT TCollection_AsciiString GetIOR() { return _ior; }
 
   //###########################################################
@@ -286,19 +135,21 @@ class GEOM_Object : public MMgt_TShared
   //###########################################################
 
   //!Adds a function with a driver GUID = theGUID and a type theFunctionType
-  //!to the function tree of this GEOM_Object
-  Standard_EXPORT Handle(GEOM_Function) AddFunction(const Standard_GUID& theGUID, int theFunctionType);
-
+  //!to the function tree of this GEOM_BaseObject
+  Standard_EXPORT Handle(GEOM_Function) AddFunction(const Standard_GUID& theGUID,
+                                                    int                  theFunctionType,
+                                                    bool                 allowSubShape=false);
+  
   //!Removes the function aFunction from the this object
   Standard_EXPORT Standard_Boolean RemoveFunction(Handle(GEOM_Function) aFunction);
 
-  //!Returns a number of functions of this GEOM_Object
+  //!Returns a number of functions of this GEOM_BaseObject
   Standard_EXPORT int GetNbFunctions();
 
   //!Returns a function with given number theFunctionNumber
   Standard_EXPORT Handle(GEOM_Function) GetFunction(int theFunctionNumber);
 
-  //!Return the last function of this GEOM_Object
+  //!Return the last function of this GEOM_BaseObject
   Standard_EXPORT Handle(GEOM_Function) GetLastFunction();
 
   //!Returns all dependencies of the object
@@ -306,6 +157,9 @@ class GEOM_Object : public MMgt_TShared
 
   //!Returns the dependencies of the last function
   Standard_EXPORT Handle(TColStd_HSequenceOfTransient) GetLastDependency();
+
+  //!Returns a driver creator of this object
+  Standard_EXPORT Handle(TFunction_Driver) GetCreationDriver();
 
   //!gets the Dirty flag of this object.Used to mark a shape as problematic
   Standard_EXPORT Standard_Boolean IsDirty();
@@ -323,12 +177,15 @@ class GEOM_Object : public MMgt_TShared
   //!Returns a label which could be used to store user data
   Standard_EXPORT TDF_Label GetUserDataLabel();
 
- private:
+ protected:
   Handle(TDataStd_TreeNode) _root;
   TDF_Label                 _label;
   TCollection_AsciiString   _ior;
   TCollection_AsciiString   _parameters;
   int                       _docID;
+
+public:
+  DEFINE_STANDARD_RTTI( GEOM_BaseObject );
 };
 
 #endif

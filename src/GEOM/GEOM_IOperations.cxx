@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -18,11 +20,11 @@
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
 
-#include "utilities.h"
-
 #include <Standard_Stream.hxx>
 
 #include <GEOM_IOperations.hxx>
+
+#include "utilities.h"
 
 #include <TDataStd_TreeNode.hxx>
 #include <TDataStd_ChildNodeIterator.hxx>
@@ -88,7 +90,7 @@ bool GEOM_IOperations::FinishOperation()
   Handle(TDocStd_Document) aDoc = _engine->GetDocument(_docID);
   if(aDoc->GetUndoLimit() > 0) 
     res = aDoc->CommitCommand();
-
+  _engine->DocumentModified(_docID, res);
   return res;
 }
 
