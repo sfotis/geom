@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -28,7 +30,7 @@
 #include <TopoDS_Shape.hxx>
 #include <TCollection_AsciiString.hxx>
 
-#include <Standard_ConstructionError.hxx>
+#include <Standard_Failure.hxx>
 
 #ifdef WNT
 #include <windows.h>
@@ -105,7 +107,7 @@ Standard_Integer GEOMImpl_ExportDriver::Execute(TFunction_Logbook& log) const
     return 0;
 
   // load plugin library
-  LibHandle anExportLib = LoadLib( aLibName.ToCString() );
+  LibHandle anExportLib = LoadLib( aLibName.ToCString() ); //This is workaround of BUG OCC13051
   funcPoint fp = 0;
   if ( anExportLib )
 #ifdef __BORLANDC__ // needs as explicit Borland value
@@ -114,59 +116,38 @@ Standard_Integer GEOMImpl_ExportDriver::Execute(TFunction_Logbook& log) const
     fp = (funcPoint)GetProc( anExportLib, "Export" );
 #endif
 
-  if ( !fp )
-    return 0;
+  if ( !fp ) {
+    TCollection_AsciiString aMsg = aFormatName;
+    aMsg += " plugin was not installed";
+    Standard_Failure::Raise(aMsg.ToCString());
+  }
 
   // perform the export
   int res = fp( aShape, aFileName, aFormatName );
 
   // unload plugin library
+  // commented by enk:
+  // the bug was occured: using ACIS Import/Export plugin
   //UnLoadLib( anExportLib );
+
   if ( res )
     log.SetTouched(Label()); 
 
   return res;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOMImpl_ExportDriver_Type_
-//purpose  :
-//======================================================================= 
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_ExportDriver_Type_()
+bool GEOMImpl_ExportDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
-
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared); 
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
- 
-
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_ExportDriver",
-			                                 sizeof(GEOMImpl_ExportDriver),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
-
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//======================================================================= 
-const Handle(GEOMImpl_ExportDriver) Handle(GEOMImpl_ExportDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_ExportDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_ExportDriver))) {
-       _anOtherObject = Handle(GEOMImpl_ExportDriver)((Handle(GEOMImpl_ExportDriver)&)AnObject);
-     }
+  return false;
   }
 
-  return _anOtherObject ;
-}
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_ExportDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_ExportDriver,GEOM_BaseDriver);

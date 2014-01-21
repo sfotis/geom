@@ -1,4 +1,4 @@
-//  Copyright (C) 2007-2010  CEA/DEN, EDF R&D, OPEN CASCADE
+//  Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 //  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 //  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
@@ -18,14 +18,16 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 //  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
-
-#include "utilities.h"
+//
 
 #include <Standard_Stream.hxx>
 
 #include <GEOMImpl_Block6Explorer.hxx>
 
 #include <ShHealOper_ShapeProcess.hxx>
+
+#include "utilities.h"
+
 
 #include <BRep_Tool.hxx>
 #include <BRep_TFace.hxx>
@@ -77,6 +79,8 @@
 #define NBFACES 6
 #define NBEDGES 12
 #define NBVERTS 8
+
+#define PLANAR_FACE_MAX_TOLERANCE 1e-06
 
 static Standard_Integer mod4 (Standard_Integer nb)
 {
@@ -1196,12 +1200,23 @@ Standard_Integer GEOMImpl_Block6Explorer::FindFace
 //function : MakeFace
 //purpose  :
 //=======================================================================
-void GEOMImpl_Block6Explorer::MakeFace (const TopoDS_Wire&     theWire,
+TCollection_AsciiString GEOMImpl_Block6Explorer::MakeFace (const TopoDS_Wire&     theWire,
                                         const Standard_Boolean isPlanarWanted,
                                         TopoDS_Shape&          theResult)
 {
+  if (!isPlanarWanted)
+    return MakeAnyFace(theWire, theResult);
+
+  // Try to build a planar face.
+
+  // If required tolerance increase will be
+  // higher than PLANAR_FACE_MAX_TOLERANCE,
+  // we will try to build a non-planar face.
+
+  TCollection_AsciiString aWarning;
+
   // Workaround for Mantis issue 0020956
-  if (isPlanarWanted) {
+
     // Count the number of points in the wire.
     // Collect the first three points.
     gp_Pnt p1, p2, p3;
@@ -1246,27 +1261,85 @@ void GEOMImpl_Block6Explorer::MakeFace (const TopoDS_Wire&     theWire,
       BRepBuilderAPI_MakeFace MK (plane, theWire, isPlanarWanted);
       if (MK.IsDone()) {
         theResult = MK.Shape();
-        return;
+      return aWarning;
       }
     }
     else {
       BRepBuilderAPI_MakeFace MK (theWire, isPlanarWanted);
       if (MK.IsDone()) {
         theResult = MK.Shape();
-        return;
+      return aWarning;
+    }
       }
-    }
+
+  // try to update wire tolerances to build a planar face
+
+  // Find a deviation
+  Standard_Real aToleranceReached, aTol;
+  BRepLib_FindSurface aFS;
+  aFS.Init(theWire, -1., isPlanarWanted);
+  aToleranceReached = aFS.ToleranceReached();
+  aTol = aFS.Tolerance();
+
+  if (!aFS.Found()) {
+    aFS.Init(theWire, aToleranceReached, isPlanarWanted);
+    if (!aFS.Found()) return aWarning;
+    aToleranceReached = aFS.ToleranceReached();
+    aTol = aFS.Tolerance();
   }
-  else {
-    // try to build face on plane or on any surface under the edges of the wire
-    BRepBuilderAPI_MakeFace MK (theWire, isPlanarWanted);
-    if (MK.IsDone()) {
-      theResult = MK.Shape();
-      return;
-    }
+  aTol = Max(1.2 * aToleranceReached, aTol);
+
+  // Mantis issue 0021432: EDF GEOM: Faces with huge tolerance can be built in GEOM
+  if (aTol > PLANAR_FACE_MAX_TOLERANCE) {
+    aWarning = MakeAnyFace(theWire, theResult);
+    if (aWarning.IsEmpty() && !theResult.IsNull())
+      aWarning = "MAKE_FACE_TOLERANCE_TOO_BIG";
+    return aWarning;
   }
 
-  if (!isPlanarWanted) {
+  // Copy the wire, bacause it can be updated with very-very big tolerance here
+  BRepBuilderAPI_Copy aMC (theWire);
+  if (!aMC.IsDone()) return aWarning;
+  TopoDS_Wire aWire = TopoDS::Wire(aMC.Shape());
+  // Update tolerances to <aTol>
+  BRep_Builder B;
+  for (TopExp_Explorer expE (aWire, TopAbs_EDGE); expE.More(); expE.Next()) {
+    TopoDS_Edge anE = TopoDS::Edge(expE.Current());
+    B.UpdateEdge(anE, aTol);
+  }
+  for (TopExp_Explorer expV (aWire, TopAbs_VERTEX); expV.More(); expV.Next()) {
+    TopoDS_Vertex aV = TopoDS::Vertex(expV.Current());
+    B.UpdateVertex(aV, aTol);
+  }
+  //BRepLib::UpdateTolerances(aWire);
+  // Build face
+  BRepBuilderAPI_MakeFace MK1 (aWire, isPlanarWanted);
+  if (MK1.IsDone()) {
+    theResult = MK1.Shape();
+    // Mantis issue 0021432: EDF GEOM: Faces with huge tolerance can be built in GEOM
+    //if (aTol > PLANAR_FACE_MAX_TOLERANCE)
+    //  aWarning = "MAKE_FACE_TOLERANCE_TOO_BIG";
+  }
+
+  return aWarning;
+    }
+
+//=======================================================================
+//function : MakeAnyFace
+//purpose  :
+//=======================================================================
+TCollection_AsciiString GEOMImpl_Block6Explorer::MakeAnyFace (const TopoDS_Wire& theWire,
+                                                              TopoDS_Shape&      theResult)
+{
+  TCollection_AsciiString aWarning;
+
+  // try to build a face on any surface under the edges of the wire
+  BRepBuilderAPI_MakeFace MK (theWire, Standard_False);
+    if (MK.IsDone()) {
+      theResult = MK.Shape();
+    return aWarning;
+  }
+
     // try to construct filling surface
     BRepOffsetAPI_MakeFilling MF;
 
@@ -1277,12 +1350,37 @@ void GEOMImpl_Block6Explorer::MakeFace (const TopoDS_Wire&     theWire,
     }
 
     MF.Build();
-    if (MF.IsDone()) {
+  if (!MF.IsDone()) {
+    aWarning = "BRepOffsetAPI_MakeFilling failed";
+    return aWarning;
+  }
+
       // Result of filling
       TopoDS_Shape aFace = MF.Shape();
 
       // 12.04.2006 for PAL12149 begin
       Handle(Geom_Surface) aGS = BRep_Tool::Surface(TopoDS::Face(aFace));
+
+// VSR: debug issues 0021568 and 0021550 (15/05/2012) - BEGIN
+// the following block, when enabled, leads to extra vertices generation by partition algorithm
+// in some cases, for example when fillet is made on a PipeTShape
+//#if OCC_VERSION_LARGE > 0x06050200
+#if 0
+// VSR: debug issues 0021568 and 0021550 (15/05/2012) - END
+  BRep_Builder BB;
+  TopoDS_Iterator itw(theWire);
+  for (; itw.More(); itw.Next())
+  {
+    const TopoDS_Edge& anEdge = TopoDS::Edge(itw.Value());
+    TopoDS_Edge NewEdge = TopoDS::Edge(MF.Generated(anEdge).First());
+    Standard_Real fpar, lpar;
+    Handle(Geom2d_Curve) NewPCurve = BRep_Tool::CurveOnSurface(NewEdge, TopoDS::Face(aFace), fpar, lpar);
+    TopLoc_Location aLoc;
+    Standard_Real NewTol = BRep_Tool::Tolerance(NewEdge);
+    BB.UpdateEdge(anEdge, NewPCurve, aGS, aLoc, NewTol);
+  }
+#endif
+
       BRepBuilderAPI_MakeFace MK1 (aGS, theWire);
       if (MK1.IsDone()) {
         TopoDS_Shape aFace1 = MK1.Shape();
@@ -1331,55 +1429,6 @@ void GEOMImpl_Block6Explorer::MakeFace (const TopoDS_Wire&     theWire,
         }
         theResult = aFace;
       }
-    }
-  } else {
-    // try to update wire tolerances to build a planar face
 
-#if 1 //(OCC_VERSION_MAJOR < 6) || (OCC_VERSION_MAJOR == 6 && OCC_VERSION_MINOR <= 1)
-    // Find a deviation
-    Standard_Real aToleranceReached, aTol;
-    BRepLib_FindSurface aFS;
-    aFS.Init(theWire, -1., isPlanarWanted);
-    aToleranceReached = aFS.ToleranceReached();
-    aTol = aFS.Tolerance();
-
-    if (!aFS.Found()) {
-      aFS.Init(theWire, aToleranceReached, isPlanarWanted);
-      if (!aFS.Found()) return;
-      aToleranceReached = aFS.ToleranceReached();
-      aTol = aFS.Tolerance();
-    }
-    aTol = Max(1.2 * aToleranceReached, aTol);
-
-    // Copy the wire, bacause it can be updated with very-very big tolerance here
-    BRepBuilderAPI_Copy aMC (theWire);
-    if (!aMC.IsDone()) return;
-    TopoDS_Wire aWire = TopoDS::Wire(aMC.Shape());
-    // Update tolerances to <aTol>
-    BRep_Builder B;
-    for (TopExp_Explorer expE (aWire, TopAbs_EDGE); expE.More(); expE.Next()) {
-      TopoDS_Edge anE = TopoDS::Edge(expE.Current());
-      B.UpdateEdge(anE, aTol);
-    }
-    for (TopExp_Explorer expV (aWire, TopAbs_VERTEX); expV.More(); expV.Next()) {
-      TopoDS_Vertex aV = TopoDS::Vertex(expV.Current());
-      B.UpdateVertex(aV, aTol);
-    }
-    //BRepLib::UpdateTolerances(aWire);
-    // Build face
-    BRepBuilderAPI_MakeFace MK1 (aWire, isPlanarWanted);
-    if (MK1.IsDone()) {
-      theResult = MK1.Shape();
-      return;
-    }
-
-#else // After migration on OCCT version, containing PKV's fix. See bug 8293
-    BRepLib_MakeFace aBMF;
-    aBMF.Init(theWire, isPlanarWanted, Standard_True);
-    if (aBMF.Error() == BRepLib_FaceDone) {
-      theResult = aBMF.Shape();
-      return;
-    }
-#endif
-  }
+  return aWarning;
 }

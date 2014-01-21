@@ -1,12 +1,11 @@
-// Copyright (C) 2009  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-// CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 // 
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,17 +16,20 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+
 //  File   : GEOMImpl_Fillet1d.hxx
 //  Module : GEOMImpl
 
 #ifndef _GEOMImpl_Fillet1d_HeaderFile
 #define _GEOMImpl_Fillet1d_HeaderFile
 
-#include <gp_Pnt.hxx>
+#include <TopoDS_Edge.hxx>
+
 #include <Geom_Plane.hxx>
 #include <Geom2d_Curve.hxx>
 
-#include <TopoDS_Edge.hxx>
+#include <gp_Pnt.hxx>
+
 #include <TColStd_ListOfReal.hxx>
 #include <TColStd_SequenceOfReal.hxx>
 #include <TColStd_SequenceOfInteger.hxx>
@@ -42,23 +44,26 @@ class GEOMImpl_Fillet1d
 {
 public:
   //! Constructor
-  //! The fillet 1D algorithm initialise by two edges and plane
+  //! The fillet 1D algorithm is initialised by two edges and plane
   Standard_EXPORT GEOMImpl_Fillet1d(const TopoDS_Edge& theEdge1,
                                     const TopoDS_Edge& theEdge2,
                                     const gp_Pln&      thePlane);
   //! Makes fillet with given radius
   //! @returns Standard_True, if at least one result computed
   Standard_EXPORT Standard_Boolean Perform(const Standard_Real theRadius);
+
   //! Returns result fillet edge and modified edges as out parameters
   Standard_EXPORT TopoDS_Edge Result(const gp_Pnt& thePoint, TopoDS_Edge& theEdge1, TopoDS_Edge& theEdge2);
 
 private:
   //! private methods
+  void performInterval(const Standard_Real theStart,
+                       const Standard_Real theEnd,
+                       const Standard_Integer theNBSteps);
   void fillPoint(GEOMImpl_Fillet1dPoint*);
   void fillDiff(GEOMImpl_Fillet1dPoint*, Standard_Real, Standard_Boolean);
   void performNewton(GEOMImpl_Fillet1dPoint*, GEOMImpl_Fillet1dPoint*);
   Standard_Boolean processPoint(GEOMImpl_Fillet1dPoint*, GEOMImpl_Fillet1dPoint*, Standard_Real);
-
 
 private:
   //! private fields
@@ -126,7 +131,7 @@ public:
   Standard_EXPORT Standard_Boolean ComputeDifference(GEOMImpl_Fillet1dPoint*);
   Standard_EXPORT void FilterPoints(GEOMImpl_Fillet1dPoint*);
   
-  //! Check is point contains solution and  returns the index of them if any
+  //! Checks if point contains solution and returns the index of it if any
   Standard_EXPORT Standard_Integer HasSolution(Standard_Real theRadius); 
   //! Remove solution by index
   void RemoveSolution(Standard_Integer theIndex);

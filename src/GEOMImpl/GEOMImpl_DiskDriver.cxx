@@ -1,7 +1,4 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
-//
-//  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-//  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -19,6 +16,7 @@
 //
 //  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+
 #include <Standard_Stream.hxx>
 
 #include <GEOMImpl_DiskDriver.hxx>
@@ -161,45 +159,45 @@ Standard_Integer GEOMImpl_DiskDriver::Execute(TFunction_Logbook& log) const
   return 1;    
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOMImpl_DiskDriver_Type_
-//purpose  :
-//======================================================================= 
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_DiskDriver_Type_()
+bool GEOMImpl_DiskDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared); 
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
- 
+  GEOMImpl_IDisk aCI( function );
+  Standard_Integer aType = function->GetType();
 
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_DiskDriver",
-			                                 sizeof(GEOMImpl_DiskDriver),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
+  theOperationName = "DISK";
 
-  return _aType;
+  switch ( aType ) {
+  case DISK_PNT_VEC_R:
+    AddParam( theParams, "Center Point", aCI.GetCenter() );
+    AddParam( theParams, "Vector", aCI.GetVector() );
+    AddParam( theParams, "Radius", aCI.GetRadius() );
+    break;
+  case DISK_THREE_PNT:
+    AddParam( theParams, "Point 1", aCI.GetPoint1() );
+    AddParam( theParams, "Point 2", aCI.GetPoint2() );
+    AddParam( theParams, "Point 3", aCI.GetPoint3() );
+    break;
+  case DISK_R:
+    AddParam( theParams, "Radius", aCI.GetRadius() );
+    AddParam( theParams, "Orientation", aCI.GetOrientation() );
+    break;
+  default:
+    return false;
 }
 
-//=======================================================================
-//function : DownCast
-//purpose  :
-//======================================================================= 
-const Handle(GEOMImpl_DiskDriver) Handle(GEOMImpl_DiskDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_DiskDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_DiskDriver))) {
-       _anOtherObject = Handle(GEOMImpl_DiskDriver)((Handle(GEOMImpl_DiskDriver)&)AnObject);
-     }
+  return true;
   }
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_DiskDriver,GEOM_BaseDriver);
 
-  return _anOtherObject ;
-}
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_DiskDriver,GEOM_BaseDriver);

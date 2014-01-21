@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,7 +19,6 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#include "utilities.h"
 
 #include <Standard_Stream.hxx>
 
@@ -28,10 +29,6 @@
 #include <GEOM_Function.hxx>
 
 #include <BRepFilletAPI_MakeFillet.hxx>
-#include <BRepFilletAPI_MakeFillet2d.hxx>
-#include <BRepBuilderAPI_MakeFace.hxx>
-#include <BRepBuilderAPI_MakeWire.hxx>
-#include <ShapeFix_Wire.hxx>
 #include <BRepCheck_Analyzer.hxx>
 #include <BRep_Tool.hxx>
 
@@ -148,7 +145,8 @@ Standard_Integer GEOMImpl_FilletDriver::Execute(TFunction_Logbook& log) const
 		  TopoDS_Edge E = TopoDS::Edge(Exp.Current());
 		  fill.Add(E);
 		}
-	  } else if (aType == FILLET_SHAPE_EDGES || aType == FILLET_SHAPE_EDGES_2R) {
+	  } 
+      else if (aType == FILLET_SHAPE_EDGES || aType == FILLET_SHAPE_EDGES_2R) {
 		int aLen = aCI.GetLength();
 		int ind = 1;
 		for (; ind <= aLen; ind++) {
@@ -158,7 +156,8 @@ Standard_Integer GEOMImpl_FilletDriver::Execute(TFunction_Logbook& log) const
 			fill.Add(TopoDS::Edge(aShapeEdge));
 		  }
 		}
-	  } else if (aType == FILLET_SHAPE_FACES || aType == FILLET_SHAPE_FACES_2R) {
+	  } 
+      else if (aType == FILLET_SHAPE_FACES || aType == FILLET_SHAPE_FACES_2R) {
 		int aLen = aCI.GetLength();
 		int ind = 1;
 		for (; ind <= aLen; ind++) {
@@ -171,17 +170,21 @@ Standard_Integer GEOMImpl_FilletDriver::Execute(TFunction_Logbook& log) const
 			}
 		  }
 		}
-	  } else {
+	  } 
+      else {
 	  }
-	  if (aType == FILLET_SHAPE_FACES || aType == FILLET_SHAPE_EDGES || aType == FILLET_SHAPE_ALL)
+
+  if (aType == FILLET_SHAPE_FACES || aType == FILLET_SHAPE_EDGES || aType == FILLET_SHAPE_ALL) {
 		for (int i = 1; i <= fill.NbContours(); i++)
 		  fill.SetRadius(aCI.GetR(), i, 1);
-	  else if (aType == FILLET_SHAPE_FACES_2R || aType == FILLET_SHAPE_EDGES_2R)
-		for (int i = 1; i <= fill.NbContours(); i++)
+  }
+	  else if (aType == FILLET_SHAPE_FACES_2R || aType == FILLET_SHAPE_EDGES_2R) {
+		for (int i = 1; i <= fill.NbContours(); i++) {
 		  fill.SetRadius(aCI.GetR1(), aCI.GetR2(), i, 1);
+    }
+  }
 
 	  fill.Build();
-
 	  if (!fill.IsDone()) {
 		StdFail_NotDone::Raise("Fillet can't be computed on the given shape with the given radius");
 	  }
@@ -228,45 +231,67 @@ Standard_Integer GEOMImpl_FilletDriver::Execute(TFunction_Logbook& log) const
   return 1;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOMImpl_FilletDriver_Type_
-//purpose  :
-//=======================================================================
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_FilletDriver_Type_()
+bool GEOMImpl_FilletDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared);
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
+  GEOMImpl_IFillet aCI( function );
+  Standard_Integer aType = function->GetType();
 
+  theOperationName = "FILLET";
 
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_FilletDriver",
-			                                 sizeof(GEOMImpl_FilletDriver),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
-
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//=======================================================================
-const Handle(GEOMImpl_FilletDriver) Handle(GEOMImpl_FilletDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_FilletDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_FilletDriver))) {
-       _anOtherObject = Handle(GEOMImpl_FilletDriver)((Handle(GEOMImpl_FilletDriver)&)AnObject);
-     }
+  switch ( aType ) {
+  case FILLET_SHAPE_ALL:
+    AddParam( theParams, "Main Object", aCI.GetShape() );
+    AddParam( theParams, "Selected edges", "all" );
+    break;
+  case FILLET_SHAPE_EDGES:
+  case FILLET_SHAPE_EDGES_2R:
+    AddParam( theParams, "Main Object", aCI.GetShape() );
+    AddParam( theParams, "Selected edges" );
+    if ( aCI.GetLength() > 1 )
+      theParams[1] << aCI.GetLength() << " edges: ";
+    for (int i = 1; i <= aCI.GetLength(); ++i )
+      theParams[1] << aCI.GetEdge( i ) << " ";
+    if ( aType == FILLET_SHAPE_EDGES ) {
+      AddParam( theParams, "Radius", aCI.GetR() );
+    }
+    else {
+      AddParam( theParams, "R1", aCI.GetR1() );
+      AddParam( theParams, "R2", aCI.GetR2() );
+    }
+    break;
+  case FILLET_SHAPE_FACES:
+  case FILLET_SHAPE_FACES_2R:
+    AddParam( theParams, "Main Object", aCI.GetShape() );
+    AddParam( theParams, "Selected faces" );
+    if ( aCI.GetLength() > 1 )
+      theParams[1] << aCI.GetLength() << " faces: ";
+    for (int i = 1; i <= aCI.GetLength(); ++i )
+      theParams[1] << aCI.GetFace( i ) << " ";
+    if ( aType == FILLET_SHAPE_FACES ) {
+      AddParam( theParams, "Radius", aCI.GetR() );
+    }
+    else {
+      AddParam( theParams, "R1", aCI.GetR1() );
+      AddParam( theParams, "R2", aCI.GetR2() );
+    }
+    break;
+  default:
+    return false;
   }
-
-  return _anOtherObject ;
+  
+  return true;
 }
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_FilletDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_FilletDriver,GEOM_BaseDriver);

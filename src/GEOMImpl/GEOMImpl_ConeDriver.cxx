@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -123,9 +125,7 @@ Standard_Integer GEOMImpl_ConeDriver::Execute(TFunction_Logbook& log) const
   TopoDS_Shape aShape;
   // Cone does not work if same radius
   if (fabs(aR1 - aR2) <= Precision::Confusion()) {
-  
 	BRepPrimAPI_MakeCylinder MC (anAxes, (aR1 + aR2)/2.0, Abs(aCI.GetH()), theAngle);
-
 	MC.Build();
     if (!MC.IsDone()) {
       StdFail_NotDone::Raise("Cylinder can't be computed from the given parameters");
@@ -147,45 +147,44 @@ Standard_Integer GEOMImpl_ConeDriver::Execute(TFunction_Logbook& log) const
   return 1;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOMImpl_ConeDriver_Type_
-//purpose  :
-//=======================================================================
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_ConeDriver_Type_()
+bool GEOMImpl_ConeDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared);
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
+  GEOMImpl_ICone aCI( function );
+  Standard_Integer aType = function->GetType();
 
+  theOperationName = "CONE";
 
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_ConeDriver",
-			                                 sizeof(GEOMImpl_ConeDriver),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
-
-  return _aType;
+  switch ( aType ) {
+  case CONE_R1_R2_H:
+    AddParam( theParams, "Radius 1", aCI.GetR1() );
+    AddParam( theParams, "Radius 2", aCI.GetR2() );
+    AddParam( theParams, "Height", aCI.GetH() );
+    break;
+  case CONE_PNT_VEC_R1_R2_H:
+    AddParam( theParams, "Base Point", aCI.GetPoint() );
+    AddParam( theParams, "Vector", aCI.GetVector() );
+    AddParam( theParams, "Radius 1", aCI.GetR1() );
+    AddParam( theParams, "Radius 2", aCI.GetR2() );
+    AddParam( theParams, "Height", aCI.GetH() );
+    break;
+  default:
+    return false;
 }
 
-//=======================================================================
-//function : DownCast
-//purpose  :
-//=======================================================================
-const Handle(GEOMImpl_ConeDriver) Handle(GEOMImpl_ConeDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_ConeDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_ConeDriver))) {
-       _anOtherObject = Handle(GEOMImpl_ConeDriver)((Handle(GEOMImpl_ConeDriver)&)AnObject);
-     }
+  return true;
   }
 
-  return _anOtherObject ;
-}
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_ConeDriver,GEOM_BaseDriver);
+
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_ConeDriver,GEOM_BaseDriver);

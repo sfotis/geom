@@ -1,4 +1,4 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+//  Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 //  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 //  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
@@ -19,15 +19,19 @@
 //
 //  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#include <Standard_Stream.hxx>
 
 #include <GEOMImpl_CircleDriver.hxx>
+
 #include <GEOMImpl_ICircle.hxx>
 #include <GEOMImpl_Types.hxx>
+
 #include <GEOM_Function.hxx>
+
+#include <GEOMUtils.hxx>
 
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRep_Tool.hxx>
+
 #include <TopoDS.hxx>
 #include <TopoDS_Shape.hxx>
 #include <TopoDS_Edge.hxx>
@@ -94,30 +98,16 @@ Standard_Integer GEOMImpl_CircleDriver::Execute(TFunction_Logbook& log) const
     Handle(GEOM_Function) aRefVector = aCI.GetVector();
     if (!aRefVector.IsNull()) {
       TopoDS_Shape aShapeVec = aRefVector->GetValue();
-      if (aShapeVec.ShapeType() != TopAbs_EDGE) {
-        Standard_ConstructionError::Raise
-          ("Circle creation aborted: invalid vector argument, must be a vector or an edge");
-      }
-      TopoDS_Edge anE = TopoDS::Edge(aShapeVec);
-      TopoDS_Vertex V1, V2;
-      TopExp::Vertices(anE, V1, V2, Standard_True);
-      if (!V1.IsNull() && !V2.IsNull()) {
-        aV = gp_Vec(BRep_Tool::Pnt(V1), BRep_Tool::Pnt(V2));
-        if (aV.Magnitude() < gp::Resolution()) {
-          Standard_ConstructionError::Raise
-            ("Circle creation aborted: vector of zero length is given");
-        }
-      }
+      // take orientation of edge into account to avoid regressions, as it was implemented so
+      aV = GEOMUtils::GetVector(aShapeVec, Standard_True);
     }
     // Axes
     gp_Ax2 anAxes (aP, aV);
-
     // Radius
     double anR = aCI.GetRadius();
     char aMsg[] = "Circle creation aborted: radius value less than 1e-07 is not acceptable";
     if (anR < Precision::Confusion())
       Standard_ConstructionError::Raise(aMsg);
-
     // Circle
     gp_Circ aCirc (anAxes, anR);
     aShape = BRepBuilderAPI_MakeEdge(aCirc).Edge();
@@ -202,45 +192,47 @@ Standard_Integer GEOMImpl_CircleDriver::Execute(TFunction_Logbook& log) const
   return 1;    
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOMImpl_CircleDriver_Type_
-//purpose  :
-//======================================================================= 
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_CircleDriver_Type_()
+bool GEOMImpl_CircleDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared); 
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
- 
+  GEOMImpl_ICircle aCI( function );
+  Standard_Integer aType = function->GetType();
 
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_CircleDriver",
-			                                 sizeof(GEOMImpl_CircleDriver),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
+  theOperationName = "CIRCLE";
 
-  return _aType;
+  switch ( aType ) {
+  case CIRCLE_PNT_VEC_R:
+    AddParam( theParams, "Center Point", aCI.GetCenter(), "Origin" );
+    AddParam( theParams, "Vector", aCI.GetVector(), "Z axis" );
+    AddParam( theParams, "Radius", aCI.GetRadius() );
+    break;
+  case CIRCLE_CENTER_TWO_PNT:
+    AddParam( theParams, "Center Point", aCI.GetPoint1() );
+    AddParam( theParams, "Point 1", aCI.GetPoint2() );
+    AddParam( theParams, "Point 2", aCI.GetPoint3() );
+    break;
+  case CIRCLE_THREE_PNT:
+    AddParam( theParams, "Point 1", aCI.GetPoint1() );
+    AddParam( theParams, "Point 2", aCI.GetPoint2() );
+    AddParam( theParams, "Point 3", aCI.GetPoint3() );
+    break;
+  default:
+    return false;
 }
 
-//=======================================================================
-//function : DownCast
-//purpose  :
-//======================================================================= 
-const Handle(GEOMImpl_CircleDriver) Handle(GEOMImpl_CircleDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_CircleDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_CircleDriver))) {
-       _anOtherObject = Handle(GEOMImpl_CircleDriver)((Handle(GEOMImpl_CircleDriver)&)AnObject);
-     }
+  return true;
   }
 
-  return _anOtherObject ;
-}
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_CircleDriver,GEOM_BaseDriver);
+
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_CircleDriver,GEOM_BaseDriver);

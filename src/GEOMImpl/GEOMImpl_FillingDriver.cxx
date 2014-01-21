@@ -97,14 +97,13 @@ Standard_Integer GEOMImpl_FillingDriver::Execute(TFunction_Logbook& log) const
   if (Label().IsNull()) return 0;
   Handle(GEOM_Function) aFunction = GEOM_Function::GetFunction(Label());
   if (aFunction.IsNull()) return 0;
-
   if (aFunction->GetType() != BASIC_FILLING) return 0;
 
   GEOMImpl_IFilling IF (aFunction);
   Handle(GEOM_Function) aShapeFunction = IF.GetShape();
   if (aShapeFunction.IsNull()) return 0;
-  TopoDS_Shape aShape;
 
+  TopoDS_Shape aShape;
   BRepBuilderAPI_Copy Copy(aShapeFunction->GetValue());
   if( Copy.IsDone() )
     aShape = Copy.Shape();
@@ -133,6 +132,7 @@ Standard_Integer GEOMImpl_FillingDriver::Execute(TFunction_Logbook& log) const
   BRep_Builder B;
   B.MakeCompound(aComp);
 
+  // 1. Convert argument wires, if any, into BSpline edges
   TopoDS_Iterator It (aShape);
   for (; It.More(); It.Next()) {
     Scurrent = It.Value();
@@ -332,7 +332,10 @@ Standard_Integer GEOMImpl_FillingDriver::Execute(TFunction_Logbook& log) const
     // value must be between 21(min) and 101(max)
     int nbc = aSeq.Length();
     int nbp = Max(21,2*MaxNbPoles-1);
-    if(nbp>101) nbp = 101;
+
+    // commented for Mantis issue 0021541
+    //if (nbp > 101) nbp = 101;
+
     TColgp_Array2OfPnt Points(1,nbc,1,nbp);
     int ic = 1;
     for(; ic<=nbc; ic++) {
@@ -359,7 +362,7 @@ Standard_Integer GEOMImpl_FillingDriver::Execute(TFunction_Logbook& log) const
 
   /* We test the validity of resulting shape */
   if (!BRepAlgo::IsValid((aShape))) {
-    Standard_ConstructionError::Raise("Algorithm have produced an invalid shape result");
+    Standard_ConstructionError::Raise("Algorithm has produced an invalid shape result");
     return 0;
   }
 
@@ -369,46 +372,47 @@ Standard_Integer GEOMImpl_FillingDriver::Execute(TFunction_Logbook& log) const
   return 1;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOMImpl_FillingDriver_Type_
-//purpose  :
-//=======================================================================
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_FillingDriver_Type_()
+bool GEOMImpl_FillingDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared);
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
+  GEOMImpl_IFilling aCI( function );
+  Standard_Integer aType = function->GetType();
 
+  theOperationName = "FILLING";
 
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_FillingDriver",
-                                                         sizeof(GEOMImpl_FillingDriver),
-                                                         1,
-                                                         (Standard_Address)_Ancestors,
-                                                         (Standard_Address)NULL);
-
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//=======================================================================
-
-const Handle(GEOMImpl_FillingDriver) Handle(GEOMImpl_FillingDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_FillingDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_FillingDriver))) {
-       _anOtherObject = Handle(GEOMImpl_FillingDriver)((Handle(GEOMImpl_FillingDriver)&)AnObject);
-     }
+  switch ( aType ) {
+  case BASIC_FILLING:
+  {
+    AddParam( theParams, "Input compound", aCI.GetShape() );
+    AddParam( theParams, "Method", aCI.GetMethod() );
+    const char* method[3] =
+      { "Standard", "Use edges orientation", "Correct edges orientation" };
+    if ( 0 <= aCI.GetMethod() && aCI.GetMethod() < 3 )
+      theParams[1] << " = " << method[ aCI.GetMethod() ];
+    AddParam( theParams, "Min deg", aCI.GetMinDeg() );
+    AddParam( theParams, "Max deg", aCI.GetMaxDeg() );
+    AddParam( theParams, "Nb. Iter", aCI.GetNbIter() );
+    AddParam( theParams, "Tol. 2D", aCI.GetTol2D() );
+    AddParam( theParams, "Tol. 3D", aCI.GetTol3D() );
+    AddParam( theParams, "Approximation", aCI.GetApprox() );
+    break;
+  }
+  default:
+    return false;
   }
 
-  return _anOtherObject;
+  return true;
 }
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_FillingDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_FillingDriver,GEOM_BaseDriver);

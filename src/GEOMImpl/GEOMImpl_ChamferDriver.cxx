@@ -1,4 +1,4 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+//  Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 //  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 //  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
@@ -20,25 +20,23 @@
 //  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
 
-#include "utilities.h"
-
 #include <Standard_Stream.hxx>
 
 #include <GEOMImpl_ChamferDriver.hxx>
 #include <GEOMImpl_IChamfer.hxx>
 #include <GEOMImpl_Types.hxx>
 #include <GEOMImpl_ILocalOperations.hxx>
-#include <GEOM_Function.hxx>
 #include <GEOMImpl_Block6Explorer.hxx>
 
+#include <GEOM_Function.hxx>
+
+#include <BRepLib.hxx>
 #include <BRep_Tool.hxx>
 #include <BRepTools.hxx>
 #include <BRepFilletAPI_MakeChamfer.hxx>
-#include <BRepFilletAPI_MakeFillet2d.hxx>
-#include <BRepBuilderAPI_MakeFace.hxx>
-#include <BRepBuilderAPI_MakeWire.hxx>
-#include <BRepCheck_Analyzer.hxx>
-#include <BRepLib.hxx>
+
+#include <ShapeFix_Shape.hxx>
+#include <ShapeFix_ShapeTolerance.hxx>
 
 #include <TopAbs.hxx>
 #include <TopoDS.hxx>
@@ -50,9 +48,6 @@
 #include <TopExp_Explorer.hxx>
 #include <TopTools_MapOfShape.hxx>
 #include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
-
-#include <ShapeFix_ShapeTolerance.hxx>
-#include <ShapeFix_Shape.hxx>
 
 #include <Precision.hxx>
 #include <gp_Pnt.hxx>
@@ -205,7 +200,8 @@ Standard_Integer GEOMImpl_ChamferDriver::Execute(TFunction_Logbook& log) const
 			  M.FindFromIndex(i).Extent() == 2)
 			fill.Add(aD, E, F);
 		}
-	  }else if (aType == CHAMFER_SHAPE_EDGE || aType == CHAMFER_SHAPE_EDGE_AD) {
+  }
+  else if (aType == CHAMFER_SHAPE_EDGE || aType == CHAMFER_SHAPE_EDGE_AD) {
 		// chamfer on edges, common to two faces, with D1 on the first face
 
 		TopoDS_Shape aFace1, aFace2;
@@ -238,7 +234,7 @@ Standard_Integer GEOMImpl_ChamferDriver::Execute(TFunction_Logbook& log) const
 			  {
 				double aD = aCI.GetD();
 				double anAngle = aCI.GetAngle();
-				if ( (anAngle > 0) && (anAngle < (M_PI/2)) )
+              if ( (anAngle > 0) && (anAngle < (M_PI/2.)) )
 				  fill.AddDA(aD, anAngle, E, F);
 			  }
 			  }
@@ -269,6 +265,7 @@ Standard_Integer GEOMImpl_ChamferDriver::Execute(TFunction_Logbook& log) const
 			if (!BRepTools::IsReallyClosed(E, F) &&
 				!BRep_Tool::Degenerated(E) &&
 				M.FindFromKey(E).Extent() == 2)
+            {
 			  if (aType == CHAMFER_SHAPE_FACES)
 				{
 				  double aD1 = aCI.GetD1();
@@ -279,7 +276,7 @@ Standard_Integer GEOMImpl_ChamferDriver::Execute(TFunction_Logbook& log) const
 				{
 				  double aD = aCI.GetD();
 				  double anAngle = aCI.GetAngle();
-				  if ( (anAngle > 0) && (anAngle < (M_PI/2)) )
+                if ( (anAngle > 0) && (anAngle < (M_PI/2.)) )
 				fill.AddDA(aD, anAngle, E, F);
 				}
 			  }
@@ -314,7 +311,7 @@ Standard_Integer GEOMImpl_ChamferDriver::Execute(TFunction_Logbook& log) const
 			{
 			  double aD = aCI.GetD();
 			  double anAngle = aCI.GetAngle();
-			  if ( (anAngle > 0) && (anAngle < (M_PI/2)) )
+          if ( (anAngle > 0) && (anAngle < (M_PI/2.)) )
 			fill.AddDA(aD, anAngle, E, F);
 			}
 		}
@@ -332,10 +329,7 @@ Standard_Integer GEOMImpl_ChamferDriver::Execute(TFunction_Logbook& log) const
 
   if (aShape.IsNull()) return 0;
 
-  // Check shape validity
-  BRepCheck_Analyzer ana (aShape, false);
-  if (!ana.IsValid()) {
-  	// 08.07.2008 added by skl during fixing bug 19761 from Mantis
+  // reduce tolerances
 	ShapeFix_ShapeTolerance aSFT;
 	aSFT.LimitTolerance(aShape, Precision::Confusion(),
 						Precision::Confusion(), TopAbs_SHAPE);
@@ -346,6 +340,10 @@ Standard_Integer GEOMImpl_ChamferDriver::Execute(TFunction_Logbook& log) const
     // fix SameParameter flag
     BRepLib::SameParameter(aShape, 1.E-5, Standard_True);
 
+  // Check shape validity
+  BRepCheck_Analyzer ana (aShape, false);
+  if (!ana.IsValid()) {
+  	// 08.07.2008 added by skl during fixing bug 19761 from Mantis
 	ana.Init(aShape);
 	if (!ana.IsValid()) {
 	  Standard_CString anErrStr("Chamfer algorithm has produced an invalid shape result");
@@ -374,45 +372,91 @@ Standard_Integer GEOMImpl_ChamferDriver::Execute(TFunction_Logbook& log) const
   return 1;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOMImpl_ChamferDriver_Type_
-//purpose  :
-//=======================================================================
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_ChamferDriver_Type_()
+bool GEOMImpl_ChamferDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared);
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
+  GEOMImpl_IChamfer aCI( function );
+  Standard_Integer aType = function->GetType();
 
+  theOperationName = "CHAMFER";
 
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_ChamferDriver",
-			                                 sizeof(GEOMImpl_ChamferDriver),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
-
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//=======================================================================
-const Handle(GEOMImpl_ChamferDriver) Handle(GEOMImpl_ChamferDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_ChamferDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_ChamferDriver))) {
-       _anOtherObject = Handle(GEOMImpl_ChamferDriver)((Handle(GEOMImpl_ChamferDriver)&)AnObject);
-     }
+  switch ( aType ) {
+  case CHAMFER_SHAPE_ALL:
+    AddParam( theParams, "Main Object", aCI.GetShape() );
+    AddParam( theParams, "Selected Edges", "all" );
+    AddParam( theParams, "D", aCI.GetD() );
+    break;
+  case CHAMFER_SHAPE_EDGE:
+    AddParam( theParams, "Main Object", aCI.GetShape() );
+    AddParam( theParams, "Face 1", aCI.GetFace1() );
+    AddParam( theParams, "Face 2", aCI.GetFace2() );
+    AddParam( theParams, "D1", aCI.GetD1() );
+    AddParam( theParams, "D2", aCI.GetD2() );
+    break;
+  case CHAMFER_SHAPE_EDGE_AD:
+    AddParam( theParams, "Main Object", aCI.GetShape() );
+    AddParam( theParams, "Face 1", aCI.GetFace1() );
+    AddParam( theParams, "Face 2", aCI.GetFace2() );
+    AddParam( theParams, "D", aCI.GetD() );
+    AddParam( theParams, "Angle", aCI.GetAngle() );
+    break;
+  case CHAMFER_SHAPE_FACES:
+    AddParam( theParams, "Main Object", aCI.GetShape() );
+    AddParam( theParams, "Selected Faces" );
+    if ( aCI.GetLength() > 1 )
+      theParams[1] << aCI.GetLength() << " faces: ";
+    for ( int i = 1, nb = aCI.GetLength(); i <= nb; ++i )
+      theParams[1] << aCI.GetFace(i) << " ";
+    AddParam( theParams, "D1", aCI.GetD1() );
+    AddParam( theParams, "D2", aCI.GetD2() );
+    break;
+  case CHAMFER_SHAPE_FACES_AD:
+    AddParam( theParams, "Main Object", aCI.GetShape() );
+    AddParam( theParams, "Selected Faces" );
+    if ( aCI.GetLength() > 1 )
+      theParams[1] << aCI.GetLength() << " faces: ";
+    for ( int i = 1, nb = aCI.GetLength(); i <= nb; ++i )
+      theParams[1] << aCI.GetFace(i) << " ";
+    AddParam( theParams, "D", aCI.GetD() );
+    AddParam( theParams, "Angle", aCI.GetAngle() );
+    break;
+  case CHAMFER_SHAPE_EDGES:
+    AddParam( theParams, "Main Object", aCI.GetShape() );
+    AddParam( theParams, "Selected Edges" );
+    if ( aCI.GetLength() > 1 )
+      theParams[1] << aCI.GetLength() << " edges: ";
+    for ( int i = 1, nb = aCI.GetLength(); i <= nb; ++i )
+      theParams[1] << aCI.GetEdge(i) << " ";
+    AddParam( theParams, "D1", aCI.GetD1() );
+    AddParam( theParams, "D2", aCI.GetD2() );
+    break;
+  case CHAMFER_SHAPE_EDGES_AD:
+    AddParam( theParams, "Main Object", aCI.GetShape() );
+    AddParam( theParams, "Selected Edges" );
+    if ( aCI.GetLength() > 1 )
+      theParams[1] << aCI.GetLength() << " edges: ";
+    for ( int i = 1, nb = aCI.GetLength(); i <= nb; ++i )
+      theParams[1] << aCI.GetFace(i) << " ";
+    AddParam( theParams, "D", aCI.GetD() );
+    AddParam( theParams, "Angle", aCI.GetAngle() );
+    break;
+  default:
+    return false;
   }
 
-  return _anOtherObject ;
+  return true;
 }
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_ChamferDriver,GEOM_BaseDriver);
+
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_ChamferDriver,GEOM_BaseDriver);
