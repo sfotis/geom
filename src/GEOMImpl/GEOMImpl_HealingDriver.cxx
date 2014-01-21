@@ -1,4 +1,4 @@
-//  Copyright (C) 2007-2010  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 //  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 //  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
@@ -15,9 +15,10 @@
 //
 //  You should have received a copy of the GNU Lesser General Public
 //  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 //
 //  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+//
 
 #include <Standard_Stream.hxx>
 
@@ -27,6 +28,10 @@
 #include <GEOM_Function.hxx>
 
 #include <GEOMImpl_GlueDriver.hxx>
+#include <GEOMImpl_ShapeDriver.hxx>
+
+#include <GEOMUtils.hxx>
+#include <GEOMAlgo_RemoverWebs.hxx>
 
 #include <ShHealOper_ShapeProcess.hxx>
 #include <ShHealOper_RemoveFace.hxx>
@@ -37,22 +42,30 @@
 #include <ShHealOper_EdgeDivide.hxx>
 #include <ShHealOper_ChangeOrientation.hxx>
 
+#include <TNaming_CopyShape.hxx>
+
+#include <ShapeFix_ShapeTolerance.hxx>
+#include <ShapeFix_Shape.hxx>
+
 #include <BRep_Builder.hxx>
+#include <BRepAdaptor_Curve.hxx>
+#include <BRepCheck_Analyzer.hxx>
+#include <BRepTools_WireExplorer.hxx>
 
 #include <TopExp.hxx>
+#include <TopExp_Explorer.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_Iterator.hxx>
 #include <TopTools_IndexedMapOfShape.hxx>
+#include <TopTools_ListOfShape.hxx>
+#include <TopTools_ListIteratorOfListOfShape.hxx>
 
 #include <TColStd_IndexedDataMapOfTransientTransient.hxx>
-#include <TNaming_CopyShape.hxx>
-#include <ShapeFix_ShapeTolerance.hxx>
-#include <ShapeFix_Shape.hxx>
-#include <BRepCheck_Analyzer.hxx>
 
 #include <Precision.hxx>
 
 #include <StdFail_NotDone.hxx>
+#include <Standard_NullObject.hxx>
 
 //=======================================================================
 //function :  raiseNotDoneExeption
@@ -123,7 +136,13 @@ Standard_Integer GEOMImpl_HealingDriver::Execute(TFunction_Logbook& log) const
     RemoveHoles(&HI, anOriginalShape, aShape);
     break;
   case SEWING:
-    Sew(&HI, anOriginalShape, aShape);
+    Sew(&HI, anOriginalShape, aShape, false);
+    break;
+  case SEWING_NON_MANIFOLD:
+    Sew(&HI, anOriginalShape, aShape, true);
+    break;
+  case REMOVE_INTERNAL_FACES:
+    RemoveInternalFaces(anOriginalShape, aShape);
     break;
   case DIVIDE_EDGE:
     AddPointOnEdge(&HI, anOriginalShape, aShape);
@@ -133,6 +152,12 @@ Standard_Integer GEOMImpl_HealingDriver::Execute(TFunction_Logbook& log) const
     break;
   case LIMIT_TOLERANCE:
     LimitTolerance(&HI, anOriginalShape, aShape);
+    break;
+  case FUSE_COLLINEAR_EDGES:
+    {
+      Handle(TColStd_HSequenceOfTransient) aVerts = HI.GetShapes();
+      FuseCollinearEdges(anOriginalShape, aVerts, aShape);
+    }
     break;
   default:
     return 0;
@@ -402,11 +427,15 @@ Standard_Boolean GEOMImpl_HealingDriver::RemoveHoles (GEOMImpl_IHealing* theHI,
 //=======================================================================
 Standard_Boolean GEOMImpl_HealingDriver::Sew (GEOMImpl_IHealing* theHI,
                                               const TopoDS_Shape& theOriginalShape,
-                                              TopoDS_Shape& theOutShape) const
+                                              TopoDS_Shape& theOutShape,
+                                              Standard_Boolean isAllowNonManifold) const
 {
   Standard_Real aTol = theHI->GetTolerance();
 
   ShHealOper_Sewing aHealer (theOriginalShape, aTol);
+
+  // Set non-manifold mode.
+  aHealer.SetNonManifoldMode(isAllowNonManifold);
 
   Standard_Boolean aResult = aHealer.Perform();
 
@@ -416,6 +445,36 @@ Standard_Boolean GEOMImpl_HealingDriver::Sew (GEOMImpl_IHealing* theHI,
     raiseNotDoneExeption( aHealer.GetErrorStatus() );
 
   return aResult;
+}
+
+//=======================================================================
+//function : RemoveInternalFaces
+//purpose  :
+//=======================================================================
+Standard_Boolean GEOMImpl_HealingDriver::RemoveInternalFaces (const TopoDS_Shape& theOriginalShape,
+                                                              TopoDS_Shape& theOutShape) const
+{
+  GEOMAlgo_RemoverWebs aTool;
+  aTool.SetShape(theOriginalShape);
+  aTool.Perform();
+
+  if (aTool.ErrorStatus() == 0) { // OK
+    theOutShape = aTool.Result();
+
+    // as GEOMAlgo_RemoverWebs always produces compound, lets simplify it
+    // for the case, if it contains only one sub-shape
+    TopTools_ListOfShape listShapeRes;
+    GEOMUtils::AddSimpleShapes(theOutShape, listShapeRes);
+    if (listShapeRes.Extent() == 1) {
+      theOutShape = listShapeRes.First();
+    }
+  }
+  else if (aTool.ErrorStatus() == 11) // invalid argument (contains non-solids), do nothing
+    theOutShape = theOriginalShape;
+  else // error
+    StdFail_NotDone::Raise("GEOMAlgo_RemoverWebs failed!");
+
+  return Standard_True;
 }
 
 //=======================================================================
@@ -505,44 +564,360 @@ void GEOMImpl_HealingDriver::LimitTolerance (GEOMImpl_IHealing* theHI,
 }
 
 //=======================================================================
-//function :  GEOMImpl_HealingDriver_Type_
+//function : FuseCollinearEdges
 //purpose  :
 //=======================================================================
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_HealingDriver_Type_()
+void GEOMImpl_HealingDriver::FuseCollinearEdges (const TopoDS_Shape& theOriginalShape,
+                                                 const Handle(TColStd_HSequenceOfTransient)& aVerts,
+                                                 TopoDS_Shape& theOutShape)
 {
+  if (theOriginalShape.ShapeType() != TopAbs_WIRE)
+    Standard_TypeMismatch::Raise("Not a wire is given");
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared);
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
-
-
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_HealingDriver",
-                                                         sizeof(GEOMImpl_HealingDriver),
-                                                         1,
-                                                         (Standard_Address)_Ancestors,
-                                                         (Standard_Address)NULL);
-
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//=======================================================================
-
-const Handle(GEOMImpl_HealingDriver) Handle(GEOMImpl_HealingDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_HealingDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_HealingDriver))) {
-       _anOtherObject = Handle(GEOMImpl_HealingDriver)((Handle(GEOMImpl_HealingDriver)&)AnObject);
-     }
+  // Tolerances
+  Standard_Real AngTol = Precision::Angular();
+  Standard_Real LinTol = Precision::Confusion();
+  Standard_Real tol;
+  for (TopExp_Explorer ExV (theOriginalShape, TopAbs_VERTEX); ExV.More(); ExV.Next()) {
+    TopoDS_Vertex Vertex = TopoDS::Vertex(ExV.Current());
+    tol = BRep_Tool::Tolerance(Vertex);
+    if (tol > LinTol)
+      LinTol = tol;
   }
 
-  return _anOtherObject;
+  // 1. Make a copy to prevent the original shape changes.
+  TopoDS_Shape aWire;
+  TColStd_IndexedDataMapOfTransientTransient aMapTShapes;
+  TNaming_CopyShape::CopyTool(theOriginalShape, aMapTShapes, aWire);
+  TopoDS_Wire theWire = TopoDS::Wire(aWire);
+
+  // 2. Sub-shapes of the wire
+  TopTools_MapOfShape aMapToRemove;
+
+  TopTools_IndexedMapOfShape anOldIndices;
+  TopExp::MapShapes(theOriginalShape, anOldIndices);
+
+  TopTools_IndexedMapOfShape aNewIndices;
+  TopExp::MapShapes(theWire, aNewIndices);
+
+  // 3. Collect vertices of the wire, same or equal to the given vertices
+  bool removeAll = false;
+  if (aVerts.IsNull() || aVerts->Length() < 1)
+    removeAll = true;
+
+  if (!removeAll) {
+    for (unsigned int ind = 1; ind <= aVerts->Length(); ind++) {
+      Handle(GEOM_Function) aRefShape = Handle(GEOM_Function)::DownCast(aVerts->Value(ind));
+      TopoDS_Shape aShape_i = aRefShape->GetValue();
+      if (aShape_i.IsNull())
+        Standard_NullObject::Raise("Null vertex given");
+      if (aShape_i.ShapeType() != TopAbs_VERTEX)
+        Standard_TypeMismatch::Raise("Shape to suppress is not a vertex");
+
+      // find vertices shared with the initial wire
+      if (anOldIndices.Contains(aShape_i)) {
+        aMapToRemove.Add(aNewIndices.FindKey(anOldIndices.FindIndex(aShape_i)));
+      } else {
+        // try to find by coords in the new wire
+        TopoDS_Vertex aVert = TopoDS::Vertex(aShape_i);
+        gp_Pnt aP = BRep_Tool::Pnt(aVert);
+
+        bool isFound = false;
+        TopTools_MapOfShape mapShape;
+        TopExp_Explorer exp (theWire, TopAbs_VERTEX);
+        for (; exp.More() && !isFound; exp.Next()) {
+          if (mapShape.Add(exp.Current())) {
+            TopoDS_Vertex aVi = TopoDS::Vertex(exp.Current());
+            gp_Pnt aPi = BRep_Tool::Pnt(aVi);
+            if (aPi.Distance(aP) < LinTol) {
+              aMapToRemove.Add(aVi);
+              isFound = true;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /*
+  BRepLib::BuildCurves3d(theWire);
+  Handle(ShapeFix_Shape) Fixer = new ShapeFix_Shape(theWire);
+  Fixer->SetPrecision(LinTol);
+  Fixer->SetMaxTolerance(LinTol);
+  Fixer->Perform();
+  theWire = TopoDS::Wire(Fixer->Shape());
+  */
+
+  TopoDS_Edge prevEdge;
+  TopTools_ListOfShape finalList, currChain;
+
+  BRepTools_WireExplorer wexp (theWire);
+  if (wexp.More()) {
+    prevEdge = wexp.Current();
+    currChain.Append(prevEdge);
+    wexp.Next();
+  }
+  else {
+    Standard_NullObject::Raise("Empty wire given");
+  }
+
+  for (; wexp.More(); wexp.Next()) {
+    TopoDS_Edge anEdge = wexp.Current();
+    TopoDS_Vertex CurVertex = wexp.CurrentVertex();
+
+    bool continueChain = false;
+    if (aMapToRemove.Contains(CurVertex) || removeAll) {
+      // if C1 -> continue chain
+      if (AreEdgesC1(prevEdge, anEdge)) {
+        continueChain = true;
+      }
+    }
+
+    if (!continueChain) {
+      if (currChain.Extent() == 1) {
+        // add one edge to the final list
+        finalList.Append(currChain.First());
+      }
+      else {
+        // make wire from the list of edges
+        BRep_Builder B;
+        TopoDS_Wire aCurrWire;
+        B.MakeWire(aCurrWire);
+        TopTools_ListIteratorOfListOfShape itEdges (currChain);
+        for (; itEdges.More(); itEdges.Next()) {
+          TopoDS_Shape aValue = itEdges.Value();
+          B.Add(aCurrWire, TopoDS::Edge(aValue));
+        }
+
+        // make edge from the wire
+        TopoDS_Edge anEdge = GEOMImpl_ShapeDriver::MakeEdgeFromWire(aCurrWire, LinTol, AngTol);
+
+        // add this new edge to the final list
+        finalList.Append(anEdge);
+      }
+      currChain.Clear();
+    }
+
+    // add one edge to the chain
+    currChain.Append(anEdge);
+    prevEdge = anEdge;
+  }
+
+  if (currChain.Extent() == 1) {
+    // add one edge to the final list
+    finalList.Append(currChain.First());
+  }
+  else {
+    // make wire from the list of edges
+    BRep_Builder B;
+    TopoDS_Wire aCurrWire;
+    B.MakeWire(aCurrWire);
+    TopTools_ListIteratorOfListOfShape itEdges (currChain);
+    for (; itEdges.More(); itEdges.Next()) {
+      TopoDS_Shape aValue = itEdges.Value();
+      B.Add(aCurrWire, TopoDS::Edge(aValue));
+    }
+
+    // make edge from the wire
+    TopoDS_Edge anEdge = GEOMImpl_ShapeDriver::MakeEdgeFromWire(aCurrWire, LinTol, AngTol);
+
+    // add this new edge to the final list
+    finalList.Append(anEdge);
+  }
+
+  BRep_Builder B;
+  TopoDS_Wire aFinalWire;
+  B.MakeWire(aFinalWire);
+  TopTools_ListIteratorOfListOfShape itEdges (finalList);
+  for (; itEdges.More(); itEdges.Next()) {
+    TopoDS_Shape aValue = itEdges.Value();
+    B.Add(aFinalWire, TopoDS::Edge(aValue));
+  }
+  theOutShape = aFinalWire;
+
+  BRepCheck_Analyzer ana (theOutShape, Standard_True);
+  if (!ana.IsValid())
+    StdFail_NotDone::Raise("Non valid shape result");
 }
+
+//=======================================================================
+//function : AreEdgesC1
+//purpose  :
+//=======================================================================
+Standard_Boolean GEOMImpl_HealingDriver::AreEdgesC1 (const TopoDS_Edge& E1, const TopoDS_Edge& E2)
+{
+  BRepAdaptor_Curve aCurve1 (E1);
+  BRepAdaptor_Curve aCurve2 (E2);
+
+  if (aCurve1.Continuity() == GeomAbs_C0 || aCurve2.Continuity() == GeomAbs_C0)
+    return Standard_False;
+
+  Standard_Real tol, tolMax = Precision::Confusion();
+  for (TopExp_Explorer ExV1 (E1, TopAbs_VERTEX); ExV1.More(); ExV1.Next()) {
+    TopoDS_Vertex Vertex = TopoDS::Vertex(ExV1.Current());
+    tol = BRep_Tool::Tolerance(Vertex);
+      if (tol > tolMax)
+        tolMax = tol;
+  }
+  for (TopExp_Explorer ExV2 (E2, TopAbs_VERTEX); ExV2.More(); ExV2.Next()) {
+    TopoDS_Vertex Vertex = TopoDS::Vertex(ExV2.Current());
+    tol = BRep_Tool::Tolerance(Vertex);
+      if (tol > tolMax)
+        tolMax = tol;
+  }
+
+  Standard_Real f1, l1, f2, l2;
+  f1 = aCurve1.FirstParameter();
+  l1 = aCurve1.LastParameter();
+  f2 = aCurve2.FirstParameter();
+  l2 = aCurve2.LastParameter();
+
+  if (f1 > l1) {
+    Standard_Real tmp = f1;
+    f1 = l1;
+    l1 = tmp;
+  }
+
+  if (f2 > l2) {
+    Standard_Real tmp = f2;
+    f2 = l2;
+    l2 = tmp;
+  }
+
+  gp_Pnt pf1, pl1, pf2, pl2;
+  gp_Vec vf1, vl1, vf2, vl2;
+  aCurve1.D1(f1, pf1, vf1);
+  aCurve1.D1(l1, pl1, vl1);
+  aCurve2.D1(f2, pf2, vf2);
+  aCurve2.D1(l2, pl2, vl2);
+
+  // pf1--->---pl1.pf2--->---pl2
+  if (pl1.SquareDistance(pf2) < tolMax*tolMax) {
+    if (vl1.Angle(vf2) < Precision::Angular())
+      return Standard_True;
+  }
+  // pl1---<---pf1.pf2--->---pl2
+  else if (pf1.SquareDistance(pf2) < tolMax*tolMax) {
+    if (vf1.Angle(-vf2) < Precision::Angular())
+      return Standard_True;
+  }
+  // pf1--->---pl1.pl2---<---pf2
+  else if (pl1.SquareDistance(pl2) < tolMax*tolMax) {
+    if (vl1.Angle(-vl2) < Precision::Angular())
+      return Standard_True;
+  }
+  // pl1---<---pf1.pl2---<---pf2
+  else {
+    if (vf1.Angle(vl2) < Precision::Angular())
+      return Standard_True;
+  }
+
+  return Standard_False;
+}
+
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
+
+bool GEOMImpl_HealingDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
+{
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
+
+  GEOMImpl_IHealing aCI( function );
+  Standard_Integer aType = function->GetType();
+
+  switch ( aType ) {
+  case SHAPE_PROCESS:
+  {
+    theOperationName = "SHAPE_PROCESS";
+    AddParam( theParams, "Object", aCI.GetOriginal() );
+    Handle(TColStd_HArray1OfExtendedString) anOperators = aCI.GetOperators();
+    Handle(TColStd_HArray1OfExtendedString) aParams     = aCI.GetParameters();
+    Handle(TColStd_HArray1OfExtendedString) aValues     = aCI.GetValues();
+    for ( int i = anOperators->Lower(), nb = anOperators->Upper(); i <= nb; ++i )
+    {
+      const TCollection_ExtendedString& op = anOperators->Value(i);
+      AddParam( theParams, "Operation", op );
+      for ( int iP = aParams->Lower(), nbP = aParams->Upper(); iP <= nbP; ++iP )
+      {
+        const TCollection_ExtendedString& par = aParams->Value(i);
+        TCollection_AsciiString parAscii( par );
+        if ( par.Search( op ) == 1 && parAscii.Value( op.Length() + 1 ) == '.' )
+        {
+          GEOM_Param& p = AddParam( theParams, parAscii.ToCString() );
+          if ( iP <= aValues->Upper() )
+            p << aValues->Value( iP );
+        }
+      }
+    }
+    break;
+  }
+  case SUPPRESS_FACES:
+    theOperationName = "SUPPRESS_FACES";
+    AddParam( theParams, "Selected Shape", aCI.GetOriginal() );
+    AddParam( theParams, "Faces to remove", aCI.GetFaces() );
+    break;
+  case CLOSE_CONTOUR:
+    theOperationName = "CLOSE_CONTOUR";
+    AddParam( theParams, "Selected Shape", aCI.GetOriginal() );
+    AddParam( theParams, "Contour to close", aCI.GetWires() );
+    AddParam( theParams, "Close by common vertex", aCI.GetIsCommonVertex() );
+    break;
+  case REMOVE_INT_WIRES:
+    theOperationName = "SUPPRESS_INT_WIRES";
+    AddParam( theParams, "Selected face", aCI.GetOriginal() );
+    AddParam( theParams, "Wires to remove", aCI.GetWires(), "all" );
+    break;
+  case FILL_HOLES:
+    theOperationName = "SUPPERSS_HOLES";
+    AddParam( theParams, "Selected shape", aCI.GetOriginal() );
+    AddParam( theParams, "Wires to remove", aCI.GetWires(), "all" );
+    break;
+  case SEWING:
+  case SEWING_NON_MANIFOLD:
+    theOperationName = "SEWING";
+    AddParam( theParams, "Selected shape", aCI.GetOriginal() );
+    AddParam( theParams, "Allow Non Manifold", ( aType == SEWING_NON_MANIFOLD ));
+    AddParam( theParams, "Tolerance", aCI.GetTolerance() );
+    break;
+  case DIVIDE_EDGE:
+    theOperationName = "POINT_ON_EDGE";
+    if ( aCI.GetIndex() > 0 )
+      AddParam( theParams, "Edge", "#" ) << aCI.GetIndex() << " of " << aCI.GetOriginal();
+    else
+      AddParam( theParams, "Edge", aCI.GetOriginal() );
+    AddParam( theParams, "By parameter", aCI.GetIsByParameter() );
+    AddParam( theParams, "Value", aCI.GetDevideEdgeValue() );
+    break;
+  case CHANGE_ORIENTATION:
+    theOperationName = "CHANGE_ORIENTATION";
+    AddParam( theParams, "Selected shape", aCI.GetOriginal() );
+    break;
+  case LIMIT_TOLERANCE:
+    theOperationName = "LIMIT_TOLERANCE";
+    AddParam( theParams, "Selected shape", aCI.GetOriginal() );
+    AddParam( theParams, "Tolerance", aCI.GetTolerance() );
+    break;
+  case FUSE_COLLINEAR_EDGES:
+    theOperationName = "FUSE_EDGES";
+    AddParam( theParams, "Wire", aCI.GetOriginal() );
+    AddParam( theParams, "Vertexes", aCI.GetShapes() );
+    break;
+  case REMOVE_INTERNAL_FACES:
+    theOperationName = "REMOVE_WEBS";
+    AddParam( theParams, "Selected shape", aCI.GetOriginal() );
+    break;
+  default:
+    return false;
+  }
+  
+  return true;
+}
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_HealingDriver,GEOM_BaseDriver);
+
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_HealingDriver,GEOM_BaseDriver);

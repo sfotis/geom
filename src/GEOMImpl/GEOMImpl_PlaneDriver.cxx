@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 //
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License.
 //
-// This library is distributed in the hope that it will be useful
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 // Lesser General Public License for more details.
@@ -25,7 +27,8 @@
 #include <GEOMImpl_Types.hxx>
 #include <GEOM_Function.hxx>
 
-#include <GEOMImpl_IMeasureOperations.hxx>
+#include <GEOMUtils.hxx>
+
 
 // OCCT Includes
 #include <BRepBuilderAPI_MakeFace.hxx>
@@ -123,7 +126,8 @@ Standard_Integer GEOMImpl_PlaneDriver::Execute(TFunction_Logbook& log) const
     if (gp_Vec(aP1, aP2).IsParallel(gp_Vec(aP1, aP3), Precision::Angular()))
       Standard_ConstructionError::Raise("Plane creation aborted: points lay on one line");
     GC_MakePlane aMakePlane (aP1, aP2, aP3);
-    aShape = BRepBuilderAPI_MakeFace(aMakePlane, -aSize, +aSize, -aSize, +aSize, Precision::Confusion()).Shape();
+    aShape = BRepBuilderAPI_MakeFace(aMakePlane, -aSize, +aSize, -aSize, +aSize,
+                                     Precision::Confusion()).Shape();
   } else if (aType == PLANE_FACE) {
     Handle(GEOM_Function) aRef = aPI.GetFace();
     TopoDS_Shape aRefShape = aRef->GetValue();
@@ -133,7 +137,7 @@ Standard_Integer GEOMImpl_PlaneDriver::Execute(TFunction_Logbook& log) const
     //  Standard_TypeMismatch::Raise("Plane creation aborted: non-planar face given as argument");
     //}
     //aShape = BRepBuilderAPI_MakeFace(aGS, -aSize, +aSize, -aSize, +aSize).Shape();
-    gp_Ax3 anAx3 = GEOMImpl_IMeasureOperations::GetPosition(aRefShape);
+    gp_Ax3 anAx3 = GEOMUtils::GetPosition(aRefShape);
     gp_Pln aPln (anAx3);
     aShape = BRepBuilderAPI_MakeFace(aPln, -aSize, +aSize, -aSize, +aSize).Shape();
   }
@@ -203,8 +207,7 @@ Standard_Integer GEOMImpl_PlaneDriver::Execute(TFunction_Logbook& log) const
     BRepBuilderAPI_MakeFace aTool(aPlane, -aSize, +aSize, -aSize, +aSize);
     if(aTool.IsDone())
       aShape = aTool.Shape();
-  }
-  else if (aType == PLANE_LCS) {
+  }   else if (aType == PLANE_LCS) {
     Handle(GEOM_Function) aRef = aPI.GetLCS();
     double anOrientation = aPI.GetOrientation();    
     gp_Ax3 anAx3;
@@ -215,7 +218,7 @@ Standard_Integer GEOMImpl_PlaneDriver::Execute(TFunction_Logbook& log) const
       TopoDS_Shape aRefShape = aRef->GetValue();
       if (aRefShape.ShapeType() != TopAbs_FACE)
 	return 0;
-      anAx3 = GEOMImpl_IMeasureOperations::GetPosition(aRefShape);
+      anAx3 = GEOMUtils::GetPosition(aRefShape);
     }
 
     if ( anOrientation == 2)
@@ -239,45 +242,62 @@ Standard_Integer GEOMImpl_PlaneDriver::Execute(TFunction_Logbook& log) const
 }
 
 
-//=======================================================================
-//function :  GEOMImpl_PlaneDriver_Type_
-//purpose  :
-//=======================================================================
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_PlaneDriver_Type_()
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
+
+bool GEOMImpl_PlaneDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared);
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
+  GEOMImpl_IPlane aCI( function );
+  Standard_Integer aType = function->GetType();
 
+  theOperationName = "PLANE";
 
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_PlaneDriver",
-			                                 sizeof(GEOMImpl_PlaneDriver),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
-
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//=======================================================================
-const Handle(GEOMImpl_PlaneDriver) Handle(GEOMImpl_PlaneDriver)::DownCast
-       (const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_PlaneDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_PlaneDriver))) {
-       _anOtherObject = Handle(GEOMImpl_PlaneDriver)((Handle(GEOMImpl_PlaneDriver)&)AnObject);
-     }
+  switch ( aType ) {
+  case PLANE_PNT_VEC:
+    AddParam( theParams, "Point", aCI.GetPoint() );
+    AddParam( theParams, "Vector", aCI.GetVector() );
+    AddParam( theParams, "Size of plane", aCI.GetSize() );
+    break;
+  case PLANE_THREE_PNT:
+    AddParam( theParams, "Point 1", aCI.GetPoint1() );
+    AddParam( theParams, "Point 2", aCI.GetPoint2() );
+    AddParam( theParams, "Point 3", aCI.GetPoint3() );
+    AddParam( theParams, "Size of plane", aCI.GetSize() );
+    break;
+  case PLANE_FACE:
+    AddParam( theParams, "Face", aCI.GetFace() );
+    AddParam( theParams, "Size of plane", aCI.GetSize() );
+    break;
+  case PLANE_TANGENT_FACE:
+    AddParam( theParams, "Face", aCI.GetFace() );
+    AddParam( theParams, "Parameter U", aCI.GetParameterU() );
+    AddParam( theParams, "Parameter V", aCI.GetParameterV() );
+    AddParam( theParams, "Size of plane", aCI.GetSize() );
+    break;
+  case PLANE_2_VEC:
+    AddParam( theParams, "Vector 1", aCI.GetVector1() );
+    AddParam( theParams, "Vector 2", aCI.GetVector2() );
+    AddParam( theParams, "Size of plane", aCI.GetSize() );
+    break;
+  case PLANE_LCS:
+    AddParam( theParams, "Local coordinate system", aCI.GetLCS() );
+    AddParam( theParams, "Orientation", aCI.GetOrientation() );
+    AddParam( theParams, "Size of plane", aCI.GetSize() );
+    break;
+  default:
+    return false;
   }
-
-  return _anOtherObject ;
+  
+  return true;
 }
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_PlaneDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_PlaneDriver,GEOM_BaseDriver);

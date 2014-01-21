@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,7 +19,6 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#include "utilities.h"
 
 #ifdef WNT
 #pragma warning( disable:4786 )
@@ -26,6 +27,8 @@
 #include <Standard_Stream.hxx>
 
 #include <GEOMImpl_Gen.hxx>
+
+#include "utilities.h"
 
 #include <TFunction_Driver.hxx>
 #include <TFunction_DriverTable.hxx>
@@ -37,18 +40,19 @@
 #include <GEOMImpl_MarkerDriver.hxx>
 #include <GEOMImpl_ArcDriver.hxx>
 #include <GEOMImpl_CircleDriver.hxx>
-#include <GEOMImpl_CurveDriver.hxx>
 #include <GEOMImpl_EllipseDriver.hxx>
 #include <GEOMImpl_PolylineDriver.hxx>
 #include <GEOMImpl_SplineDriver.hxx>
 #include <GEOMImpl_SketcherDriver.hxx>
 #include <GEOMImpl_3DSketcherDriver.hxx>
 #include <GEOMImpl_BoxDriver.hxx>
+#include <GEOMImpl_FaceDriver.hxx>
 #include <GEOMImpl_DiskDriver.hxx>
 #include <GEOMImpl_ConeDriver.hxx>
 #include <GEOMImpl_CylinderDriver.hxx>
 #include <GEOMImpl_PrismDriver.hxx>
 #include <GEOMImpl_PipeDriver.hxx>
+#include <GEOMImpl_PipePathDriver.hxx>
 #include <GEOMImpl_ThruSectionsDriver.hxx>
 #include <GEOMImpl_RevolutionDriver.hxx>
 #include <GEOMImpl_ShapeDriver.hxx>
@@ -59,6 +63,7 @@
 #include <GEOMImpl_ChamferDriver.hxx>
 #include <GEOMImpl_FilletDriver.hxx>
 #include <GEOMImpl_Fillet1dDriver.hxx>
+#include <GEOMImpl_Fillet2dDriver.hxx>
 #include <GEOMImpl_TranslateDriver.hxx>
 #include <GEOMImpl_RotateDriver.hxx>
 #include <GEOMImpl_MirrorDriver.hxx>
@@ -75,9 +80,10 @@
 #include <GEOMImpl_FillingDriver.hxx>
 #include <GEOMImpl_GlueDriver.hxx>
 #include <GEOMImpl_MeasureDriver.hxx>
+#include <GEOMImpl_FieldDriver.hxx>
+#include <GEOMImpl_CurveDriver.hxx>
 #include <GEOMImpl_ThickSolidDriver.hxx>
 #include <GEOMImpl_VariableFilletDriver.hxx>
-#include <GEOMImpl_FaceDriver.hxx>
 #include <GEOMImpl_PlateDriver.hxx>
 #include <GEOMImpl_DraftDriver.hxx>
 #include <GEOMImpl_NSketcherDriver.hxx>
@@ -95,6 +101,7 @@
 GEOMImpl_Gen::GEOMImpl_Gen()
 {
    //MESSAGE("GEOMImpl_Gen::GEOMImpl_Gen");
+   _mapOfBasicOperations.clear();
 
    // Basic elements
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_PointDriver::GetID(), new GEOMImpl_PointDriver());
@@ -102,7 +109,6 @@ GEOMImpl_Gen::GEOMImpl_Gen()
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_LineDriver::GetID(), new GEOMImpl_LineDriver());
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_PlaneDriver::GetID(), new GEOMImpl_PlaneDriver());
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_MarkerDriver::GetID(), new GEOMImpl_MarkerDriver());
-   TFunction_DriverTable::Get()->AddDriver(GEOMImpl_FaceDriver::GetID(), new GEOMImpl_FaceDriver());
 
    // Curves
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_ArcDriver::GetID(), new GEOMImpl_ArcDriver());
@@ -114,13 +120,15 @@ GEOMImpl_Gen::GEOMImpl_Gen()
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_SketcherDriver::GetID(), new GEOMImpl_SketcherDriver());
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_3DSketcherDriver::GetID(), new GEOMImpl_3DSketcherDriver());
 
-   // 3D Primitives, Plate operations
+   // 3D Primitives
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_BoxDriver::GetID(), new GEOMImpl_BoxDriver());
+   TFunction_DriverTable::Get()->AddDriver(GEOMImpl_FaceDriver::GetID(), new GEOMImpl_FaceDriver());
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_DiskDriver::GetID(), new GEOMImpl_DiskDriver());
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_ConeDriver::GetID(), new GEOMImpl_ConeDriver());
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_CylinderDriver::GetID(), new GEOMImpl_CylinderDriver());
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_PrismDriver::GetID(), new GEOMImpl_PrismDriver());
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_PipeDriver::GetID(), new GEOMImpl_PipeDriver());
+   TFunction_DriverTable::Get()->AddDriver(GEOMImpl_PipePathDriver::GetID(), new GEOMImpl_PipePathDriver());
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_ThruSectionsDriver::GetID(), new GEOMImpl_ThruSectionsDriver());
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_RevolutionDriver::GetID(), new GEOMImpl_RevolutionDriver());
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_SphereDriver::GetID(), new GEOMImpl_SphereDriver());
@@ -143,6 +151,7 @@ GEOMImpl_Gen::GEOMImpl_Gen()
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_ChamferDriver::GetID(), new GEOMImpl_ChamferDriver());
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_FilletDriver::GetID(), new GEOMImpl_FilletDriver());
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_Fillet1dDriver::GetID(), new GEOMImpl_Fillet1dDriver());
+   TFunction_DriverTable::Get()->AddDriver(GEOMImpl_Fillet2dDriver::GetID(), new GEOMImpl_Fillet2dDriver());
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_ArchimedeDriver::GetID(), new GEOMImpl_ArchimedeDriver());
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_ThickSolidDriver::GetID(), new GEOMImpl_ThickSolidDriver());
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_VariableFilletDriver::GetID(), new GEOMImpl_VariableFilletDriver());
@@ -167,6 +176,9 @@ GEOMImpl_Gen::GEOMImpl_Gen()
 
    // Measurements
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_MeasureDriver::GetID(), new GEOMImpl_MeasureDriver());
+
+   // Field
+   TFunction_DriverTable::Get()->AddDriver(GEOMImpl_FieldDriver::GetID(), new GEOMImpl_FieldDriver());
 
    //Sketcher operations
    TFunction_DriverTable::Get()->AddDriver(GEOMImpl_NSketcherDriver::GetID(), new GEOMImpl_NSketcherDriver());
@@ -235,6 +247,14 @@ GEOMImpl_Gen::~GEOMImpl_Gen()
   std::map<int, GEOMImpl_IGroupOperations*>::iterator aGroupIter = _mapOfGroupOperations.begin();
   for (; aGroupIter != _mapOfGroupOperations.end(); aGroupIter++)
     delete (*aGroupIter).second;
+
+  std::map<int, GEOMImpl_IFieldOperations*>::iterator aFieldIter = _mapOfFieldOperations.begin();
+  for (; aFieldIter != _mapOfFieldOperations.end(); aFieldIter++)
+    delete (*aFieldIter).second;
+
+  std::map<int, GEOMImpl_IAdvancedOperations*>::iterator anAdvancedIter = _mapOfAdvancedOperations.begin();
+  for (; anAdvancedIter != _mapOfAdvancedOperations.end(); anAdvancedIter++)
+    delete (*anAdvancedIter).second;
 
   std::map<int, GEOMImpl_ISketcherOperations*>::iterator aSketcherIter = _mapOfSketcherOperations.begin();
   for (; aSketcherIter != _mapOfSketcherOperations.end(); aSketcherIter++)
@@ -407,6 +427,20 @@ GEOMImpl_IGroupOperations* GEOMImpl_Gen::GetIGroupOperations(int theDocID)
   }
 
   return _mapOfGroupOperations[theDocID];
+}
+
+//=============================================================================
+/*!
+ * GetIFieldOperations
+ */
+//=============================================================================
+GEOMImpl_IFieldOperations* GEOMImpl_Gen::GetIFieldOperations(int theDocID)
+{
+  if(_mapOfFieldOperations.find(theDocID) == _mapOfFieldOperations.end()) {
+    _mapOfFieldOperations[theDocID] = new GEOMImpl_IFieldOperations(this, theDocID);
+  }
+
+  return _mapOfFieldOperations[theDocID];
 }
 
 //=============================================================================

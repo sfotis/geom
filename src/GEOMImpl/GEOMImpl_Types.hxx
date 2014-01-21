@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,6 +19,8 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+
+
 //GEOM_Object types
 
 #define GEOM_COPY    0
@@ -105,6 +109,21 @@
 
 #define GEOM_NSKETCHER 52
 
+#define GEOM_EXTRUDED_CUT 53
+
+#define GEOM_EXTRUDED_BOSS 54
+
+#define GEOM_PIPE_PATH 55
+
+#define GEOM_THICKENING 56
+
+#define GEOM_FILLET_2D 57
+#define GEOM_FILLET_1D 58
+
+#define GEOM_FIELD      59  // == GEOM_FIELD_OBJTYPE constant
+#define GEOM_FIELD_STEP 60  // == GEOM_FIELD_STEP_OBJTYPE constant
+
+#define GEOM_ISOLINE   61
 
 //GEOM_Function types
 
@@ -124,13 +143,16 @@
 #define POINT_CURVE_COORD        6
 #define POINT_SURFACE_COORD      7
 #define POINT_CURVE_LENGTH       8
+#define POINT_FACE_ANY           9
 
+// Vector
 #define VECTOR_TWO_PNT  1
 #define VECTOR_DX_DY_DZ 2
 #define VECTOR_TANGENT_CURVE_PAR 3
 #define VECTOR_PNT_DX_DY_DZ 4
 #define VECTOR_FACE_NORMALE 5
 #define VERTEX_BY_INDEX 6
+#define VECTOR_REVERSE 7
 
 #define PLANE_PNT_VEC      1
 #define PLANE_FACE         2
@@ -160,6 +182,7 @@
 #define ROTATE_2D                 4
 #define ROTATE_THREE_POINTS       5
 #define ROTATE_THREE_POINTS_COPY  6
+#define ROTATE_1D_STEP            7
 
 #define MIRROR_PLANE      1
 #define MIRROR_PLANE_COPY 2
@@ -172,8 +195,11 @@
 #define OFFSET_SHAPE_COPY 			2
 #define OFFSET_SHAPE_PLANAR 		3
 #define OFFSET_SHAPE_COPY_PLANAR 	4
+#define OFFSET_THICKENING           5
+#define OFFSET_THICKENING_COPY      6
 
 #define PROJECTION_COPY 1
+#define PROJECTION_ON_WIRE 2
 
 #define SCALE_SHAPE             1
 #define SCALE_SHAPE_COPY        2
@@ -194,6 +220,13 @@
 #define BOX_DX_DY_DZ  1
 #define BOX_TWO_PNT   2
 
+#define FACE_OBJ_H_W  1
+#define FACE_H_W        2
+
+#define DISK_PNT_VEC_R    1
+#define DISK_THREE_PNT    2
+#define DISK_R            3
+
 #define CYLINDER_R_H         1
 #define CYLINDER_PNT_VEC_R_H 2
 
@@ -210,6 +243,7 @@
 #define PRISM_BASE_TWO_PNT_2WAYS 5
 #define PRISM_BASE_DXDYDZ        6
 #define PRISM_BASE_DXDYDZ_2WAYS  7
+#define DRAFT_PRISM_FEATURE      8
 
 #define REVOLUTION_BASE_AXIS_ANGLE        1
 #define REVOLUTION_BASE_AXIS_ANGLE_OFFSET 2
@@ -222,6 +256,10 @@
 #define PIPE_SHELLS_WITHOUT_PATH 5
 #define PIPE_BI_NORMAL_ALONG_VECTOR 6
 
+// RestorePath
+#define PIPE_PATH_TWO_BASES 1
+#define PIPE_PATH_TWO_SEQS  2
+
 #define THRUSECTIONS_RULED 1
 #define THRUSECTIONS_SMOOTHED 2
 
@@ -229,11 +267,13 @@
 #define BOOLEAN_CUT     2
 #define BOOLEAN_FUSE    3
 #define BOOLEAN_SECTION 4
-
 #define BOOLEAN_COMMON_OLD  5
 #define BOOLEAN_CUT_OLD     6
 #define BOOLEAN_FUSE_OLD    7
 #define BOOLEAN_SECTION_OLD 8
+#define BOOLEAN_COMMON_LIST 9
+#define BOOLEAN_CUT_LIST    10
+#define BOOLEAN_FUSE_LIST   11
 
 #define PARTITION_PARTITION 1
 #define PARTITION_HALF      2
@@ -241,19 +281,22 @@
 
 #define POLYLINE_POINTS 1
 
+#define SPLINE_BEZIER        1
+#define SPLINE_INTERPOLATION 2
+#define SPLINE_INTERPOL_TANGENTS 3
+
 #define CIRCLE_THREE_PNT      1
 #define CIRCLE_PNT_VEC_R      2
 #define CIRCLE_CENTER_TWO_PNT 3
-
-#define SPLINE_BEZIER        1
-#define SPLINE_INTERPOLATION 2
 
 #define ELLIPSE_PNT_VEC_RR         1
 #define ELLIPSE_THREE_PNT          2
 #define ELLIPSE_ARC_CENTER_TWO_PNT 3
 
+// Arc
 #define CIRC_ARC_THREE_PNT 1
 #define CIRC_ARC_CENTER    2
+#define ELLIPSE_ARC_CENTER_TWO_PNT 3
 
 #define FILLET_SHAPE_ALL   		1
 #define FILLET_SHAPE_EDGES 		2
@@ -261,6 +304,9 @@
 #define FILLET_SHAPE_VERTEX_2D	4
 #define FILLET_SHAPE_EDGES_2R   5
 #define FILLET_SHAPE_FACES_2R   6
+
+#define FILLET_2D_SHAPE_VERTEXES      1
+#define FILLET_1D_SHAPE_VERTEXES      1
 
 #define CHAMFER_SHAPE_ALL   	1
 #define CHAMFER_SHAPE_EDGE  	2
@@ -271,6 +317,7 @@
 #define CHAMFER_SHAPE_FACES_AD  7
 #define CHAMFER_SHAPE_EDGES_AD  8
 
+// Shape creation
 #define WIRE_EDGES          1
 #define FACE_WIRE           2
 #define SHELL_FACES         3
@@ -280,9 +327,12 @@
 #define SUBSHAPE_SORTED     7
 #define SUBSHAPE_NOT_SORTED 8
 #define FACE_WIRES          9
-#define REVERSE_ORIENTATION 10
+//#define REVERSE_ORIENTATION 10
 #define EDGE_WIRE           11
 #define EDGE_CURVE_LENGTH   12
+#define SHAPES_ON_SHAPE     13
+#define SHAPE_ISOLINE       14
+
 
 #define ARCHIMEDE_TYPE 1
 
@@ -296,6 +346,9 @@
 #define DIVIDE_EDGE        7
 #define CHANGE_ORIENTATION 8
 #define LIMIT_TOLERANCE    9
+#define FUSE_COLLINEAR_EDGES  10
+#define SEWING_NON_MANIFOLD   11
+#define REMOVE_INTERNAL_FACES 12
 
 #define BASIC_FILLING 1
 
@@ -307,11 +360,17 @@
 #define SKETCHER_NINE_DOUBLS 1
 #define SKETCHER_PLANE 2
 
+#define SKETCHER3D_COORDS  1
+#define SKETCHER3D_COMMAND 2
+
+// Measures
 #define CDG_MEASURE 1
+#define BND_BOX_MEASURE 2
+#define BND_BOX_MEASURE_PRECISE 3
+#define VECTOR_FACE_NORMALE 4
+#define VERTEX_BY_INDEX 5
 
 #define GROUP_FUNCTION 1
-
-#define SHAPES_ON_SHAPE 1
 
 //Curve constructor type
 #define POINT_CONSTRUCTOR 0
@@ -328,6 +387,7 @@
 #define BLOCK_COMPOUND_GLUE       8
 #define BLOCK_REMOVE_EXTRA        9
 #define BLOCK_COMPOUND_IMPROVE    10
+#define BLOCK_UNION_FACES         11
 
 // Marker
 #define MARKER_CS 1

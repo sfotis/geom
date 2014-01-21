@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -18,25 +20,24 @@
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
 
-#include <Standard_Stream.hxx>
+#include "GEOMImpl_PolylineDriver.hxx"
 
-#include <GEOMImpl_PolylineDriver.hxx>
-#include <GEOMImpl_IPolyline.hxx>
-#include <GEOMImpl_Types.hxx>
-#include <GEOM_Function.hxx>
+#include "GEOMImpl_ICurveParametric.hxx"
+#include "GEOMImpl_IPolyline.hxx"
+#include "GEOMImpl_Types.hxx"
+#include "GEOM_Function.hxx"
 
-#include <TColgp_Array1OfPnt.hxx>
-#include <BRepBuilderAPI_MakeVertex.hxx>
 #include <BRepBuilderAPI_MakePolygon.hxx>
+#include <BRepBuilderAPI_MakeVertex.hxx>
 #include <BRep_Tool.hxx>
+#include <Precision.hxx>
+#include <TColgp_Array1OfPnt.hxx>
+#include <TopAbs.hxx>
+#include <TopExp.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_Shape.hxx>
 #include <TopoDS_Vertex.hxx>
 #include <TopoDS_Wire.hxx>
-#include <TopAbs.hxx>
-#include <TopExp.hxx>
-
-#include <Precision.hxx>
 #include <gp_Pnt.hxx>
 
 //=======================================================================
@@ -148,45 +149,69 @@ Standard_Integer GEOMImpl_PolylineDriver::Execute(TFunction_Logbook& log) const
   return 1;    
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOMImpl_PolylineDriver_Type_
-//purpose  :
-//======================================================================= 
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_PolylineDriver_Type_()
+bool GEOMImpl_PolylineDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared); 
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
- 
+  GEOMImpl_IPolyline        aCI( function );
+  GEOMImpl_ICurveParametric aIP( function );
+  Standard_Integer aType = function->GetType();
 
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_PolylineDriver",
-			                                 sizeof(GEOMImpl_PolylineDriver),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
+  theOperationName = "CURVE";
 
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//======================================================================= 
-const Handle(GEOMImpl_PolylineDriver) Handle(GEOMImpl_PolylineDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_PolylineDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_PolylineDriver))) {
-       _anOtherObject = Handle(GEOMImpl_PolylineDriver)((Handle(GEOMImpl_PolylineDriver)&)AnObject);
-     }
+  switch ( aType ) {
+  case POLYLINE_POINTS:
+    AddParam( theParams, "Type", "Polyline");
+    if ( aIP.HasData() )
+    {
+      AddParam( theParams, "X(t) equation", aIP.GetExprX() );
+      AddParam( theParams, "Y(t) equation", aIP.GetExprY() );
+      AddParam( theParams, "Z(t) equation", aIP.GetExprZ() );
+      AddParam( theParams, "Min t", aIP.GetParamMin() );
+      AddParam( theParams, "Max t", aIP.GetParamMax() );
+      if ( aIP.GetParamNbStep() )
+        AddParam( theParams, "Number of steps", aIP.GetParamNbStep() );
+      else
+        AddParam( theParams, "t step", aIP.GetParamStep() );
+    }
+    else
+    {
+      GEOM_Param& pntParam = AddParam( theParams, "Points");
+      if ( aCI.GetConstructorType() == COORD_CONSTRUCTOR )
+      {
+        Handle(TColStd_HArray1OfReal) coords = aCI.GetCoordinates();
+        if ( coords->Length() > 3 )
+          pntParam << ( coords->Length() ) / 3 << " points: ";
+        for ( int i = coords->Lower(), nb = coords->Upper(); i <= nb; )
+          pntParam << "( " << coords->Value( i++ )
+                   << ", " << coords->Value( i++ )
+                   << ", " << coords->Value( i++ ) << " ) ";
+      }
+      else
+      {
+        if ( aCI.GetLength() > 1 )
+          pntParam << aCI.GetLength() << " points: ";
+        for ( int i = 1, nb = aCI.GetLength(); i <= nb; ++i )
+          pntParam << aCI.GetPoint( i ) << " ";
+      }
+      AddParam( theParams, "Is closed", aCI.GetIsClosed() );
+    }
+    break;
+  default:
+    return false;
   }
 
-  return _anOtherObject ;
+  return true;
 }
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_PolylineDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_PolylineDriver,GEOM_BaseDriver);

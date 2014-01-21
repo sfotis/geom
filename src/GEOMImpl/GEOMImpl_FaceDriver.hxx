@@ -17,7 +17,7 @@
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
 
-//  File   : GEOMImpl_FaceDriver.hxx
+//  File   : GEOMImpl_FaceDriver.ixx
 //  Module : GEOMImpl
 //
 #ifndef _GEOMImpl_FaceDriver_HeaderFile

@@ -6,7 +6,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -21,25 +21,30 @@
 #include <GEOMImpl_PrismDriver.hxx>
 
 #include <GEOMImpl_IPrism.hxx>
-#include <GEOMImpl_IShapesOperations.hxx>
-#include <GEOMImpl_IMeasureOperations.hxx>
 #include <GEOMImpl_GlueDriver.hxx>
 #include <GEOMImpl_PipeDriver.hxx>
 #include <GEOMImpl_Types.hxx>
+
 #include <GEOM_Function.hxx>
+#include <GEOM_Object.hxx>
+
+#include <GEOMUtils.hxx>
 
 #include <BRepPrimAPI_MakePrism.hxx>
+#include <BRepFeat_MakeDPrism.hxx>
 
 #include <BRep_Builder.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakeWire.hxx>
+#include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepBuilderAPI_MakeVertex.hxx>
 #include <BRepBuilderAPI_Sewing.hxx>
 #include <BRepBuilderAPI_Transform.hxx>
-#include <BRepOffsetAPI_MakeDraft.hxx>
 #include <BRepCheck_Shell.hxx>
 #include <BRepClass3d_SolidClassifier.hxx>
 #include <BRep_Tool.hxx>
+#include <BRepTools.hxx>
+
 #include <TopAbs.hxx>
 #include <TopExp.hxx>
 #include <TopExp_Explorer.hxx>
@@ -62,6 +67,8 @@
 #include <Standard_Stream.hxx>
 
 #include <Standard_ConstructionError.hxx>
+
+#include "utilities.h"
 
 //=======================================================================
 //function : GetID
@@ -158,7 +165,6 @@ Standard_Integer GEOMImpl_PrismDriver::Execute(TFunction_Logbook& log) const
 	  }
 	}
   }
-  }
   else if (aType == PRISM_BASE_VEC_H_ANG) {
 	Handle(GEOM_Function) aRefBase = aCI.GetBase();
 	Handle(GEOM_Function) aRefVector = aCI.GetVector();
@@ -215,10 +221,73 @@ Standard_Integer GEOMImpl_PrismDriver::Execute(TFunction_Logbook& log) const
     }
   }
 
+  else if (aType == DRAFT_PRISM_FEATURE) {
+    Handle(GEOM_Function) aRefInit = aCI.GetInitShape();
+    Handle(GEOM_Function) aRefBase = aCI.GetBase();   
+    TopoDS_Shape anInitShape = aRefInit->GetValue();        // Initial shape
+    TopoDS_Shape aSketch     = aRefBase->GetValue();  
+    Standard_Real aHeight    = aCI.GetH();                  // Height of the extrusion
+    Standard_Real anAngle    = aCI.GetDraftAngle();         // Draft angle
+    Standard_Boolean isProtrusion = (aCI.GetFuseFlag()==1); 
+    // Flag to know wether the feature is a protrusion (fuse) or a depression (cut)
+    
+    // history of the Base wire (RefBase)
+    Handle(GEOM_Object) aSuppObj;
+    TDF_LabelSequence aLabelSeq;
+    aRefBase->GetDependency(aLabelSeq);
+    
+    // If the base wire has only one dependency we use it
+    // to determine the right normal of the face which
+    // must be oriented towards outside of the solid (like the support face)
+    if (aLabelSeq.Length()==1)  
+    {
+      TDF_Label anArgumentRefLabel = aLabelSeq.Value(1);
+      aSuppObj = GEOM_Object::GetReferencedObject(anArgumentRefLabel);   
+    }
+    
+    TopoDS_Shape aSupport;
+    
+    if(!aSuppObj.IsNull())      // If the wire has a support
+      aSupport = aSuppObj->GetValue();
+    
+    aShape = MakeDraftPrism(anInitShape, aSketch, aHeight, anAngle, isProtrusion, aSupport); 
+  }
+
   if (aShape.IsNull()) return 0;
 
-  TopoDS_Shape aRes = GEOMImpl_IShapesOperations::CompsolidToCompound(aShape);
+  
+  if (aType == DRAFT_PRISM_FEATURE)
+  {
+    TopoDS_Shape aRes = aShape;
+    
+    // If the result is a compound with only one solid,
+    // return the solid
+    if (aShape.ShapeType() == TopAbs_COMPOUND)  
+    {
+      TopExp_Explorer anExp(aShape, TopAbs_SOLID);
+      
+      int solidNb = 0;
+      TopoDS_Solid aSolid;
+      
+      for(;anExp.More();anExp.Next())
+      {
+        aSolid = TopoDS::Solid(anExp.Current());
+        solidNb++;
+        if (solidNb > 1)
+          break;
+      }
+      if (solidNb == 1)
+        aRes = aSolid;
+    } 
+    
+    aFunction->SetValue(aRes);
+  }
+  else
+  {
+    TopoDS_Shape aRes = GEOMUtils::CompsolidToCompound(aShape);
   aFunction->SetValue(aRes);
+  }
+  
 
   log.SetTouched(Label()); 
 
@@ -241,7 +310,7 @@ TopoDS_Shape GEOMImpl_PrismDriver::MakeScaledPrism (const TopoDS_Shape& theShape
   // 1. aCDG = geompy.MakeCDG(theBase)
   gp_Pnt aCDG = theCDG;
   if (!isCDG) {
-    gp_Ax3 aPos = GEOMImpl_IMeasureOperations::GetPosition(theShapeBase);
+    gp_Ax3 aPos = GEOMUtils::GetPosition(theShapeBase);
     aCDG = aPos.Location();
   }
   TopoDS_Shape aShapeCDG_1 = BRepBuilderAPI_MakeVertex(aCDG).Shape();
@@ -367,43 +436,155 @@ TopoDS_Shape GEOMImpl_PrismDriver::MakeScaledPrism (const TopoDS_Shape& theShape
 }
 
 //=======================================================================
-//function :  GEOMImpl_PrismDriver_Type_
+//function : MakeDraftPrism
 //purpose  :
-//======================================================================= 
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_PrismDriver_Type_()
-{
-
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared); 
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
- 
-
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_PrismDriver",
-			                                 sizeof(GEOMImpl_PrismDriver),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
-
-  return _aType;
-}
-
 //=======================================================================
-//function : DownCast
-//purpose  :
-//======================================================================= 
-const Handle(GEOMImpl_PrismDriver) Handle(GEOMImpl_PrismDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
+TopoDS_Shape GEOMImpl_PrismDriver::MakeDraftPrism ( const TopoDS_Shape& theInitShape,
+                                                    const TopoDS_Shape& theBaseShape,
+                                                    const Standard_Real theHeight,
+                                                    const Standard_Real theAngle,
+                                                    bool                isProtrusion,
+                                                    const TopoDS_Shape& theSupport)
 {
-  Handle(GEOMImpl_PrismDriver) _anOtherObject;
+  TopoDS_Shape aShape;
+  
+  if (theInitShape.ShapeType() == TopAbs_COMPOUND)
+    {
+      TopExp_Explorer anExp(theInitShape, TopAbs_SOLID);
+      int solidCount = 0;
+      for(;anExp.More();anExp.Next())
+      {
+        solidCount++;
+        if (solidCount > 1)
+          Standard_ConstructionError::Raise("The input shape is a compound with more than one solid");
+      }
+      if (solidCount == 0)
+        Standard_ConstructionError::Raise("The input shape is a compound without any solid");
+    }
+    
+    TopoDS_Wire aWire = TopoDS_Wire();
+    
+    if (theBaseShape.ShapeType() == TopAbs_EDGE)
+    {
+      aWire = BRepBuilderAPI_MakeWire(TopoDS::Edge(theBaseShape));
+    }
+    else if (theBaseShape.ShapeType() == TopAbs_WIRE)
+    {
+      aWire = TopoDS::Wire(theBaseShape);
+    }
+    else
+    {
+      Standard_ConstructionError::Raise("The input profile is neither a wire, nor edge");
+    }
+    
+    TopoDS_Vertex aV1, aV2;
+    TopExp::Vertices(aWire, aV1, aV2);
+    if ( !aV1.IsNull() && !aV2.IsNull() && aV1.IsSame(aV2) )
+      aWire.Closed( true );
+    
+    if (!aWire.Closed())
+      Standard_ConstructionError::Raise("The input profile is not closed");
+    
+    // Construction of the face if the wire hasn't any support face;
+    // the face must be planar for BRepFeat_MakeDPrism
+    TopoDS_Face aFaceBase = BRepBuilderAPI_MakeFace(aWire, /*OnlyPlane=*/true);
 
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_PrismDriver))) {
-       _anOtherObject = Handle(GEOMImpl_PrismDriver)((Handle(GEOMImpl_PrismDriver)&)AnObject);
-     }
+    if(!theSupport.IsNull() && theSupport.ShapeType() == TopAbs_FACE) // If the wire has a support
+    {
+      Handle(Geom_Surface) aSurf = BRep_Tool::Surface(TopoDS::Face(theSupport));
+      TopoDS_Face aTempFace = BRepBuilderAPI_MakeFace(aSurf, aWire);
+      
+      if(aTempFace.Orientation() != TopoDS::Face(theSupport).Orientation())
+      {
+        aFaceBase=TopoDS::Face(aTempFace.Reversed());
+      }
+      else
+        aFaceBase=aTempFace;
+    } 
+    
+    // Invert height and angle if the operation is an extruded cut
+    bool invert = !isProtrusion; 
+    
+    // If the face has a reversed orientation invert for extruded boss operations
+    if(aFaceBase.Orientation() == TopAbs_REVERSED)
+      invert = isProtrusion;
+
+    Standard_Real anAngle = theAngle;
+    Standard_Real aHeight = theHeight;
+    if(invert)
+    {
+      anAngle  = -theAngle;  // Invert angle and height
+      aHeight  = -theHeight;
+    }
+    
+    BRepFeat_MakeDPrism aPrism(theInitShape, aFaceBase, aFaceBase,
+                               anAngle*M_PI/180., isProtrusion, Standard_True); 
+    
+    aPrism.Perform(aHeight);
+    aPrism.Check();          // Raises NotDone if done is false
+    
+    aShape = aPrism.Shape();
+    
+    return aShape;
+}
+                                                   
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
+
+bool GEOMImpl_PrismDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
+{
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
+
+  GEOMImpl_IPrism aCI( function );
+  Standard_Integer aType = function->GetType();
+
+  theOperationName = "EXTRUSION";
+
+  switch ( aType ) {
+  case PRISM_BASE_VEC_H:
+  case PRISM_BASE_VEC_H_2WAYS:
+    AddParam( theParams, "Base", aCI.GetBase() );
+    AddParam( theParams, "Vector", aCI.GetVector() );
+    AddParam( theParams, "Height", aCI.GetH() );
+    AddParam( theParams, "Both Directions", aType == PRISM_BASE_VEC_H_2WAYS );
+    AddParam( theParams, "Scale base-opposite face", aCI.GetScale() );
+    break;
+  case PRISM_BASE_TWO_PNT:
+  case PRISM_BASE_TWO_PNT_2WAYS:
+    AddParam( theParams, "Base", aCI.GetBase() );
+    AddParam( theParams, "Point 1", aCI.GetFirstPoint() );
+    AddParam( theParams, "Point 2", aCI.GetLastPoint() );
+    AddParam( theParams, "Both Directions", aType == PRISM_BASE_VEC_H_2WAYS );
+    AddParam( theParams, "Scale base-opposite face", aCI.GetScale() );
+    break;
+  case PRISM_BASE_DXDYDZ:
+  case PRISM_BASE_DXDYDZ_2WAYS:
+    AddParam( theParams, "Base", aCI.GetBase() );
+    AddParam( theParams, "Dx", aCI.GetDX() );
+    AddParam( theParams, "Dy", aCI.GetDY() );
+    AddParam( theParams, "Dz", aCI.GetDZ() );
+    AddParam( theParams, "Both Directions", aType == PRISM_BASE_VEC_H_2WAYS );
+    AddParam( theParams, "Scale base-opposite face", aCI.GetScale() );
+    break;
+  case DRAFT_PRISM_FEATURE:
+    theOperationName = aCI.GetFuseFlag() ? "EXTRUDED_BOSS" : "EXTRUDED_CUT";
+    AddParam( theParams, "Initial shape", aCI.GetInitShape() );
+    AddParam( theParams, "Profile", aCI.GetBase() );
+    AddParam( theParams, "Height", aCI.GetH() );
+    AddParam( theParams, "Draft angle", aCI.GetDraftAngle() );
+    break;
+  default:
+    return false;
   }
 
-  return _anOtherObject ;
+  return true;
 }
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_PrismDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_PrismDriver,GEOM_BaseDriver);

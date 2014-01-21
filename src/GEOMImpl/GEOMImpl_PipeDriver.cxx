@@ -1,4 +1,4 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 //  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 //  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
@@ -19,18 +19,20 @@
 //
 //  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#include <Standard_Stream.hxx>
 
 #include <GEOMImpl_PipeDriver.hxx>
 
-#include <GEOMImpl_IShapesOperations.hxx>
 #include <GEOMImpl_IPipeDiffSect.hxx>
 #include <GEOMImpl_IPipeShellSect.hxx>
 #include <GEOMImpl_IPipeBiNormal.hxx>
 #include <GEOMImpl_IPipe.hxx>
+#include <GEOMImpl_IPipePath.hxx>
 #include <GEOMImpl_GlueDriver.hxx>
 #include <GEOMImpl_Types.hxx>
+
 #include <GEOM_Function.hxx>
+
+#include <GEOMUtils.hxx>
 
 #include <ShapeAnalysis_FreeBounds.hxx>
 #include <ShapeAnalysis_Edge.hxx>
@@ -41,17 +43,16 @@
 
 #include <BRep_Tool.hxx>
 #include <BRep_Builder.hxx>
+#include <BRepBuilderAPI_Copy.hxx>
+#include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepBuilderAPI_MakeWire.hxx>
 #include <BRepBuilderAPI_Sewing.hxx>
 #include <BRepCheck_Analyzer.hxx>
+#include <BRepGProp.hxx>
+#include <GeomFill_Trihedron.hxx>
+#include <GeomFill_CorrectedFrenet.hxx>
 #include <BRepOffsetAPI_MakePipe.hxx>
 #include <BRepOffsetAPI_MakePipeShell.hxx>
-#include <GProp_GProps.hxx>
-#include <BRepGProp.hxx>
-#include <BRepBuilderAPI_MakeFace.hxx>
-#include <BRepBuilderAPI_Copy.hxx>
-#include <BRepAdaptor_Curve.hxx>
-#include <BRepAdaptor_Surface.hxx>
 
 #include <TopAbs.hxx>
 #include <TopExp.hxx>
@@ -70,6 +71,8 @@
 #include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
 #include <TopTools_ListIteratorOfListOfShape.hxx>
 
+#include <GProp_GProps.hxx>
+
 #include <GeomAPI_ProjectPointOnCurve.hxx>
 #include <GeomAPI_Interpolate.hxx>
 #include <Geom_TrimmedCurve.hxx>
@@ -80,6 +83,7 @@
 #include <Geom_Conic.hxx>
 #include <Geom_BSplineCurve.hxx>
 #include <Geom_BSplineSurface.hxx>
+#include <GeomAdaptor_HCurve.hxx>
 #include <GeomFill_BSplineCurves.hxx>
 #include <GeomConvert_ApproxCurve.hxx>
 #include <GeomConvert.hxx>
@@ -90,6 +94,7 @@
 #include <TColStd_HSequenceOfTransient.hxx>
 
 #include <Precision.hxx>
+
 #include <Standard_NullObject.hxx>
 #include <Standard_TypeMismatch.hxx>
 #include <Standard_ConstructionError.hxx>
@@ -107,13 +112,44 @@ const Standard_GUID& GEOMImpl_PipeDriver::GetID()
   return aPipeDriver;
 }
 
-
 //=======================================================================
 //function : GEOMImpl_PipeDriver
 //purpose  :
 //=======================================================================
 GEOMImpl_PipeDriver::GEOMImpl_PipeDriver()
 {
+}
+
+//=======================================================================
+//function : EvaluateBestSweepMode
+//purpose  : auxilary for right call of MakePipe and MakePipeShell
+//=======================================================================
+static GeomFill_Trihedron EvaluateBestSweepMode(const TopoDS_Shape& Spine)
+{
+  GeomFill_Trihedron theMode = GeomFill_IsFrenet;
+  
+  TopExp_Explorer Explo(Spine, TopAbs_EDGE);
+  for (; Explo.More(); Explo.Next())
+  {
+    TopoDS_Edge anEdge = TopoDS::Edge(Explo.Current());
+    Standard_Real fpar, lpar;
+    Handle(Geom_Curve) aCurve = BRep_Tool::Curve(anEdge, fpar, lpar);
+    GeomAdaptor_Curve GAcurve(aCurve, fpar, lpar);
+    Handle(GeomAdaptor_HCurve) GAHcurve = new GeomAdaptor_HCurve(GAcurve);
+
+    Handle(GeomFill_CorrectedFrenet) aCorrFrenet = new GeomFill_CorrectedFrenet(Standard_True); //for evaluation
+    aCorrFrenet->SetCurve(GAHcurve);
+    GeomFill_Trihedron aMode = aCorrFrenet->EvaluateBestMode();
+    if (aMode == GeomFill_IsDiscreteTrihedron)
+    {
+      theMode = aMode;
+      break;
+    }
+    if (aMode == GeomFill_IsCorrectedFrenet)
+      theMode = aMode;
+  }
+
+  return theMode;
 }
 
 
@@ -193,7 +229,6 @@ static bool FillForOtherEdges(const TopoDS_Shape& F1,
   return true;
 }
 
-
 //=======================================================================
 //function : FillCorrespondingEdges
 //purpose  : auxilary for CreatePipeForShellSections()
@@ -213,6 +248,9 @@ static bool FillCorrespondingEdges(const TopoDS_Shape& FS1,
   TopExp_Explorer expw2(FS2,TopAbs_WIRE);
   TopoDS_Wire aWire2 = TopoDS::Wire(expw2.Current());
   BRepOffsetAPI_MakePipeShell aBuilder(aWirePath);
+  GeomFill_Trihedron theBestMode = EvaluateBestSweepMode(aWirePath);
+  if (theBestMode == GeomFill_IsDiscreteTrihedron)
+    aBuilder.SetDiscreteMode();
   aBuilder.Add(aWire1, aLoc1);
   aBuilder.Add(aWire2, aLoc2);
   if(!aBuilder.IsReady()) {
@@ -326,7 +364,6 @@ static bool FillCorrespondingEdges(const TopoDS_Shape& FS1,
   //return true;
 }
 
-
 //=======================================================================
 //function : FillCorrespondingEdges
 //purpose  : auxilary for CreatePipeShellsWithoutPath()
@@ -429,7 +466,6 @@ static bool FillCorrespondingEdges(const TopoDS_Shape& FS1,
   return FillForOtherEdges(FS1,E1,V21,FF);
 }
 
-
 //=======================================================================
 //function : FindNextPairOfFaces
 //purpose  : auxilary for CreatePipeForShellSections()
@@ -500,7 +536,6 @@ static void FindNextPairOfFaces(const TopoDS_Shape& aCurFace,
   }
 }
 
-
 //=======================================================================
 //function : FindFirstPairFaces
 //purpose  : auxilary for Execute()
@@ -511,7 +546,7 @@ static void FindFirstPairFaces(const TopoDS_Shape& S1, const TopoDS_Shape& S2,
 {
   //cout<<"FindFirstPairFaces"<<endl;
 
-  // check if vertexes are subshapes of sections
+  // check if vertexes are sub-shapes of sections
   gp_Pnt P1 = BRep_Tool::Pnt(V1);
   gp_Pnt P2 = BRep_Tool::Pnt(V2);
   TopoDS_Vertex V1new,V2new;
@@ -621,7 +656,6 @@ static void FindFirstPairFaces(const TopoDS_Shape& S1, const TopoDS_Shape& S2,
   FS2 = Fs(numface);
 }
 
-
 //=======================================================================
 //function : CreatePipeWithDifferentSections
 //purpose  : auxilary for Execute()
@@ -643,6 +677,7 @@ TopoDS_Shape GEOMImpl_PipeDriver::CreatePipeWithDifferentSections
   if(nbLocs && nbLocs != nbBases) {
     Standard_ConstructionError::Raise("Number of sections is not equal to number of locations ");
   }
+
   TopTools_SequenceOfShape aSeqBases;
   TopTools_SequenceOfShape aSeqLocs;
   TopTools_SequenceOfShape aSeqFaces;
@@ -713,7 +748,6 @@ TopoDS_Shape GEOMImpl_PipeDriver::CreatePipeWithDifferentSections
 
   // skl 02.05.2007
   TopTools_SequenceOfShape Edges;
-
   if(nbLocs>0) {
     // we have to check that each location shape is a vertex from
     // path and update aSeqLocs if it is needed (and possible)
@@ -734,25 +768,19 @@ TopoDS_Shape GEOMImpl_PipeDriver::CreatePipeWithDifferentSections
     TopoDS_Vertex VF = sae.FirstVertex(edge);
     gp_Pnt PF = BRep_Tool::Pnt(VF);
     //cout<<"PF("<<PF.X()<<","<<PF.Y()<<","<<PF.Z()<<")"<<endl;
-    /*
     if( PF.Distance(PLocs.First()) > tol ) {
-            if(aCI) delete aCI;
             Standard_ConstructionError::Raise
               ("First location shapes is not coincided with first vertex of aWirePath");
     }
-    */
     aSeqLocs.ChangeValue(1) = VF;
     edge = TopoDS::Edge(Edges.Last());
     tol = BRep_Tool::Tolerance(edge);
     TopoDS_Vertex VL = sae.LastVertex(edge);
     gp_Pnt PL = BRep_Tool::Pnt(VL);
-    /*
     if( PL.Distance(PLocs.Last()) > tol ) {
-            if(aCI) delete aCI;
             Standard_ConstructionError::Raise
               ("Last location shapes is not coincided with last vertex of aWirePath");
     }
-    */
     aSeqLocs.ChangeValue(nbLocs) = VL;
     int jcurr = 2;
     for(i=1; i<=Edges.Length() && jcurr<nbLocs; i++) {
@@ -830,14 +858,17 @@ TopoDS_Shape GEOMImpl_PipeDriver::CreatePipeWithDifferentSections
   // and seguences of shapes, perform pipe for each
   // and make sewing after that
   double fp,lp;
-  Handle(Geom_Curve) C = BRep_Tool::Curve(TopoDS::Edge(Edges.Value(1)),fp,lp);
   gp_Pnt P1,P2;
   gp_Vec Vec1,Vec2;
+  double SumAng = 0;
+  if ( Edges.Length() > 0 ) {
+    Handle(Geom_Curve) C = BRep_Tool::Curve(TopoDS::Edge(Edges.Value(1)),fp,lp);
   C->D1(fp,P1,Vec1);
   C->D1(lp,P2,Vec2);
-  double SumAng = fabs(Vec1.Angle(Vec2));
+    SumAng = fabs(Vec1.Angle(Vec2));
   Vec1 = Vec2;
   P1 = P2;
+  }
   TColStd_SequenceOfInteger SplitEdgeNums,SplitLocNums;
   int LastLoc = 1;
   //cout<<"Edges.Length()="<<Edges.Length()<<endl;
@@ -887,6 +918,9 @@ TopoDS_Shape GEOMImpl_PipeDriver::CreatePipeWithDifferentSections
       num2 = SplitLocNums.Value(nn);
       // make pipe
       BRepOffsetAPI_MakePipeShell aBuilder(tmpW);
+        GeomFill_Trihedron theBestMode = EvaluateBestSweepMode(tmpW);
+        if (theBestMode == GeomFill_IsDiscreteTrihedron)
+          aBuilder.SetDiscreteMode();
       Standard_Integer nbShapes = aTmpSeqBases.Length();
       for(i=1; i<=nbShapes; i++) {
         TopoDS_Shape aShapeLoc = aTmpSeqLocs.Value(i);
@@ -915,6 +949,9 @@ TopoDS_Shape GEOMImpl_PipeDriver::CreatePipeWithDifferentSections
     }
     // make pipe for last part
     BRepOffsetAPI_MakePipeShell aBuilder(tmpW);
+      GeomFill_Trihedron theBestMode = EvaluateBestSweepMode(tmpW);
+      if (theBestMode == GeomFill_IsDiscreteTrihedron)
+        aBuilder.SetDiscreteMode();
     Standard_Integer nbShapes = aTmpSeqBases.Length();
     for(i=1; i<=nbShapes; i++) {
       TopoDS_Shape aShapeLoc = aTmpSeqLocs.Value(i);
@@ -942,6 +979,9 @@ TopoDS_Shape GEOMImpl_PipeDriver::CreatePipeWithDifferentSections
   else {
     // old implementation without splitting
     BRepOffsetAPI_MakePipeShell aBuilder(aWirePath);
+      GeomFill_Trihedron theBestMode = EvaluateBestSweepMode(aWirePath);
+      if (theBestMode == GeomFill_IsDiscreteTrihedron)
+        aBuilder.SetDiscreteMode();
 
     Standard_Integer nbShapes = aSeqBases.Length();
     Standard_Integer step = nbShapes/nbBases;
@@ -950,6 +990,9 @@ TopoDS_Shape GEOMImpl_PipeDriver::CreatePipeWithDifferentSections
       Standard_ConstructionError::Raise("Invalid sections were specified for building pipe");
     }
     Standard_Integer ind =0;
+      Standard_Real aTolConf = Precision::Confusion();
+      Standard_Real aTolAng  = Precision::Angular();
+
     for( i=1; i  <= nbShapes && ind < nbShapes; i++) { //i+nbBases <= nbShapes
       TopTools_SequenceOfShape usedBases;
       Standard_Integer j = 1;
@@ -968,6 +1011,9 @@ TopoDS_Shape GEOMImpl_PipeDriver::CreatePipeWithDifferentSections
     if(!aBuilder.IsReady()) {
       Standard_ConstructionError::Raise("Invalid input data for building PIPE: bases are invalid");
     }
+      
+        aBuilder.SetTolerance(aTolConf, aTolConf, aTolAng);
+
     aBuilder.Build();
     aShape = aBuilder.Shape();
     aSeqFaces.Append(aShape);
@@ -985,9 +1031,9 @@ TopoDS_Shape GEOMImpl_PipeDriver::CreatePipeWithDifferentSections
       aShape = aComp;
     }
   }
+
   return aShape;
 }
-
 
 //=======================================================================
 //function : CreatePipeForShellSections
@@ -1459,6 +1505,9 @@ static TopoDS_Shape CreatePipeForShellSections(const TopoDS_Wire& aWirePath,
       if( !aWire1.IsNull() && !aWire2.IsNull() ) {
         //BRepOffsetAPI_MakePipeShell aBuilder(aWirePath);
         BRepOffsetAPI_MakePipeShell aBuilder(WPath);
+        GeomFill_Trihedron theBestMode = EvaluateBestSweepMode(WPath);
+        if (theBestMode == GeomFill_IsDiscreteTrihedron)
+          aBuilder.SetDiscreteMode();
         aBuilder.Add(aWire1, TopoDS::Vertex(VLocs(i)),
                      aWithContact, aWithCorrect);
         aBuilder.Add(aWire2, TopoDS::Vertex(VLocs(i+1)),
@@ -1681,7 +1730,6 @@ static TopoDS_Shape CreatePipeForShellSections(const TopoDS_Wire& aWirePath,
 
       FindNextPairOfFaces(FS1, aMapEdgeFaces1, aMapEdgeFaces2, FF, aCI);
 
-
       // make pipe for each pair of faces
       for(j=1; j<=FF.Extent(); j++) {
         TopoDS_Shape F1 = FF.FindKey(j);
@@ -1695,6 +1743,9 @@ static TopoDS_Shape CreatePipeForShellSections(const TopoDS_Wire& aWirePath,
         // make pipe using aWire1 and aWire2
         if( !aWire1.IsNull() && !aWire2.IsNull() ) {
           BRepOffsetAPI_MakePipeShell aBuilder(WPath);
+          GeomFill_Trihedron theBestMode = EvaluateBestSweepMode(WPath);
+          if (theBestMode == GeomFill_IsDiscreteTrihedron)
+            aBuilder.SetDiscreteMode();
           aBuilder.Add(aWire1, TopoDS::Vertex(VLocs(i)),
                        aWithContact, aWithCorrect);
           aBuilder.Add(aWire2, TopoDS::Vertex(VLocs(i+1)),
@@ -1755,7 +1806,6 @@ static TopoDS_Shape CreatePipeForShellSections(const TopoDS_Wire& aWirePath,
   return aComp;
 }
 
-
 //=======================================================================
 //function : CreatePipeShellsWithoutPath
 //purpose  : auxilary for Execute()
@@ -1779,7 +1829,6 @@ static TopoDS_Shape CreatePipeShellsWithoutPath(GEOMImpl_IPipe* aCI)
     if(aCI) delete aCI;
     Standard_ConstructionError::Raise("Number of shapes for recognition is invalid");
   }
-
 
   TopTools_SequenceOfShape SecVs,Bases;
   for(i=1; i<=nbBases; i++) {
@@ -1845,7 +1894,7 @@ static TopoDS_Shape CreatePipeShellsWithoutPath(GEOMImpl_IPipe* aCI)
     TopTools_IndexedDataMapOfShapeListOfShape aMapEdgeFaces2;
     TopExp::MapShapesAndAncestors(aShBase2, TopAbs_EDGE, TopAbs_FACE, aMapEdgeFaces2);
 
-    // constuct map face->face (and subshapes)
+    // constuct map face->face (and sub-shapes)
     TopTools_IndexedDataMapOfShapeShape FF;
     //TopoDS_Shape FS1 = SecFs.Value(i), FS2 = SecFs.Value(i+1);
     TopoDS_Shape FS1, FS2;
@@ -1862,7 +1911,7 @@ static TopoDS_Shape CreatePipeShellsWithoutPath(GEOMImpl_IPipe* aCI)
       if(aCI) delete aCI;
       Standard_ConstructionError::Raise("Can not create correct pipe");
     }
-    MESSAGE ("  correspondences for subshapes of first pair of faces is found");
+    MESSAGE ("  correspondences for sub-shapes of first pair of faces is found");
 
     FindNextPairOfFaces(FS1, aMapEdgeFaces1, aMapEdgeFaces2, FF, aCI);
     MESSAGE ("  other correspondences is found, make pipe for all pairs of faces");
@@ -2226,7 +2275,6 @@ static TopoDS_Shape CreatePipeShellsWithoutPath(GEOMImpl_IPipe* aCI)
   return aComp;
 }
 
-
 //=======================================================================
 //function : CreatePipeBiNormalAlongVector
 //purpose  : auxilary for Execute()
@@ -2246,8 +2294,12 @@ static TopoDS_Shape CreatePipeBiNormalAlongVector(const TopoDS_Wire& aWirePath,
     Standard_NullObject::Raise("MakePipe aborted : null base argument");
   }
 
-  TopoDS_Shape aProf;
+  // Make copy to prevent modifying of base object: 0021525
+  BRepBuilderAPI_Copy Copy (aShapeBase);
+  if (Copy.IsDone())
+    aShapeBase = Copy.Shape();
 
+  TopoDS_Shape aProf;
   if( aShapeBase.ShapeType() == TopAbs_VERTEX ) {
     aProf = aShapeBase;
   }
@@ -2293,7 +2345,6 @@ static TopoDS_Shape CreatePipeBiNormalAlongVector(const TopoDS_Wire& aWirePath,
   return PipeBuilder.Shape();
 }
 
-
 //=======================================================================
 //function : Execute
 //purpose  :
@@ -2302,8 +2353,9 @@ Standard_Integer GEOMImpl_PipeDriver::Execute(TFunction_Logbook& log) const
 {
   if (Label().IsNull()) return 0;
   Handle(GEOM_Function) aFunction = GEOM_Function::GetFunction(Label());
-  GEOMImpl_IPipe* aCI= 0;
   Standard_Integer aType = aFunction->GetType();
+
+  GEOMImpl_IPipe* aCI= 0;
   if (aType == PIPE_BASE_PATH || aType == PIPE_RIGID)
     aCI = new GEOMImpl_IPipe(aFunction);
   else if (aType == PIPE_DIFFERENT_SECTIONS)
@@ -2318,10 +2370,8 @@ Standard_Integer GEOMImpl_PipeDriver::Execute(TFunction_Logbook& log) const
     return 0;
 
   TopoDS_Wire aWirePath;
-  TopoDS_Shape aShape;
-
-  // working with path
   if(aType != PIPE_SHELLS_WITHOUT_PATH) {
+    // working with path
     Handle(GEOM_Function) aRefPath = aCI->GetPath();
     TopoDS_Shape aShapePath = aRefPath->GetValue();
 
@@ -2363,10 +2413,60 @@ Standard_Integer GEOMImpl_PipeDriver::Execute(TFunction_Logbook& log) const
     }
   }
 
-  //building a pipe
-  if (aType == PIPE_BASE_PATH) {
+  TopoDS_Shape aShape;
+
+  if (aType == PIPE_BASE_PATH_NEW) {
     Handle(GEOM_Function) aRefBase = aCI->GetBase();
-    
+    TopoDS_Shape aShapeBase;
+
+    // Make copy to prevent modifying of base object 0020766 : EDF 1320
+    BRepBuilderAPI_Copy Copy(aRefBase->GetValue());
+    if (Copy.IsDone())
+      aShapeBase = Copy.Shape();
+
+    if (aShapeBase.IsNull()) {
+      if (aCI) delete aCI;
+      Standard_NullObject::Raise("MakePipe aborted : null base argument");
+    }
+
+    // Make pipe
+    if (aShapeBase.ShapeType() == TopAbs_EDGE ||
+        aShapeBase.ShapeType() == TopAbs_WIRE)
+    {
+      TopoDS_Wire Profile;
+      if (aShapeBase.ShapeType() == TopAbs_WIRE)
+        Profile = TopoDS::Wire(aShapeBase);
+      else
+      {
+        BRep_Builder BB;
+        BB.MakeWire(Profile);
+        BB.Add(Profile, aShapeBase);
+      }
+
+      BRepOffsetAPI_MakePipeShell Sweep (aWirePath);
+      BRepBuilderAPI_MakeFace FaceBuilder (aWirePath, Standard_True); //to find the plane of spine
+      if (FaceBuilder.IsDone())
+        Sweep.SetMode(FaceBuilder.Face());
+      Sweep.Add(Profile);
+      Sweep.Build();
+      
+      if (!Sweep.IsDone())
+      {
+        if (aCI) delete aCI;
+        Standard_ConstructionError::Raise("MakePipeShell failed");
+      }
+      else
+        aShape = Sweep.Shape(); //result is good
+      
+    }
+    else
+    {
+      GeomFill_Trihedron theBestMode = EvaluateBestSweepMode(aWirePath);
+      aShape = BRepOffsetAPI_MakePipe(aWirePath, aShapeBase, theBestMode);
+    }
+  }
+  else if (aType == PIPE_BASE_PATH_ORG) {
+    Handle(GEOM_Function) aRefBase = aCI->GetBase();
     TopoDS_Shape aShapeBase;
 
     // Make copy to prevent modifying of base object 0020766 : EDF 1320
@@ -2503,7 +2603,6 @@ Standard_Integer GEOMImpl_PipeDriver::Execute(TFunction_Logbook& log) const
 
   //building pipe with different sections
   else if (aType == PIPE_DIFFERENT_SECTIONS) {
-  
     GEOMImpl_IPipeDiffSect* aCIDS = (GEOMImpl_IPipeDiffSect*)aCI;
     Handle(TColStd_HSequenceOfTransient) aBasesObjs = aCIDS->GetBases ();
     Handle(TColStd_HSequenceOfTransient) aLocObjs = aCIDS->GetLocations ();
@@ -2570,7 +2669,6 @@ Standard_Integer GEOMImpl_PipeDriver::Execute(TFunction_Logbook& log) const
 
   if (aShape.IsNull()) return 0;
 
-  //treatment
   BRepCheck_Analyzer ana (aShape, Standard_False);
   if (!ana.IsValid()) {
     ShapeFix_ShapeTolerance aSFT;
@@ -2601,58 +2699,99 @@ Standard_Integer GEOMImpl_PipeDriver::Execute(TFunction_Logbook& log) const
         }
   }
   
-  // Glue (for bug 0020207)
+  if (aType != PIPE_BASE_PATH &&
+      aType != PIPE_SHELLS_WITHOUT_PATH) {
   TopExp_Explorer anExpV (aShape, TopAbs_VERTEX);
-  if (anExpV.More())
-    aShape = GEOMImpl_GlueDriver::GlueFaces(aShape, Precision::Confusion(), Standard_True);
+    if (anExpV.More()) {
+      Standard_Real aVertMaxTol = -RealLast();
+      for (; anExpV.More(); anExpV.Next()) {
+        TopoDS_Vertex aVertex = TopoDS::Vertex(anExpV.Current());
+        Standard_Real aTol = BRep_Tool::Tolerance(aVertex);
+        if (aTol > aVertMaxTol)
+          aVertMaxTol = aTol;
+      }
+      aVertMaxTol += Precision::Confusion();
+      aShape = GEOMImpl_GlueDriver::GlueFaces(aShape, aVertMaxTol, Standard_True);
+      //aShape = GEOMImpl_GlueDriver::GlueFaces(aShape, Precision::Confusion(), Standard_True);
+    }
+  }
 
-  TopoDS_Shape aRes = GEOMImpl_IShapesOperations::CompsolidToCompound(aShape);
+  TopoDS_Shape aRes = GEOMUtils::CompsolidToCompound(aShape);
   aFunction->SetValue(aRes);
 
   log.SetTouched(Label());
   return 1;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOMImpl_PipeDriver_Type_
-//purpose  :
-//=======================================================================
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_PipeDriver_Type_()
+bool GEOMImpl_PipeDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
+  Standard_Integer aType = function->GetType();
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared);
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
-
-
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_PipeDriver",
-                                                         sizeof(GEOMImpl_PipeDriver),
-                                                         1,
-                                                         (Standard_Address)_Ancestors,
-                                                         (Standard_Address)NULL);
-
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//=======================================================================
-const Handle(GEOMImpl_PipeDriver) Handle(GEOMImpl_PipeDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_PipeDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_PipeDriver))) {
-       _anOtherObject = Handle(GEOMImpl_PipeDriver)((Handle(GEOMImpl_PipeDriver)&)AnObject);
-     }
+  switch ( aType ) {
+  case PIPE_BASE_PATH:
+  {
+    theOperationName = "PIPE";
+    GEOMImpl_IPipe aCI( function );
+    AddParam( theParams, "Base Object", aCI.GetBase() );
+    AddParam( theParams, "Path Object", aCI.GetPath() );
+    break;
+  }
+  case PIPE_BI_NORMAL_ALONG_VECTOR:
+  {
+    theOperationName = "PIPE";
+    GEOMImpl_IPipeBiNormal aCI( function );
+    AddParam( theParams, "Base Object", aCI.GetBase() );
+    AddParam( theParams, "Path Object", aCI.GetPath() );
+    AddParam( theParams, "BiNormal", aCI.GetVector() );
+    break;
+  }
+  case PIPE_DIFFERENT_SECTIONS:
+  {
+    theOperationName = "PIPE";
+    GEOMImpl_IPipeDiffSect aCI( function );
+    AddParam( theParams, "Bases", aCI.GetBases() );
+    AddParam( theParams, "Locations", aCI.GetLocations() );
+    AddParam( theParams, "Path", aCI.GetPath() );
+    AddParam( theParams, "With contact", aCI.GetWithContactMode() );
+    AddParam( theParams, "With correction", aCI.GetWithCorrectionMode() );
+    break;
+  }
+  case PIPE_SHELL_SECTIONS:
+  {
+    theOperationName = "PIPE";
+    GEOMImpl_IPipeShellSect aCI( function );
+    AddParam( theParams, "Bases", aCI.GetBases() );
+    AddParam( theParams, "Sub-Bases", aCI.GetSubBases() );
+    AddParam( theParams, "Locations", aCI.GetLocations() );
+    AddParam( theParams, "Path", aCI.GetPath() );
+    AddParam( theParams, "With contact", aCI.GetWithContactMode() );
+    AddParam( theParams, "With correction", aCI.GetWithCorrectionMode() );
+    break;
+  }
+  case PIPE_SHELLS_WITHOUT_PATH:
+  {
+    theOperationName = "PIPE"; // MakePipeShellsWithoutPath
+    GEOMImpl_IPipeShellSect aCI( function );
+    AddParam( theParams, "Bases", aCI.GetBases() );
+    AddParam( theParams, "Locations", aCI.GetLocations() );
+    break;
+  }
+  default:
+    return false;
   }
 
-  return _anOtherObject ;
+  return true;
 }
 
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_PipeDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_PipeDriver,GEOM_BaseDriver);

@@ -136,47 +136,4 @@ Standard_Integer GEOMImpl_ThickSolidDriver::Execute(TFunction_Logbook& log) cons
 }
 
 
-//=======================================================================
-//function :  GEOMImpl_ThickSolidDriver_Type_
-//purpose  :
-//======================================================================= 
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_ThickSolidDriver_Type_()
-{
-
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared); 
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
- 
-
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_ThickSolidDriver",
-			                                 sizeof(GEOMImpl_ThickSolidDriver),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
-
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//======================================================================= 
-
-const Handle(GEOMImpl_ThickSolidDriver) Handle(GEOMImpl_ThickSolidDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_ThickSolidDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_ThickSolidDriver))) {
-	   _anOtherObject = Handle(GEOMImpl_ThickSolidDriver)((Handle(GEOMImpl_ThickSolidDriver)&)AnObject);
-     }
-  }
-
-  return _anOtherObject ;
-}
-
 

@@ -1,4 +1,4 @@
-//  Copyright (C) 2007-2010  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 //  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 //  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
@@ -15,7 +15,7 @@
 //
 //  You should have received a copy of the GNU Lesser General Public
 //  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 //
 //  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
@@ -24,14 +24,19 @@
 
 #include <GEOMImpl_MeasureDriver.hxx>
 #include <GEOMImpl_IMeasure.hxx>
-#include <GEOMImpl_IMeasureOperations.hxx>
 #include <GEOMImpl_Types.hxx>
+
 #include <GEOM_Function.hxx>
 
+#include <GEOMUtils.hxx>
+
 #include <BRep_Tool.hxx>
+#include <BRepTools.hxx>
 #include <BRepGProp.hxx>
-#include <BRepBuilderAPI_MakeVertex.hxx>
+#include <BRepBuilderAPI_Copy.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
+#include <BRepBuilderAPI_MakeVertex.hxx>
+#include <BRepPrimAPI_MakeBox.hxx>
 
 #include <TopAbs.hxx>
 #include <TopoDS.hxx>
@@ -54,6 +59,7 @@
 #include <gp_Pnt.hxx>
 #include <Precision.hxx>
 #include <Standard_NullObject.hxx>
+#include <StdFail_NotDone.hxx>
 
 //=======================================================================
 //function : GetID
@@ -92,13 +98,52 @@ Standard_Integer GEOMImpl_MeasureDriver::Execute(TFunction_Logbook& log) const
   {
     Handle(GEOM_Function) aRefBase = aCI.GetBase();
     TopoDS_Shape aShapeBase = aRefBase->GetValue();
-    if (aShapeBase.IsNull()) {
+    if (aShapeBase.IsNull())
       Standard_NullObject::Raise("Shape for centre of mass calculation is null");
-    }
 
-    gp_Ax3 aPos = GEOMImpl_IMeasureOperations::GetPosition(aShapeBase);
+    gp_Ax3 aPos = GEOMUtils::GetPosition(aShapeBase);
     gp_Pnt aCenterMass = aPos.Location();
     aShape = BRepBuilderAPI_MakeVertex(aCenterMass).Shape();
+  }
+  else if (aType == BND_BOX_MEASURE || aType == BND_BOX_MEASURE_PRECISE)
+  {
+    Handle(GEOM_Function) aRefBase = aCI.GetBase();
+    TopoDS_Shape aShapeBase = aRefBase->GetValue();
+    if (aShapeBase.IsNull())
+      Standard_NullObject::Raise("Shape for bounding box calculation is null");
+
+    BRepBuilderAPI_Copy aCopyTool (aShapeBase);
+    if (!aCopyTool.IsDone())
+      Standard_NullObject::Raise("Shape for bounding box calculation is bad");
+
+    aShapeBase = aCopyTool.Shape();
+
+    // remove triangulation to obtain more exact boundaries
+    BRepTools::Clean(aShapeBase);
+
+    Bnd_Box B;
+    BRepBndLib::Add(aShapeBase, B);
+
+    if (aType == BND_BOX_MEASURE_PRECISE) {
+      if (!GEOMUtils::PreciseBoundingBox(aShapeBase, B)) {
+        Standard_NullObject::Raise("Bounding box cannot be precised");
+      }
+    }
+
+    Standard_Real Xmin, Ymin, Zmin, Xmax, Ymax, Zmax;
+    B.Get(Xmin, Ymin, Zmin, Xmax, Ymax, Zmax);
+
+    if (Xmax - Xmin < Precision::Confusion()) Xmax += Precision::Confusion();
+    if (Ymax - Ymin < Precision::Confusion()) Ymax += Precision::Confusion();
+    if (Zmax - Zmin < Precision::Confusion()) Zmax += Precision::Confusion();
+
+    gp_Pnt P1 (Xmin, Ymin, Zmin);
+    gp_Pnt P2 (Xmax, Ymax, Zmax);
+
+    BRepPrimAPI_MakeBox MB (P1, P2);
+    MB.Build();
+    if (!MB.IsDone()) StdFail_NotDone::Raise("Bounding box cannot be computed from the given shape");
+    aShape = MB.Shape();
   }
   else if (aType == VERTEX_BY_INDEX)
   {
@@ -189,7 +234,7 @@ Standard_Integer GEOMImpl_MeasureDriver::Execute(TFunction_Logbook& log) const
     }
     else
     {
-      gp_Ax3 aPos = GEOMImpl_IMeasureOperations::GetPosition(aFace);
+      gp_Ax3 aPos = GEOMUtils::GetPosition(aFace);
       p1 = aPos.Location();
     }
 
@@ -277,45 +322,48 @@ Standard_Integer GEOMImpl_MeasureDriver::Execute(TFunction_Logbook& log) const
   return 1;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOMImpl_MeasureDriver_Type_
-//purpose  :
-//======================================================================= 
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_MeasureDriver_Type_()
+bool GEOMImpl_MeasureDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared); 
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
- 
+  GEOMImpl_IMeasure aCI( function );
+  Standard_Integer aType = function->GetType();
 
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_MeasureDriver",
-                                                         sizeof(GEOMImpl_MeasureDriver),
-                                                         1,
-                                                         (Standard_Address)_Ancestors,
-                                                         (Standard_Address)NULL);
-
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//======================================================================= 
-const Handle(GEOMImpl_MeasureDriver) Handle(GEOMImpl_MeasureDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_MeasureDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_MeasureDriver))) {
-       _anOtherObject = Handle(GEOMImpl_MeasureDriver)((Handle(GEOMImpl_MeasureDriver)&)AnObject);
-     }
+  switch ( aType ) {
+  case CDG_MEASURE:
+    theOperationName = "MASS_CENTER";
+    AddParam( theParams, "Object", aCI.GetBase() );
+    break;
+  case BND_BOX_MEASURE:
+  case BND_BOX_MEASURE_PRECISE:
+    theOperationName = "BND_BOX";
+    AddParam( theParams, "Object", aCI.GetBase() );
+    break;
+  case VERTEX_BY_INDEX:
+    theOperationName = "GetVertexByIndex";
+    AddParam( theParams, "Object", aCI.GetBase() );
+    AddParam( theParams, "Index", aCI.GetIndex() );
+    break;
+  case VECTOR_FACE_NORMALE:
+    theOperationName = "NORMALE";
+    AddParam( theParams, "Face", aCI.GetBase() );
+    AddParam( theParams, "Point", aCI.GetPoint(), "face center" );
+    break;
+  default:
+    return false;
   }
 
-  return _anOtherObject ;
+  return true;
 }
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_MeasureDriver,GEOM_BaseDriver);
+
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_MeasureDriver,GEOM_BaseDriver);

@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -20,6 +22,8 @@
 
 #ifndef _GEOMImpl_GEN_HXX_
 #define _GEOMImpl_GEN_HXX_
+
+#include <GEOM_GEOMImpl.hxx>
 
 #include <map>
 
@@ -35,6 +39,7 @@
 #include "GEOMImpl_IInsertOperations.hxx"
 #include "GEOMImpl_IMeasureOperations.hxx"
 #include "GEOMImpl_IGroupOperations.hxx"
+#include "GEOMImpl_IFieldOperations.hxx"
 #include "GEOMImpl_IAdvancedOperations.hxx"
 #include "GEOMImpl_ISketcherOperations.hxx"
 #include "GEOM_Engine.hxx"
@@ -47,26 +52,41 @@
 
 //! GEOM engine descendant containing references to Interfaces for GeomImpl
 //! geometric drivers
-class GEOMImpl_Gen : public GEOM_Engine
+class SALOME_WNT_EXPORT GEOMImpl_Gen : public GEOM_Engine
 {
  public:
-  SALOME_WNT_EXPORT GEOMImpl_Gen();
-  SALOME_WNT_EXPORT ~GEOMImpl_Gen();
+  GEOMImpl_Gen();
+  ~GEOMImpl_Gen();
 
-  SALOME_WNT_EXPORT GEOMImpl_IBasicOperations* GetIBasicOperations(int theDocID);
-  SALOME_WNT_EXPORT GEOMImpl_ITransformOperations* GetITransformOperations(int theDocID);
-  SALOME_WNT_EXPORT GEOMImpl_I3DPrimOperations* GetI3DPrimOperations(int theDocID);
-  SALOME_WNT_EXPORT GEOMImpl_IShapesOperations* GetIShapesOperations(int theDocID);
-  SALOME_WNT_EXPORT GEOMImpl_IBlocksOperations* GetIBlocksOperations(int theDocID);
-  SALOME_WNT_EXPORT GEOMImpl_IMeasureOperations* GetIMeasureOperations(int theDocID);
-  SALOME_WNT_EXPORT GEOMImpl_IBooleanOperations* GetIBooleanOperations(int theDocID);
-  SALOME_WNT_EXPORT GEOMImpl_ICurvesOperations* GetICurvesOperations(int theDocID);
-  SALOME_WNT_EXPORT GEOMImpl_ILocalOperations* GetILocalOperations(int theDocID);
-  SALOME_WNT_EXPORT GEOMImpl_IInsertOperations* GetIInsertOperations(int theDocID);
-  SALOME_WNT_EXPORT GEOMImpl_IHealingOperations* GetIHealingOperations(int theDocID);
-  SALOME_WNT_EXPORT GEOMImpl_IGroupOperations* GetIGroupOperations(int theDocID);
-  SALOME_WNT_EXPORT GEOMImpl_IAdvancedOperations* GetIAdvancedOperations(int theDocID);
-  SALOME_WNT_EXPORT GEOMImpl_ISketcherOperations* GetISketcherOperations(int theDocID);
+  GEOMImpl_IBasicOperations* GetIBasicOperations(int theDocID);
+
+  GEOMImpl_ITransformOperations* GetITransformOperations(int theDocID);
+
+  GEOMImpl_I3DPrimOperations* GetI3DPrimOperations(int theDocID);
+
+  GEOMImpl_IShapesOperations* GetIShapesOperations(int theDocID);
+
+  GEOMImpl_IBlocksOperations* GetIBlocksOperations(int theDocID);
+
+  GEOMImpl_IMeasureOperations* GetIMeasureOperations(int theDocID);
+
+  GEOMImpl_IBooleanOperations* GetIBooleanOperations(int theDocID);
+
+  GEOMImpl_ICurvesOperations* GetICurvesOperations(int theDocID);
+
+  GEOMImpl_ILocalOperations* GetILocalOperations(int theDocID);
+
+  GEOMImpl_IInsertOperations* GetIInsertOperations(int theDocID);
+
+  GEOMImpl_IHealingOperations* GetIHealingOperations(int theDocID);
+
+  GEOMImpl_IGroupOperations* GetIGroupOperations(int theDocID);
+
+  GEOMImpl_IFieldOperations* GetIFieldOperations(int theDocID);
+
+  GEOMImpl_IAdvancedOperations* GetIAdvancedOperations(int theDocID);
+
+  GEOMImpl_ISketcherOperations* GetISketcherOperations(int theDocID);
 
  private:
 
@@ -82,6 +102,7 @@ class GEOMImpl_Gen : public GEOM_Engine
   std::map <int, GEOMImpl_IInsertOperations*>    _mapOfInsertOperations;
   std::map <int, GEOMImpl_IMeasureOperations*>   _mapOfMeasureOperations;
   std::map <int, GEOMImpl_IGroupOperations*>     _mapOfGroupOperations;
+  std::map <int, GEOMImpl_IFieldOperations*>     _mapOfFieldOperations;
   std::map <int, GEOMImpl_IAdvancedOperations*>  _mapOfAdvancedOperations;
   std::map <int, GEOMImpl_ISketcherOperations*>  _mapOfSketcherOperations;
 };

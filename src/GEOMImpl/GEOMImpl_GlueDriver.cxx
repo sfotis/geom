@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -27,12 +29,11 @@
 #include <GEOM_Object.hxx>
 #include <GEOM_Function.hxx>
 
-//#include <GEOMAlgo_Gluer.hxx>
-//#include "GEOMAlgo_Gluer1.hxx"
 #include "GEOMAlgo_Gluer2.hxx"
 #include "GEOMAlgo_ListIteratorOfListOfCoupleOfShapes.hxx"
 #include "GEOMAlgo_CoupleOfShapes.hxx"
 #include "GEOMAlgo_ListOfCoupleOfShapes.hxx"
+
 
 #include "utilities.h"
 
@@ -204,7 +205,6 @@ TopoDS_Shape GEOMImpl_GlueDriver::GlueFacesWithWarnings (const TopoDS_Shape& the
   return aRes;
 }
 
-
 //=======================================================================
 //function : GlueFaces
 //purpose  :
@@ -267,7 +267,6 @@ TopoDS_Shape GEOMImpl_GlueDriver::GlueFaces (const TopoDS_Shape& theShape,
 
   return aRes;
 }
-
 
 //=======================================================================
 //function : GlueFacesByList
@@ -339,6 +338,12 @@ TopoDS_Shape GEOMImpl_GlueDriver::GlueFaces (const TopoDS_Shape& theShape,
 
   // 2. Detect interferred shapes
   aGA.Detect();
+
+  //Standard_Integer iWrnDetect = aGA.WarningStatus();
+  //if (iWrnDetect == 2) {
+  //  Standard_Failure::Raise("GLUE_ERROR_STICKED_SHAPES");
+  //}
+
   Standard_Integer iErr = aGA.ErrorStatus();
   if (iErr) {
     switch (iErr) {
@@ -428,6 +433,14 @@ TopoDS_Shape GEOMImpl_GlueDriver::GlueWithWarnings (const TopoDS_Shape& theShape
 
   // 2. Detect interferred shapes
   aGA.Detect();
+
+  //modified by NIZNHY-PKV Tue Mar 13 14:07:12 2012f
+  Standard_Integer iWrnDetect = aGA.WarningStatus();
+  if (iWrnDetect == 2) {
+    Standard_Failure::Raise("GLUE_ERROR_STICKED_SHAPES");
+  }
+  //modified by NIZNHY-PKV Tue Mar 13 14:07:14 2012t
+
   Standard_Integer iErr = aGA.ErrorStatus();
   if (iErr) {
     switch (iErr) {
@@ -578,6 +591,35 @@ TopoDS_Shape GEOMImpl_GlueDriver::GlueByList (const TopoDS_Shape& theShape,
 
   // 2. Detect interferred shapes
   aGA.Detect();
+
+  //modified by NIZNHY-PKV Tue Mar 13 14:07:12 2012f
+  Standard_Integer iWrnDetect = aGA.WarningStatus();
+  if (iWrnDetect == 2) {
+    /*
+    TopTools_ListIteratorOfListOfShape aItLS;
+
+    // Sticked shapes are detected
+    const TopTools_IndexedDataMapOfShapeListOfShape& aIDMSS = pGluer2->StickedShapes();
+
+    Standard_Integer i, aNb = aIDMSS.Extent();
+    for (i = 1; i <= aNb; ++i) {
+      // ancestor aSa (edge, wire face,..)  
+      const TopoDS_Shape& aSa = aIDMSS.FindKey(i); 
+
+      // successors aSs (vertex, edge, ...)
+      // of the ancestor that are sticked 
+      // for given value of the tolerance
+      const TopTools_ListOfShape& aLSS = aIDMSS.FindFromIndex(i);
+      aItLS.Initialize(aLSS);
+      for (; aItLS.More(); aItLS.Next()) {
+        const TopoDS_Shape& aSs = aItLS.Value();
+      }
+    }
+    */
+    Standard_Failure::Raise("GLUE_ERROR_STICKED_SHAPES");
+  }
+  //modified by NIZNHY-PKV Tue Mar 13 14:07:14 2012t
+
   Standard_Integer iErr = aGA.ErrorStatus();
   if (iErr) {
     switch (iErr) {
@@ -693,6 +735,7 @@ Standard_Integer GEOMImpl_GlueDriver::Execute(TFunction_Logbook& log) const
   }
 
   Standard_Real tol3d = aCI.GetTolerance();
+
   Standard_Boolean aKeepNonSolids = aCI.GetKeepNonSolids();
 
   if (aType == GLUE_FACES) {
@@ -716,7 +759,6 @@ Standard_Integer GEOMImpl_GlueDriver::Execute(TFunction_Logbook& log) const
       TopoDS_Shape aFace = aRefSh->GetValue();
       if(aFace.IsNull())
 	continue;
-      if(!aFaces.Contains(aFace))
 	aFaces.Add(aFace);
     }
 
@@ -741,44 +783,54 @@ Standard_Integer GEOMImpl_GlueDriver::Execute(TFunction_Logbook& log) const
   return 1;
 }
 
-//=======================================================================
-//function :  GEOMImpl_GlueDriver_Type_
-//purpose  :
-//=======================================================================
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_GlueDriver_Type_()
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
+
+bool GEOMImpl_GlueDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared);
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
+  GEOMImpl_IGlue aCI( function );
+  Standard_Integer aType = function->GetType();
 
-
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_GlueDriver",
-			                                 sizeof(GEOMImpl_GlueDriver),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
-
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//=======================================================================
-const Handle(GEOMImpl_GlueDriver) Handle(GEOMImpl_GlueDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_GlueDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_GlueDriver))) {
-       _anOtherObject = Handle(GEOMImpl_GlueDriver)((Handle(GEOMImpl_GlueDriver)&)AnObject);
-     }
+  switch ( aType ) {
+  case GLUE_FACES:
+    theOperationName = "GLUE_FACES";
+    AddParam( theParams, "Selected shape", aCI.GetBase() );
+    AddParam( theParams, "Tolerance", aCI.GetTolerance() );
+    AddParam( theParams, "To keep non solids", aCI.GetKeepNonSolids() );
+    break;
+  case GLUE_EDGES:
+    theOperationName = "GLUE_EDGES";
+    AddParam( theParams, "Selected shape", aCI.GetBase() );
+    AddParam( theParams, "Tolerance", aCI.GetTolerance() );
+    break;
+  case GLUE_FACES_BY_LIST:
+    theOperationName = "GLUE_FACES";
+    AddParam( theParams, "Selected shape", aCI.GetBase() );
+    AddParam( theParams, "Tolerance", aCI.GetTolerance() );
+    AddParam( theParams, "Faces", aCI.GetFaces() );
+    AddParam( theParams, "To keep non solids", aCI.GetKeepNonSolids() );
+    AddParam( theParams, "To glue all edges", aCI.GetGlueAllEdges() );
+    break;
+  case GLUE_EDGES_BY_LIST:
+    theOperationName = "GLUE_EDGES";
+    AddParam( theParams, "Selected shape", aCI.GetBase() );
+    AddParam( theParams, "Tolerance", aCI.GetTolerance() );
+    AddParam( theParams, "Edges", aCI.GetFaces() );
+    break;
+  default:
+    return false;
   }
-
-  return _anOtherObject ;
+  
+  return true;
 }
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_GlueDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_GlueDriver,GEOM_BaseDriver);

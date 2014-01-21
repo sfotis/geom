@@ -1,4 +1,4 @@
-//  Copyright (C) 2007-2010  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 //  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 //  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
@@ -18,8 +18,7 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 //  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
-
-#include "utilities.h"
+//
 
 #include <Standard_Stream.hxx>
 
@@ -59,8 +58,18 @@
 #include <TColStd_ListIteratorOfListOfInteger.hxx>
 #include <TColStd_ListOfInteger.hxx>
 #include <Standard_NullObject.hxx>
+#include <StdFail_NotDone.hxx>
 #include <Precision.hxx>
 #include <gp_Pnt.hxx>
+#include <BOPAlgo_CheckerSI.hxx>
+#include <BOPCol_IndexedDataMapOfShapeListOfShape.hxx>
+#include <BOPCol_ListOfShape.hxx>
+#include <BOPDS_DS.hxx>
+
+// Depth of self-intersection check (see BOPAlgo_CheckerSI::SetLevelOfCheck() for more details)
+// Default value for BOPAlgo_CheckerSI gives very long computation when checking face-to-face intersections;
+// here check level is decreased to more appropriate value to avoid problems with performance).
+#define BOP_SELF_INTERSECTIONS_LEVEL 4
 
 //=======================================================================
 //function : GetID
@@ -106,6 +115,21 @@ static void PrepareShapes (const TopoDS_Shape&   theShape,
   }
 }
 
+static void CheckSelfIntersection(const TopoDS_Shape &theShape)
+{
+  BOPAlgo_CheckerSI aCSI;  // checker of self-interferences
+  BOPCol_ListOfShape aList;
+
+  aList.Append(theShape);
+  aCSI.SetLevelOfCheck(BOP_SELF_INTERSECTIONS_LEVEL);
+  aCSI.SetArguments(aList);
+  aCSI.Perform();
+
+  if (aCSI.ErrorStatus() || aCSI.DS().Interferences().Extent() > 0) {
+    StdFail_NotDone::Raise("Partition operation will not be performed, because argument shape is self-intersected");
+  }
+}
+
 //=======================================================================
 //function : Execute
 //purpose  :
@@ -117,9 +141,9 @@ Standard_Integer GEOMImpl_PartitionDriver::Execute(TFunction_Logbook& log) const
 
   GEOMImpl_IPartition aCI (aFunction);
   Standard_Integer aType = aFunction->GetType();
+  const Standard_Boolean isCheckSelfInte = aCI.GetCheckSelfIntersection();
 
   TopoDS_Shape aShape;
-  //sklNMTAlgo_Splitter1 PS;
   GEOMAlgo_Splitter PS;
 
   TopTools_DataMapOfShapeShape aCopyMap;
@@ -148,15 +172,15 @@ Standard_Integer GEOMImpl_PartitionDriver::Execute(TFunction_Logbook& log) const
       if (aShape_i.IsNull()) {
         Standard_NullObject::Raise("In Partition a shape is null");
       }
-      //
-      //BRepBuilderAPI_Copy aCopyTool (aShape_i);
+
+      // Check self-intersection.
+      if (isCheckSelfInte) {
+        CheckSelfIntersection(aShape_i);
+      }
+
       TopoDS_Shape aShape_i_copy;
       TNaming_CopyShape::CopyTool(aShape_i, aMapTShapes, aShape_i_copy);
-      //if (aCopyTool.IsDone())
-      //  aShape_i_copy = aCopyTool.Shape();
-      //else
-      //  Standard_NullObject::Raise("Bad shape detected");
-      //
+
       // fill aCopyMap for history
       TopTools_IndexedMapOfShape aShape_i_inds;
       TopTools_IndexedMapOfShape aShape_i_copy_inds;
@@ -174,7 +198,7 @@ Standard_Integer GEOMImpl_PartitionDriver::Execute(TFunction_Logbook& log) const
       for (; aSimpleIter.More(); aSimpleIter.Next()) {
         const TopoDS_Shape& aSimpleSh = aSimpleIter.Value();
         if (ShapesMap.Add(aSimpleSh)) {
-          PS.AddShape(aSimpleSh);
+          PS.AddArgument(aSimpleSh);
           //skl if (DoRemoveWebs) {
           //skl if (aMaterials->Length() >= ind)
           //skl PS.SetMaterial(aSimpleSh, aMaterials->Value(ind));
@@ -190,6 +214,12 @@ Standard_Integer GEOMImpl_PartitionDriver::Execute(TFunction_Logbook& log) const
       if (aShape_i.IsNull()) {
         Standard_NullObject::Raise("In Partition a tool shape is null");
       }
+
+      // Check self-intersection.
+      if (isCheckSelfInte) {
+        CheckSelfIntersection(aShape_i);
+      }
+
       //
       //BRepBuilderAPI_Copy aCopyTool (aShape_i);
       TopoDS_Shape aShape_i_copy;
@@ -254,7 +284,7 @@ Standard_Integer GEOMImpl_PartitionDriver::Execute(TFunction_Logbook& log) const
       for (; aSimpleIter.More(); aSimpleIter.Next()) {
         const TopoDS_Shape& aSimpleSh = aSimpleIter.Value();
         if (!ToolsMap.Contains(aSimpleSh) && ShapesMap.Add(aSimpleSh))
-          PS.AddShape(aSimpleSh);
+          PS.AddArgument(aSimpleSh);
       }
     }
 
@@ -291,7 +321,7 @@ Standard_Integer GEOMImpl_PartitionDriver::Execute(TFunction_Logbook& log) const
       for (; aSimpleIter.More(); aSimpleIter.Next()) {
         const TopoDS_Shape& aSimpleSh = aSimpleIter.Value();
         if (!ToolsMap.Contains(aSimpleSh) && ShapesMap.Add(aSimpleSh))
-          PS.AddShape(aSimpleSh);
+          PS.AddArgument(aSimpleSh);
       }
     }
 
@@ -327,6 +357,12 @@ Standard_Integer GEOMImpl_PartitionDriver::Execute(TFunction_Logbook& log) const
 
     if (aShapeArg.IsNull() || aPlaneArg.IsNull()) {
       Standard_NullObject::Raise("In Half Partition a shape or a plane is null");
+    }
+
+    // Check self-intersection.
+    if (isCheckSelfInte) {
+      CheckSelfIntersection(aShapeArg);
+      CheckSelfIntersection(aPlaneArg);
     }
 
     TopoDS_Shape aShapeArg_copy;
@@ -369,7 +405,7 @@ Standard_Integer GEOMImpl_PartitionDriver::Execute(TFunction_Logbook& log) const
     }
 
     // add object shapes that are in ListShapes;
-    PS.AddShape(aShapeArg_copy);
+    PS.AddArgument(aShapeArg_copy);
     //PS.AddShape(aShapeArg);
 
     // add tool shapes that are in ListTools and not in ListShapes;
@@ -385,7 +421,13 @@ Standard_Integer GEOMImpl_PartitionDriver::Execute(TFunction_Logbook& log) const
   }
 
   aShape = PS.Shape();
-  if (aShape.IsNull()) return 0;
+  if (aShape.IsNull()) {
+    // Mantis issue 22009
+    if (PS.ErrorStatus() == 100 && PS.Tools().Extent() == 0 && PS.Arguments().Extent() == 1)
+      aShape = PS.Arguments().First();
+    else
+      return 0;
+  }
   
   //Alternative case to check not valid partition IPAL21418
   TopoDS_Iterator It (aShape, Standard_True, Standard_True);
@@ -432,7 +474,8 @@ Standard_Integer GEOMImpl_PartitionDriver::Execute(TFunction_Logbook& log) const
   TopExp::MapShapes(aShape, aResIndices);
 
   // Map: source_shape/images of source_shape in Result
-  const TopTools_IndexedDataMapOfShapeListOfShape& aMR = PS.ImagesResult();
+  const BOPCol_IndexedDataMapOfShapeListOfShape& aMR = PS.ImagesResult();
+  //const TopTools_IndexedDataMapOfShapeListOfShape& aMR = PS.ImagesResult();
 
   // history for all argument shapes
   // be sure to use aCopyMap
@@ -463,12 +506,13 @@ Standard_Integer GEOMImpl_PartitionDriver::Execute(TFunction_Logbook& log) const
       //
       if (!aMR.Contains(anEntity)) continue;
 
-      const TopTools_ListOfShape& aModified = aMR.FindFromKey(anEntity);
+      const BOPCol_ListOfShape& aModified = aMR.FindFromKey(anEntity);
+      //const TopTools_ListOfShape& aModified = aMR.FindFromKey(anEntity);
       Standard_Integer nbModified = aModified.Extent();
 
       if (nbModified > 0) { // Mantis issue 0021182
         int ih = 1;
-        TopTools_ListIteratorOfListOfShape itM (aModified);
+        BOPCol_ListIteratorOfListOfShape itM (aModified);
         for (; itM.More() && nbModified > 0; itM.Next(), ++ih) {
           if (!aResIndices.Contains(itM.Value())) {
             nbModified = 0;
@@ -481,7 +525,8 @@ Standard_Integer GEOMImpl_PartitionDriver::Execute(TFunction_Logbook& log) const
           TDataStd_IntegerArray::Set(aWhatHistoryLabel, 1, nbModified);
 
         int ih = 1;
-        TopTools_ListIteratorOfListOfShape itM (aModified);
+        BOPCol_ListIteratorOfListOfShape itM (aModified);
+        //TopTools_ListIteratorOfListOfShape itM (aModified);
         for (; itM.More(); itM.Next(), ++ih) {
           int id = aResIndices.FindIndex(itM.Value());
           anAttr->SetValue(ih, id);
@@ -495,41 +540,54 @@ Standard_Integer GEOMImpl_PartitionDriver::Execute(TFunction_Logbook& log) const
   return 1;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOMImpl_PartitionDriver_Type_
-//purpose  :
-//=======================================================================
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_PartitionDriver_Type_()
+bool GEOMImpl_PartitionDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if (aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if (aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared);
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if (aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
 
-  static Handle_Standard_Transient _Ancestors[] = {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType =
-    new Standard_Type ("GEOMImpl_PartitionDriver", sizeof(GEOMImpl_PartitionDriver),
-                       1, (Standard_Address)_Ancestors, (Standard_Address)NULL);
+  GEOMImpl_IPartition aCI( function );
+  Standard_Integer aType = function->GetType();
 
-  return _aType;
-}
+  theOperationName = "PARTITION";
 
-//=======================================================================
-//function : DownCast
-//purpose  :
-//=======================================================================
-const Handle(GEOMImpl_PartitionDriver) Handle(GEOMImpl_PartitionDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_PartitionDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_PartitionDriver))) {
-       _anOtherObject = Handle(GEOMImpl_PartitionDriver)((Handle(GEOMImpl_PartitionDriver)&)AnObject);
-     }
+  switch ( aType ) {
+  case PARTITION_PARTITION:
+  case PARTITION_NO_SELF_INTERSECTIONS:
+    AddParam( theParams, "Objects", aCI.GetShapes() );
+    AddParam( theParams, "Tool objects", aCI.GetTools() );
+    {
+      Handle(TColStd_HSequenceOfTransient) objSeq = aCI.GetKeepIns();
+      if ( !objSeq.IsNull() && objSeq->Length() > 0 )
+        AddParam( theParams, "Objects to keep inside", objSeq );
+      objSeq = aCI.GetRemoveIns();
+      if ( !objSeq.IsNull() && objSeq->Length() > 0 )
+        AddParam( theParams, "Objects to remove inside", objSeq );
+      Handle(TColStd_HArray1OfInteger) intSeq = aCI.GetMaterials();
+      if ( !intSeq.IsNull() && intSeq->Length() > 0 )
+        AddParam( theParams, "Materials", aCI.GetMaterials() );
+    }
+    AddParam( theParams, "Resulting type", (TopAbs_ShapeEnum) aCI.GetLimit());
+    AddParam( theParams, "Keep shapes of lower type", aCI.GetKeepNonlimitShapes());
+    AddParam( theParams, "No object intersections", ( aType == PARTITION_NO_SELF_INTERSECTIONS ));
+    break;
+  case PARTITION_HALF:
+    AddParam( theParams, "Object", aCI.GetShape() );
+    AddParam( theParams, "Plane", aCI.GetPlane() );
+    break;
+  default:
+    return false;
   }
-
-  return _anOtherObject;
+  
+  return true;
 }
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_PartitionDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_PartitionDriver,GEOM_BaseDriver);

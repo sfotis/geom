@@ -1,4 +1,4 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 //  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 //  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
@@ -19,35 +19,41 @@
 //
 //  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-//
+
 #include <Standard_Stream.hxx>
 
 #include <GEOMImpl_RotateDriver.hxx>
 #include <GEOMImpl_IRotate.hxx>
 #include <GEOMImpl_Types.hxx>
+
 #include <GEOM_Function.hxx>
+
+#include <GEOMUtils.hxx>
+
+#include <BRepBuilderAPI_Transform.hxx>
+#include <BRep_Builder.hxx>
+#include <BRep_Tool.hxx>
+#include <BRepGProp.hxx>
+
+#include <TopAbs.hxx>
+#include <TopExp.hxx>
+#include <TopoDS.hxx>
+#include <TopoDS_Shape.hxx>
+#include <TopoDS_Vertex.hxx>
+#include <TopoDS_Compound.hxx>
+#include <TopoDS_Edge.hxx>
+
+#include <GeomAPI_ProjectPointOnCurve.hxx>
+#include <Geom_Line.hxx>
+#include <GProp_GProps.hxx>
+
+#include <Precision.hxx>
+
 #include <gp_Trsf.hxx>
 #include <gp_Pnt.hxx>
 #include <gp_Vec.hxx>
 #include <gp_Dir.hxx>
 #include <gp_Ax1.hxx>
-#include <BRepBuilderAPI_Transform.hxx>
-#include <TopoDS.hxx>
-#include <TopoDS_Vertex.hxx>
-#include <TopoDS_Shape.hxx>
-#include <TopoDS_Compound.hxx>
-#include <TopAbs.hxx>
-#include <TopExp.hxx>
-#include <TopoDS_Vertex.hxx>
-#include <TopoDS_Edge.hxx>
-#include <BRep_Tool.hxx>
-#include <BRep_Builder.hxx>
-#include <GeomAPI_ProjectPointOnCurve.hxx>
-#include <Geom_Line.hxx>
-#include <GProp_GProps.hxx>
-#include <BRepGProp.hxx>
-#include <Precision.hxx>
 
 //=======================================================================
 //function : GetID
@@ -318,43 +324,66 @@ Standard_Integer GEOMImpl_RotateDriver::Execute(TFunction_Logbook& log) const
   return 1;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOMImpl_RotateDriver_Type_
-//purpose  :
-//=======================================================================
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_RotateDriver_Type_()
+bool GEOMImpl_RotateDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared);
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
 
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_RotateDriver",
-			                                 sizeof(GEOMImpl_RotateDriver),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
+  GEOMImpl_IRotate aCI( function );
+  Standard_Integer aType = function->GetType();
 
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//=======================================================================
-const Handle(GEOMImpl_RotateDriver) Handle(GEOMImpl_RotateDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_RotateDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_RotateDriver))) {
-       _anOtherObject = Handle(GEOMImpl_RotateDriver)((Handle(GEOMImpl_RotateDriver)&)AnObject);
-     }
+  switch ( aType ) {
+  case ROTATE:
+  case ROTATE_COPY:
+    theOperationName = "ROTATION";
+    AddParam( theParams, "Object", aCI.GetOriginal() );
+    AddParam( theParams, "Axis", aCI.GetAxis() );
+    AddParam( theParams, "Angle", aCI.GetAngle() );
+    break;
+  case ROTATE_THREE_POINTS:
+  case ROTATE_THREE_POINTS_COPY:
+    theOperationName = "ROTATION";
+    AddParam( theParams, "Object", aCI.GetOriginal() );
+    AddParam( theParams, "Central Point", aCI.GetCentPoint() );
+    AddParam( theParams, "Point 1", aCI.GetPoint1() );
+    AddParam( theParams, "Point 2", aCI.GetPoint2() );
+    break;
+  case ROTATE_1D:
+    theOperationName = "MUL_ROTATION";
+    AddParam( theParams, "Main Object", aCI.GetOriginal() );
+    AddParam( theParams, "Axis", aCI.GetAxis(), "DZ" );
+    AddParam( theParams, "Nb. Times", aCI.GetNbIter1() );
+    break;
+  case ROTATE_1D_STEP:
+    theOperationName = "MUL_ROTATION";
+    AddParam( theParams, "Main Object", aCI.GetOriginal() );
+    AddParam( theParams, "Axis", aCI.GetAxis(), "DZ" );
+    AddParam( theParams, "Angular step", aCI.GetAngle() );
+    AddParam( theParams, "Nb. Times", aCI.GetNbIter1() );
+    break;
+  case ROTATE_2D:
+    theOperationName = "MUL_ROTATION";
+    AddParam( theParams, "Main Object", aCI.GetOriginal() );
+    AddParam( theParams, "Axis", aCI.GetAxis(), "DZ" );
+    AddParam( theParams, "Angular step", aCI.GetAngle() );
+    AddParam( theParams, "Angular Nb. Times", aCI.GetNbIter1() );
+    AddParam( theParams, "Radial step", aCI.GetStep() );
+    AddParam( theParams, "Radial Nb. Times", aCI.GetNbIter2() );
+    break;
+  default:
+    return false;
   }
 
-  return _anOtherObject;
+  return true;
 }
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_RotateDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_RotateDriver,GEOM_BaseDriver);

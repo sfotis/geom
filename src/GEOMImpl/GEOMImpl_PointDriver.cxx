@@ -1,4 +1,4 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 //  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 //  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
@@ -19,12 +19,14 @@
 //
 //  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+
 #include <Standard_Stream.hxx>
 
 #include <GEOMImpl_PointDriver.hxx>
 #include <GEOMImpl_IPoint.hxx>
 #include <GEOMImpl_Types.hxx>
 #include <GEOM_Function.hxx>
+#include <GEOMAlgo_AlgoTools.hxx>
 
 #include <ShapeAnalysis.hxx>
 
@@ -42,12 +44,14 @@
 #include <TopoDS_Shape.hxx>
 #include <TopoDS_Vertex.hxx>
 #include <TopoDS_Compound.hxx>
+#include <TopoDS_Iterator.hxx>
 
 #include <GCPnts_AbscissaPoint.hxx>
-#include <XIntTools.hxx>
+#include <IntTools.hxx>
 
 #include <Geom_Curve.hxx>
 #include <Geom_Surface.hxx>
+
 #include <gp_Pnt.hxx>
 
 #include <Precision.hxx>
@@ -120,35 +124,51 @@ Standard_Integer GEOMImpl_PointDriver::Execute(TFunction_Logbook& log) const
 
   if (aType == POINT_XYZ) {
     aPnt = gp_Pnt(aPI.GetX(), aPI.GetY(), aPI.GetZ());
-
   }
   else if (aType == POINT_XYZ_REF) {
-
-    Handle(GEOM_Function) aRefPoint = aPI.GetRef();
-    TopoDS_Shape aRefShape = aRefPoint->GetValue();
+    Handle(GEOM_Function) aRefFunc = aPI.GetRef();
+    TopoDS_Shape aRefShape = aRefFunc->GetValue();
     if (aRefShape.ShapeType() != TopAbs_VERTEX) {
       Standard_TypeMismatch::Raise
         ("Point creation aborted : referenced shape is not a vertex");
     }
     gp_Pnt P = BRep_Tool::Pnt(TopoDS::Vertex(aRefShape));
     aPnt = gp_Pnt(P.X() + aPI.GetX(), P.Y() + aPI.GetY(), P.Z() + aPI.GetZ());
-
   }
   else if (aType == POINT_CURVE_PAR) {
-    Handle(GEOM_Function) aRefCurve = aPI.GetCurve();
-    TopoDS_Shape aRefShape = aRefCurve->GetValue();
+    Handle(GEOM_Function) aRefFunc = aPI.GetCurve();
+    TopoDS_Shape aRefShape = aRefFunc->GetValue();
     if (aRefShape.ShapeType() != TopAbs_EDGE) {
       Standard_TypeMismatch::Raise
         ("Point On Curve creation aborted : curve shape is not an edge");
     }
     Standard_Real aFP, aLP, aP;
     Handle(Geom_Curve) aCurve = BRep_Tool::Curve(TopoDS::Edge(aRefShape), aFP, aLP);
+    if ( !aCurve.IsNull() ) {
     aP = aFP + (aLP - aFP) * aPI.GetParameter();
     aPnt = aCurve->Value(aP);
   }
+    else {
+      // null curve, e.g. degenerated edge
+      TopoDS_Iterator It(aRefShape, Standard_False, Standard_False);
+      TopoDS_Vertex aVertex;
+      if ( It.More() ) {
+        TopoDS_Shape aShape = It.Value();
+        if ( !aShape.IsNull() )
+          aVertex = TopoDS::Vertex( aShape );
+      }
+      if ( !aVertex.IsNull() ) {
+        aPnt = BRep_Tool::Pnt( aVertex );
+      }
+      else {
+        Standard_TypeMismatch::Raise
+          ("Point On Curve creation aborted : null curve");
+      }
+    }
+  }
   else if (aType == POINT_CURVE_COORD) {
-    Handle(GEOM_Function) aRefCurve = aPI.GetCurve();
-    TopoDS_Shape aRefShape = aRefCurve->GetValue();
+    Handle(GEOM_Function) aRefFunc = aPI.GetCurve();
+    TopoDS_Shape aRefShape = aRefFunc->GetValue();
     if (aRefShape.ShapeType() != TopAbs_EDGE) {
       Standard_TypeMismatch::Raise
         ("Point On Curve creation aborted : curve shape is not an edge");
@@ -161,12 +181,12 @@ Standard_Integer GEOMImpl_PointDriver::Execute(TFunction_Logbook& log) const
   }
   else if (aType == POINT_CURVE_LENGTH) {
     // RefCurve
-    Handle(GEOM_Function) aRefCurve = aPI.GetCurve();
-    if (aRefCurve.IsNull()) {
+    Handle(GEOM_Function) aRefFunc = aPI.GetCurve();
+    if (aRefFunc.IsNull()) {
       Standard_NullObject::Raise
         ("Point On Curve creation aborted : curve object is null");
     }
-    TopoDS_Shape aRefShape1 = aRefCurve->GetValue();
+    TopoDS_Shape aRefShape1 = aRefFunc->GetValue();
     if (aRefShape1.ShapeType() != TopAbs_EDGE) {
       Standard_TypeMismatch::Raise
         ("Point On Curve creation aborted : curve shape is not an edge");
@@ -193,7 +213,7 @@ Standard_Integer GEOMImpl_PointDriver::Execute(TFunction_Logbook& log) const
 
     // Length
     Standard_Real aLength = aPI.GetLength();
-    //Standard_Real theCurveLength = XIntTools::Length(aRefEdge);
+    //Standard_Real theCurveLength = IntTools::Length(aRefEdge);
     //if (aLength > theCurveLength) {
     //  Standard_ConstructionError::Raise
     //    ("Point On Curve creation aborted : given length is greater than edges length");
@@ -202,6 +222,8 @@ Standard_Integer GEOMImpl_PointDriver::Execute(TFunction_Logbook& log) const
     // Check orientation
     Standard_Real UFirst, ULast;
     Handle(Geom_Curve) EdgeCurve = BRep_Tool::Curve(aRefEdge, UFirst, ULast);
+
+    if ( !EdgeCurve.IsNull() ) {
     Handle(Geom_Curve) ReOrientedCurve = EdgeCurve;
 
     Standard_Real dU = ULast - UFirst;
@@ -222,9 +244,27 @@ Standard_Integer GEOMImpl_PointDriver::Execute(TFunction_Logbook& log) const
     Standard_Real aParam = anAbsPnt.Parameter();
     aPnt = AdapCurve.Value(aParam);
   }
+    else {
+      // null curve, e.g. degenerated edge
+      TopoDS_Iterator It(aRefEdge, Standard_False, Standard_False);
+      TopoDS_Vertex aVertex;
+      if ( It.More() ) {
+        TopoDS_Shape aShape = It.Value();
+        if ( !aShape.IsNull() )
+          aVertex = TopoDS::Vertex( aShape );
+      }
+      if ( !aVertex.IsNull() ) {
+        aPnt = BRep_Tool::Pnt( aVertex );
+      }
+      else {
+        Standard_TypeMismatch::Raise
+          ("Point On Curve creation aborted : null curve");
+      }
+    }
+  }
   else if (aType == POINT_SURFACE_PAR) {
-    Handle(GEOM_Function) aRefCurve = aPI.GetSurface();
-    TopoDS_Shape aRefShape = aRefCurve->GetValue();
+    Handle(GEOM_Function) aRefFunc = aPI.GetSurface();
+    TopoDS_Shape aRefShape = aRefFunc->GetValue();
     if (aRefShape.ShapeType() != TopAbs_FACE) {
       Standard_TypeMismatch::Raise
         ("Point On Surface creation aborted : surface shape is not a face");
@@ -239,8 +279,8 @@ Standard_Integer GEOMImpl_PointDriver::Execute(TFunction_Logbook& log) const
     aPnt = aSurf->Value(U,V);
   }
   else if (aType == POINT_SURFACE_COORD) {
-    Handle(GEOM_Function) aRefCurve = aPI.GetSurface();
-    TopoDS_Shape aRefShape = aRefCurve->GetValue();
+    Handle(GEOM_Function) aRefFunc = aPI.GetSurface();
+    TopoDS_Shape aRefShape = aRefFunc->GetValue();
     if (aRefShape.ShapeType() != TopAbs_FACE) {
       Standard_TypeMismatch::Raise
         ("Point On Surface creation aborted : surface shape is not a face");
@@ -250,6 +290,17 @@ Standard_Integer GEOMImpl_PointDriver::Execute(TFunction_Logbook& log) const
       Standard_ConstructionError::Raise
         ("Point On Surface creation aborted : cannot project point");
     }
+  }
+  else if (aType == POINT_FACE_ANY) {
+    Handle(GEOM_Function) aRefFunc = aPI.GetSurface();
+    TopoDS_Shape aRefShape = aRefFunc->GetValue();
+    if (aRefShape.ShapeType() != TopAbs_FACE) {
+      Standard_TypeMismatch::Raise
+        ("Point On Surface creation aborted : surface shape is not a face");
+    }
+    TopoDS_Face F = TopoDS::Face(aRefShape);
+    gp_Pnt2d aP2d;
+    GEOMAlgo_AlgoTools::PntInFace(F, aPnt, aP2d);
   }
   else if (aType == POINT_LINES_INTERSECTION) {
     Handle(GEOM_Function) aRef1 = aPI.GetLine1();
@@ -300,8 +351,8 @@ Standard_Integer GEOMImpl_PointDriver::Execute(TFunction_Logbook& log) const
     BRepBuilderAPI_MakeVertex mkVertex (aPnt);
     aShape = mkVertex.Shape();
   }
-  //aShape.Infinite(Standard_True); // VSR: 05/04/2010: Fix 20668 (Fit All for points & lines)
 
+  //aShape.Infinite(Standard_True); // VSR: 05/04/2010: Fix 20668 (Fit All for points & lines)
   aFunction->SetValue(aShape);
 
   log.SetTouched(Label());
@@ -309,48 +360,75 @@ Standard_Integer GEOMImpl_PointDriver::Execute(TFunction_Logbook& log) const
   return 1;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOMImpl_PointDriver_Type_
-//purpose  :
-//=======================================================================
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_PointDriver_Type_()
+bool GEOMImpl_PointDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared);
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
+  GEOMImpl_IPoint aCI( function );
+  Standard_Integer aType = function->GetType();
 
+  theOperationName = "POINT";
 
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_PointDriver",
-			                                 sizeof(GEOMImpl_PointDriver),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
-
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//=======================================================================
-
-const Handle(GEOMImpl_PointDriver) Handle(GEOMImpl_PointDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_PointDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_PointDriver))) {
-       _anOtherObject = Handle(GEOMImpl_PointDriver)((Handle(GEOMImpl_PointDriver)&)AnObject);
-     }
+  switch ( aType ) {
+  case POINT_XYZ:
+    AddParam( theParams, "X", aCI.GetX() );
+    AddParam( theParams, "Y", aCI.GetY() );
+    AddParam( theParams, "Z", aCI.GetZ() );
+    break;
+  case POINT_XYZ_REF:
+    AddParam( theParams, "Point", aCI.GetRef() );
+    AddParam( theParams, "Dx", aCI.GetX() );
+    AddParam( theParams, "Dy", aCI.GetY() );
+    AddParam( theParams, "Dz", aCI.GetZ() );
+    break;
+  case POINT_CURVE_PAR:
+    AddParam( theParams, "Edge", aCI.GetCurve() );
+    AddParam( theParams, "Parameter", aCI.GetParameter() );
+    break;
+  case POINT_CURVE_COORD:
+    AddParam( theParams, "X", aCI.GetX() );
+    AddParam( theParams, "Y", aCI.GetY() );
+    AddParam( theParams, "Z", aCI.GetZ() );
+    AddParam( theParams, "Edge", aCI.GetCurve() );
+    break;
+  case POINT_CURVE_LENGTH:
+    AddParam( theParams, "Edge", aCI.GetCurve() );
+    AddParam( theParams, "Start Point", aCI.GetRef(), "First Vertex" );
+    AddParam( theParams, "Length", aCI.GetLength() );
+    break;
+  case POINT_SURFACE_PAR:
+    AddParam( theParams, "Face", aCI.GetSurface() );
+    AddParam( theParams, "U-Parameter", aCI.GetParameter() );
+    AddParam( theParams, "V-Parameter", aCI.GetParameter2() );
+    break;
+  case POINT_SURFACE_COORD:
+    AddParam( theParams, "X", aCI.GetX() );
+    AddParam( theParams, "Y", aCI.GetY() );
+    AddParam( theParams, "Z", aCI.GetZ() );
+    AddParam( theParams, "Face", aCI.GetSurface() );
+    break;
+  case POINT_FACE_ANY:
+    AddParam( theParams, "Face", aCI.GetSurface() );
+    break;
+  case POINT_LINES_INTERSECTION:
+    AddParam( theParams, "Line 1", aCI.GetLine1() );
+    AddParam( theParams, "Line 2", aCI.GetLine2() );
+    break;
+  default:
+    return false;
   }
 
-  return _anOtherObject ;
+  return true;
 }
 
-
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_PointDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_PointDriver,GEOM_BaseDriver);

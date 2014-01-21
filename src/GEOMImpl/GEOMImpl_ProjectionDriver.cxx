@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2011  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 // Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
@@ -25,6 +25,7 @@
 #include <GEOMImpl_ProjectionDriver.hxx>
 
 #include <GEOMImpl_IMirror.hxx>
+#include <GEOMImpl_IProjection.hxx>
 #include <GEOMImpl_Types.hxx>
 #include <GEOM_Function.hxx>
 
@@ -32,6 +33,7 @@
 #include <BRepBuilderAPI_Transform.hxx>
 #include <BRepBuilderAPI_MakeVertex.hxx>
 #include <BRepClass_FaceClassifier.hxx>
+#include <BRepExtrema_DistShapeShape.hxx>
 #include <BRepOffsetAPI_NormalProjection.hxx>
 #include <BRepTools.hxx>
 
@@ -45,6 +47,7 @@
 #include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
 
 #include <GeomAPI_ProjectPointOnSurf.hxx>
+#include <Geom_Curve.hxx>
 #include <Geom_Plane.hxx>
 
 #include <gp_Trsf.hxx>
@@ -82,11 +85,14 @@ Standard_Integer GEOMImpl_ProjectionDriver::Execute(TFunction_Logbook& log) cons
 
   if (aFunction.IsNull()) return 0;
 
+  Standard_Integer aType = aFunction->GetType();
+
+  if (aType == PROJECTION_COPY) {
+    // Projection
   TopoDS_Shape aShape;
   gp_Trsf aTrsf;
 
   GEOMImpl_IMirror TI (aFunction);
-  Standard_Integer aType = aFunction->GetType();
 
   Handle(GEOM_Function) anOriginalFunction = TI.GetOriginal();
   if (anOriginalFunction.IsNull()) return 0;
@@ -94,8 +100,6 @@ Standard_Integer GEOMImpl_ProjectionDriver::Execute(TFunction_Logbook& log) cons
   TopoDS_Shape anOriginal = anOriginalFunction->GetValue();
   if (anOriginal.IsNull()) return 0;
 
-  // Projection
-  if (aType == PROJECTION_COPY) {
     // Source shape (point, edge or wire)
     if (anOriginal.ShapeType() != TopAbs_VERTEX &&
         anOriginal.ShapeType() != TopAbs_EDGE &&
@@ -134,7 +138,7 @@ Standard_Integer GEOMImpl_ProjectionDriver::Execute(TFunction_Logbook& log) cons
       proj.Perform(aPnt);
       if (!proj.IsDone()) {
         Standard_ConstructionError::Raise
-          ("Projection aborted : GeomAPI_ProjectPointOnSurf failed");
+          ("Projection aborted : the algorithm failed");
       }
       int nbPoints = proj.NbPoints();
       if (nbPoints < 1) {
@@ -200,57 +204,234 @@ Standard_Integer GEOMImpl_ProjectionDriver::Execute(TFunction_Logbook& log) cons
       }
 
       aShape = OrtProj.Shape();
+
+      // check that the result shape is an empty compound
+      // (IPAL22905: TC650: Projection on face dialog problems)
+      if( !aShape.IsNull() && aShape.ShapeType() == TopAbs_COMPOUND )
+      {
+        TopoDS_Iterator anIter( aShape );
+        if( !anIter.More() )
+          Standard_ConstructionError::Raise("Projection aborted : empty compound produced");
+      }
     }
 
     if (aShape.IsNull()) return 0;
 
     aFunction->SetValue(aShape);
     log.SetTouched(Label()); 
+  } else if (aType == PROJECTION_ON_WIRE) {
+    // Perform projection of point on a wire or an edge.
+    GEOMImpl_IProjection aProj (aFunction);
+    Handle(GEOM_Function) aPointFunction = aProj.GetPoint();
+    Handle(GEOM_Function) aShapeFunction = aProj.GetShape();
+
+    if (aPointFunction.IsNull() || aShapeFunction.IsNull()) {
+      return 0;
+    }
+
+    TopoDS_Shape aPoint = aPointFunction->GetValue();
+    TopoDS_Shape aShape = aShapeFunction->GetValue();
+
+    if (aPoint.IsNull() || aShape.IsNull()) {
+      return 0;
+    }
+
+    // Check shape types.
+    if (aPoint.ShapeType() != TopAbs_VERTEX) {
+      Standard_ConstructionError::Raise
+        ("Projection aborted : the point is not a vertex");
+    }
+
+    if (aShape.ShapeType() != TopAbs_EDGE &&
+        aShape.ShapeType() != TopAbs_WIRE) {
+      Standard_ConstructionError::Raise
+        ("Projection aborted : the shape is neither an edge nor a wire");
+    }
+
+    // Perform projection.
+    BRepExtrema_DistShapeShape aDistShSh(aPoint, aShape, Extrema_ExtFlag_MIN);
+
+    if (aDistShSh.IsDone() == Standard_False) {
+      Standard_ConstructionError::Raise("Projection not done");
+    }
+
+    Standard_Boolean hasValidSolution = Standard_False;
+    Standard_Integer aNbSolutions     = aDistShSh.NbSolution();
+    Standard_Integer i;
+    double           aParam   = 0.;
+    Standard_Real    aTolConf = BRep_Tool::Tolerance(TopoDS::Vertex(aPoint));
+    Standard_Real    aTolAng  = 1.e-4;        
+
+    for (i = 1; i <= aNbSolutions; i++) {
+      Standard_Boolean        isValid       = Standard_False;
+      BRepExtrema_SupportType aSupportType  = aDistShSh.SupportTypeShape2(i);
+      TopoDS_Shape            aSupportShape = aDistShSh.SupportOnShape2(i);
+
+      if (aSupportType == BRepExtrema_IsOnEdge) {
+        // Minimal distance inside edge is really a projection.
+        isValid = Standard_True;
+        aDistShSh.ParOnEdgeS2(i, aParam);
+      } else if (aSupportType == BRepExtrema_IsVertex) {
+        TopExp_Explorer anExp(aShape, TopAbs_EDGE);
+
+        if (aDistShSh.Value() <= aTolConf) {
+          // The point lies on the shape. This means this point
+          // is really a projection.
+          for (; anExp.More() && !isValid; anExp.Next()) {
+            TopoDS_Edge aCurEdge = TopoDS::Edge(anExp.Current());
+
+            if (aCurEdge.IsNull() == Standard_False) {
+              TopoDS_Vertex aVtx[2];
+                        
+              TopExp::Vertices(aCurEdge, aVtx[0], aVtx[1]);
+
+              for (int j = 0; j < 2; j++) {
+                if (aSupportShape.IsSame(aVtx[j])) {
+                  // The current edge is a projection edge.
+                  isValid       = Standard_True;
+                  aSupportShape = aCurEdge;
+                  aParam        = BRep_Tool::Parameter(aVtx[j], aCurEdge);
+                  break;
+                }
+              }
+            }
+          }
+        } else {
+          // Minimal distance to vertex is not always a real projection.
+          gp_Pnt aPnt    = BRep_Tool::Pnt(TopoDS::Vertex(aPoint));
+          gp_Pnt aPrjPnt = BRep_Tool::Pnt(TopoDS::Vertex(aSupportShape));
+          gp_Vec aDProjP(aPrjPnt, aPnt);
+
+          for (; anExp.More() && !isValid; anExp.Next()) {
+            TopoDS_Edge aCurEdge = TopoDS::Edge(anExp.Current());
+ 
+            if (aCurEdge.IsNull() == Standard_False) {
+              TopoDS_Vertex aVtx[2];
+                          
+              TopExp::Vertices(aCurEdge, aVtx[0], aVtx[1]);
+ 
+              for (int j = 0; j < 2; j++) {
+                if (aSupportShape.IsSame(aVtx[j])) {
+                  // Check if the point is a projection to the current edge.
+                  Standard_Real      anEdgePars[2];
+                  Handle(Geom_Curve) aCurve =
+                    BRep_Tool::Curve(aCurEdge, anEdgePars[0], anEdgePars[1]);
+                  gp_Pnt             aVal;
+                  gp_Vec             aD1;
+
+                  aParam = BRep_Tool::Parameter(aVtx[j], aCurEdge);
+                  aCurve->D1(aParam, aVal, aD1);
+
+                  if (Abs(aD1.Dot(aDProjP)) <= aTolAng) {
+                    // The current edge is a projection edge.
+                    isValid       = Standard_True;
+                    aSupportShape = aCurEdge;
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      
+
+      if (isValid) {
+        if (hasValidSolution) {
+          Standard_ConstructionError::Raise
+            ("Projection aborted : multiple solutions");
+        }
+
+        // Store the valid solution.
+        hasValidSolution = Standard_True;
+
+        // Normalize parameter.
+        TopoDS_Edge aSupportEdge = TopoDS::Edge(aSupportShape);
+        Standard_Real aF, aL;
+
+        BRep_Tool::Range(aSupportEdge, aF, aL);
+
+        if (Abs(aL - aF) <= aTolConf) {
+          Standard_ConstructionError::Raise
+            ("Projection aborted : degenerated projection edge");
+        }
+
+        aParam = (aParam - aF)/(aL - aF);
+        aProj.SetU(aParam);
+
+        // Compute edge index.
+        TopExp_Explorer anExp(aShape, TopAbs_EDGE);
+        int anIndex = 0;
+
+        for (; anExp.More(); anExp.Next(), anIndex++) {
+          if (aSupportShape.IsSame(anExp.Current())) {
+            aProj.SetIndex(anIndex);
+            break;
+          }
+        }
+
+        if (!anExp.More()) {
+          Standard_ConstructionError::Raise
+            ("Projection aborted : Can't define edge index");
+        }
+
+        // Construct a projection vertex.
+        const gp_Pnt &aPntProj = aDistShSh.PointOnShape2(i);
+        TopoDS_Shape  aProj    = BRepBuilderAPI_MakeVertex(aPntProj).Shape();
+        
+        aFunction->SetValue(aProj);
+      }
+    }
+
+    if (!hasValidSolution) {
+      Standard_ConstructionError::Raise("Projection aborted : no projection");
+    }
   }
 
   return 1;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOMImpl_ProjectionDriver_Type_
-//purpose  :
-//======================================================================= 
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_ProjectionDriver_Type_()
+bool GEOMImpl_ProjectionDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared); 
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
- 
+  Standard_Integer aType = function->GetType();
 
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_ProjectionDriver",
-                                                         sizeof(GEOMImpl_ProjectionDriver),
-                                                         1,
-                                                         (Standard_Address)_Ancestors,
-                                                         (Standard_Address)NULL);
+  theOperationName = "PROJECTION";
 
-  return _aType;
-}
+  switch ( aType ) {
+  case PROJECTION_COPY:
+    {
+      GEOMImpl_IMirror aCI( function );
 
-//=======================================================================
-//function : DownCast
-//purpose  :
-//======================================================================= 
+      AddParam( theParams, "Source object", aCI.GetOriginal() );
+      AddParam( theParams, "Target face", aCI.GetPlane() );
+      break;
+    }
+  case PROJECTION_ON_WIRE:
+    {
+      GEOMImpl_IProjection aProj (function);
 
-const Handle(GEOMImpl_ProjectionDriver) Handle(GEOMImpl_ProjectionDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_ProjectionDriver) _anOtherObject;
+      AddParam(theParams, "Point", aProj.GetPoint());
+      AddParam(theParams, "Shape", aProj.GetShape());
 
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_ProjectionDriver))) {
-       _anOtherObject = Handle(GEOMImpl_ProjectionDriver)((Handle(GEOMImpl_ProjectionDriver)&)AnObject);
-     }
+      break;
+    }
+  default:
+    return false;
   }
-
-  return _anOtherObject;
+  
+  return true;
 }
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_ProjectionDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_ProjectionDriver,GEOM_BaseDriver);

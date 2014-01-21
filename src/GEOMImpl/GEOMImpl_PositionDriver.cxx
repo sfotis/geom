@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 //
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License.
 //
-// This library is distributed in the hope that it will be useful
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 // Lesser General Public License for more details.
@@ -18,19 +20,26 @@
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
 
-//#include <Standard_Stream.hxx>
-
 #include <GEOMImpl_PositionDriver.hxx>
+
 #include <GEOMImpl_IPosition.hxx>
 #include <GEOMImpl_Types.hxx>
+
 #include <GEOM_Function.hxx>
 
-#include <GEOMImpl_IMeasureOperations.hxx>
+#include <GEOMUtils.hxx>
 
 // OCCT Includes
 #include <BRepBuilderAPI_Transform.hxx>
-#include <BRepBuilderAPI_MakeWire.hxx>
+#include <ShHealOper_EdgeDivide.hxx>
 #include <BRep_Tool.hxx>
+#include <BRepTools.hxx>
+#include <BRepFill_LocationLaw.hxx>
+#include <BRepFill_Edge3DLaw.hxx>
+#include <BRepFill_SectionPlacement.hxx>
+#include <BRepTools_WireExplorer.hxx>
+#include <BRepBuilderAPI_MakeWire.hxx>
+#include <BRepBuilderAPI_MakeVertex.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_Shape.hxx>
 #include <TopoDS_Vertex.hxx>
@@ -38,21 +47,25 @@
 #include <TopoDS_Wire.hxx>
 #include <TopAbs.hxx>
 #include <TopExp.hxx>
+#include <TopExp_Explorer.hxx>
 #include <gp_Pln.hxx>
 #include <Geom_Plane.hxx>
+#include <Geom_Curve.hxx>
 #include <GProp_GProps.hxx>
 #include <BRepGProp.hxx>
+#include <ShapeAnalysis_Edge.hxx>
+#include <GeomAdaptor_Curve.hxx>
+#include <BRepGProp.hxx>
+#include <ShapeFix_Wire.hxx>
 
 #include <GeomFill_TrihedronLaw.hxx>
-#include <GeomFill_CorrectedFrenet.hxx>
 #include <GeomFill_CurveAndTrihedron.hxx>
-
-#include <BRepFill_LocationLaw.hxx>
-#include <BRepFill_Edge3DLaw.hxx>
-#include <BRepFill_SectionPlacement.hxx>
+#include <GeomFill_CorrectedFrenet.hxx>
 
 #include <Precision.hxx>
 #include <gp_Pnt.hxx>
+#include <gp_Vec.hxx>
+#include <TopExp.hxx>
 
 //=======================================================================
 //function : GetID
@@ -104,10 +117,10 @@ Standard_Integer GEOMImpl_PositionDriver::Execute(TFunction_Logbook& log) const
     gp_Ax3 aStartAx3, aDestAx3;
 
     // End LCS
-    aDestAx3 = GEOMImpl_IMeasureOperations::GetPosition(aShapeEndLCS);
+    aDestAx3 = GEOMUtils::GetPosition(aShapeEndLCS);
 
     // Start LCS
-    aStartAx3 = GEOMImpl_IMeasureOperations::GetPosition(aShapeStartLCS);
+    aStartAx3 = GEOMUtils::GetPosition(aShapeStartLCS);
 
     // Set transformation
     aTrsf.SetDisplacement(aStartAx3, aDestAx3);
@@ -132,7 +145,7 @@ Standard_Integer GEOMImpl_PositionDriver::Execute(TFunction_Logbook& log) const
     gp_Ax3 aStartAx3, aDestAx3;
 
     // End LCS
-    aDestAx3 = GEOMImpl_IMeasureOperations::GetPosition(aShapeEndLCS);
+    aDestAx3 = GEOMUtils::GetPosition(aShapeEndLCS);
 
     // Set transformation
     aTrsf.SetDisplacement(aStartAx3, aDestAx3);
@@ -206,45 +219,48 @@ Standard_Integer GEOMImpl_PositionDriver::Execute(TFunction_Logbook& log) const
   return 1;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOMImpl_PositionDriver_Type_
-//purpose  :
-//=======================================================================
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_PositionDriver_Type_()
+bool GEOMImpl_PositionDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared);
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
+  GEOMImpl_IPosition aCI( function );
+  Standard_Integer aType = function->GetType();
 
+  theOperationName = "MODIFY_LOCATION";
 
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_PositionDriver",
-			                                 sizeof(GEOMImpl_PositionDriver),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
-
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//=======================================================================
-const Handle(GEOMImpl_PositionDriver) Handle(GEOMImpl_PositionDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_PositionDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_PositionDriver))) {
-       _anOtherObject = Handle(GEOMImpl_PositionDriver)((Handle(GEOMImpl_PositionDriver)&)AnObject);
-     }
+  switch ( aType ) {
+  case POSITION_SHAPE:
+  case POSITION_SHAPE_COPY:
+    AddParam( theParams, "Object", aCI.GetShape() );
+    AddParam( theParams, "Start LCS", aCI.GetStartLCS() );
+    AddParam( theParams, "End LCS", aCI.GetEndLCS() );
+    break;
+  case POSITION_SHAPE_FROM_GLOBAL:
+  case POSITION_SHAPE_FROM_GLOBAL_COPY:
+    AddParam( theParams, "Object", aCI.GetShape() );
+    AddParam( theParams, "End LCS", aCI.GetEndLCS() );
+    break;
+  case POSITION_ALONG_PATH:
+    AddParam( theParams, "Object", aCI.GetShape() );
+    AddParam( theParams, "Path", aCI.GetPath() );
+    AddParam( theParams, "Distance", aCI.GetDistance() );
+    AddParam( theParams, "Reverse Direction", aCI.GetReverse() );
+    break;
+  default:
+    return false;
   }
-
-  return _anOtherObject ;
+  
+  return true;
 }
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_PositionDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_PositionDriver,GEOM_BaseDriver);

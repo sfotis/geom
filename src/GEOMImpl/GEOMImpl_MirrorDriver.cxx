@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -159,48 +161,46 @@ Standard_Integer GEOMImpl_MirrorDriver::Execute(TFunction_Logbook& log) const
   return 1;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOMImpl_MirrorDriver_Type_
-//purpose  :
-//======================================================================= 
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_MirrorDriver_Type_()
+bool GEOMImpl_MirrorDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared); 
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
- 
+  GEOMImpl_IMirror aCI( function );
+  Standard_Integer aType = function->GetType();
 
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_MirrorDriver",
-			                                 sizeof(GEOMImpl_MirrorDriver),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
+  theOperationName = "MIRROR";
 
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//======================================================================= 
-
-const Handle(GEOMImpl_MirrorDriver) Handle(GEOMImpl_MirrorDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_MirrorDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_MirrorDriver))) {
-       _anOtherObject = Handle(GEOMImpl_MirrorDriver)((Handle(GEOMImpl_MirrorDriver)&)AnObject);
-     }
+  switch ( aType ) {
+  case MIRROR_PLANE:
+  case MIRROR_PLANE_COPY:
+    AddParam( theParams, "Object", aCI.GetOriginal() );
+    AddParam( theParams, "Plane Mirror", aCI.GetPlane() );
+    break;
+  case MIRROR_AXIS:
+  case MIRROR_AXIS_COPY:
+    AddParam( theParams, "Object", aCI.GetOriginal() );
+    AddParam( theParams, "Axis Mirror", aCI.GetAxis() );
+    break;
+  case MIRROR_POINT:
+  case MIRROR_POINT_COPY:
+    AddParam( theParams, "Object", aCI.GetOriginal() );
+    AddParam( theParams, "Point Mirror", aCI.GetPoint() );
+    break;
+  default:
+    return false;
   }
-
-  return _anOtherObject ;
+  
+  return true;
 }
 
-
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_MirrorDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_MirrorDriver,GEOM_BaseDriver);

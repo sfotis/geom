@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,42 +19,28 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#include "utilities.h"
 
 #include <Standard_Stream.hxx>
 
 #include <GEOMImpl_RevolutionDriver.hxx>
-#include <GEOMImpl_IShapesOperations.hxx>
+
 #include <GEOMImpl_IRevolution.hxx>
 #include <GEOMImpl_Types.hxx>
+
 #include <GEOM_Function.hxx>
 
+#include <GEOMUtils.hxx>
+
 #include <BRepPrimAPI_MakeRevol.hxx>
-#include <BRepBuilderAPI_MakeEdge.hxx>
-#include <BRepBuilderAPI_MakeWire.hxx>
 #include <BRepBuilderAPI_Transform.hxx>
-#include <BRepOffsetAPI_MakePipeShell.hxx>
 #include <BRep_Tool.hxx>
-#include <BRepLib.hxx>
-#include <BRepTools.hxx>
-#include <BRepLProp_SLProps.hxx>
-#include <BRepClass3d_SolidClassifier.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_Shape.hxx>
-#include <TopoDS_Compound.hxx>
-#include <TopoDS_Solid.hxx>
-#include <TopoDS_Face.hxx>
-#include <TopoDS_Wire.hxx>
 #include <TopoDS_Edge.hxx>
 #include <TopoDS_Vertex.hxx>
 #include <TopAbs.hxx>
 #include <TopExp.hxx>
-#include <TopTools_ListOfShape.hxx>
-#include <TopTools_ListIteratorOfListOfShape.hxx>
-#include <TopExp_Explorer.hxx>
-#include <GProp_GProps.hxx>
-#include <BRepGProp.hxx>
-
+#include <gp_Trsf.hxx>
 #include <gp_Pnt.hxx>
 #include <gp_Lin.hxx>
 #include <gp_Dir.hxx>
@@ -198,6 +186,7 @@ const Standard_GUID& GEOMImpl_RevolutionDriver::GetID()
   static Standard_GUID aRevolutionDriver("FF1BBB18-5D14-4df2-980B-3A668264EA16");
   return aRevolutionDriver;
 }
+
 
 //=======================================================================
 //function : GEOMImpl_RevolutionDriver
@@ -469,7 +458,7 @@ Standard_Integer GEOMImpl_RevolutionDriver::Execute(TFunction_Logbook& log) cons
 
   if (aShape.IsNull()) return 0;
 
-  TopoDS_Shape aRes = GEOMImpl_IShapesOperations::CompsolidToCompound(aShape);
+  TopoDS_Shape aRes = GEOMUtils::CompsolidToCompound(aShape);
   aFunction->SetValue(aRes);
 
   log.SetTouched(Label()); 
@@ -477,46 +466,38 @@ Standard_Integer GEOMImpl_RevolutionDriver::Execute(TFunction_Logbook& log) cons
   return 1;    
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOMImpl_RevolutionDriver_Type_
-//purpose  :
-//======================================================================= 
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_RevolutionDriver_Type_()
+bool GEOMImpl_RevolutionDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared); 
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
- 
+  GEOMImpl_IRevolution aCI( function );
+  Standard_Integer aType = function->GetType();
 
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_RevolutionDriver",
-			                                 sizeof(GEOMImpl_RevolutionDriver),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
+  theOperationName = "REVOLUTION";
 
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//======================================================================= 
-const Handle(GEOMImpl_RevolutionDriver) Handle(GEOMImpl_RevolutionDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_RevolutionDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_RevolutionDriver))) {
-       _anOtherObject = Handle(GEOMImpl_RevolutionDriver)((Handle(GEOMImpl_RevolutionDriver)&)AnObject);
-     }
+  switch ( aType ) {
+  case REVOLUTION_BASE_AXIS_ANGLE:
+  case REVOLUTION_BASE_AXIS_ANGLE_2WAYS:
+    AddParam( theParams, "Object", aCI.GetBase() );
+    AddParam( theParams, "Axis", aCI.GetAxis() );
+    AddParam( theParams, "Angle", aCI.GetAngle() );
+    AddParam( theParams, "Both Directions", aType == REVOLUTION_BASE_AXIS_ANGLE_2WAYS );
+    break;
+  default:
+    return false;
   }
-
-  return _anOtherObject ;
+  
+  return true;
 }
 
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_RevolutionDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_RevolutionDriver,GEOM_BaseDriver);

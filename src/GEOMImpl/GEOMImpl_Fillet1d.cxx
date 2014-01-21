@@ -498,7 +498,7 @@ void GEOMImpl_Fillet1d::performNewton(GEOMImpl_Fillet1dPoint* theLeft,
     else
     {
       if (fabs(aB) > fabs(aDet * 1000000.)) 
-      {  // possible floating point operations accurancy errors
+      {  // possible floating point operations accuracy errors
         processPoint(theLeft, theRight, theLeft->GetParam() + aDX / 2.0); // linear division otherwise
       } 
       else

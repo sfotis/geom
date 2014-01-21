@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -25,18 +27,15 @@
 #include <GEOMImpl_Types.hxx>
 #include <GEOM_Function.hxx>
 
-#include <BRepOffsetAPI_MakeOffset.hxx>
 #include <BRepOffsetAPI_MakeOffsetShape.hxx>
-#include <GEOMImpl_Block6Explorer.hxx>
-#include <BRepBuilderAPI_MakeWire.hxx>
 #include <BRep_Tool.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_Shape.hxx>
 #include <TopoDS_Vertex.hxx>
-#include <TopoDS_Wire.hxx>
-#include <TopoDS_Face.hxx>
 #include <TopAbs.hxx>
 #include <TopExp.hxx>
+
+#include <BRepClass3d_SolidClassifier.hxx>
 
 #include <Precision.hxx>
 #include <gp_Pnt.hxx>
@@ -47,6 +46,8 @@
 
 #include <Standard_ConstructionError.hxx>
 #include <StdFail_NotDone.hxx>
+
+#include "utilities.h"
 
 //=======================================================================
 //function : GetID
@@ -81,7 +82,6 @@ Standard_Integer GEOMImpl_OffsetDriver::Execute(TFunction_Logbook& log) const
 
   TopoDS_Shape aShape;
 
-  if (aType == OFFSET_SHAPE || aType == OFFSET_SHAPE_COPY) {
 	Handle(GEOM_Function) aRefShape = aCI.GetShape();
 	TopoDS_Shape aShapeBase = aRefShape->GetValue();
 	Standard_Real anOffset = aCI.GetValue();
@@ -94,14 +94,45 @@ Standard_Integer GEOMImpl_OffsetDriver::Execute(TFunction_Logbook& log) const
 	  StdFail_NotDone::Raise(aMsg.ToCString());
 	}
 
+  if (aType == OFFSET_SHAPE || aType == OFFSET_SHAPE_COPY) {
 	BRepOffsetAPI_MakeOffsetShape MO (aShapeBase,
 									  aCI.GetValue(),
 									  aTol);
     if (MO.IsDone()) {
 	  aShape = MO.Shape();
-	} else {
-	  StdFail_NotDone::Raise("Offset construction failed");
 	}
+    else {
+      StdFail_NotDone::Raise("Offset construction failed");
+    }
+  }
+  else if (aType == OFFSET_THICKENING || aType == OFFSET_THICKENING_COPY)
+  {
+    BRepClass3d_SolidClassifier aClassifier = BRepClass3d_SolidClassifier(aShapeBase);
+    aClassifier.PerformInfinitePoint(Precision::Confusion());
+    if (aClassifier.State()==TopAbs_IN)
+    {
+      // If the generated pipe faces normals are oriented towards the inside, the offset is negative
+      // so that the thickening is still towards outside
+      anOffset=-anOffset;
+    }
+
+    BRepOffset_MakeOffset myOffsetShape(aShapeBase, anOffset, aTol, BRepOffset_Skin,
+                                        Standard_False, Standard_False, GeomAbs_Intersection, Standard_True);
+
+    if (!myOffsetShape.IsDone())
+    {
+      StdFail_NotDone::Raise("Thickening construction failed");
+    }
+    aShape = myOffsetShape.Shape();
+
+    // Control the solid orientation. This is mostly done to fix a bug in case of extrusion
+    // of a circle. The built solid is then badly oriented
+    BRepClass3d_SolidClassifier anotherClassifier = BRepClass3d_SolidClassifier(aShape);
+    anotherClassifier.PerformInfinitePoint(Precision::Confusion());
+    if (anotherClassifier.State()==TopAbs_IN)
+    {
+      aShape.Reverse();
+    }
   }
 
   else if (aType == OFFSET_SHAPE_PLANAR || aType == OFFSET_SHAPE_COPY_PLANAR) {
@@ -194,45 +225,41 @@ Standard_Integer GEOMImpl_OffsetDriver::Execute(TFunction_Logbook& log) const
   return 1;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
-//=======================================================================
-//function :  GEOMImpl_OffsetDriver_Type_
-//purpose  :
-//=======================================================================
-Standard_EXPORT Handle_Standard_Type& GEOMImpl_OffsetDriver_Type_()
+bool GEOMImpl_OffsetDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
 {
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
 
-  static Handle_Standard_Type aType1 = STANDARD_TYPE(TFunction_Driver);
-  if ( aType1.IsNull()) aType1 = STANDARD_TYPE(TFunction_Driver);
-  static Handle_Standard_Type aType2 = STANDARD_TYPE(MMgt_TShared);
-  if ( aType2.IsNull()) aType2 = STANDARD_TYPE(MMgt_TShared);
-  static Handle_Standard_Type aType3 = STANDARD_TYPE(Standard_Transient);
-  if ( aType3.IsNull()) aType3 = STANDARD_TYPE(Standard_Transient);
+  GEOMImpl_IOffset aCI( function );
+  Standard_Integer aType = function->GetType();
 
-
-  static Handle_Standard_Transient _Ancestors[]= {aType1,aType2,aType3,NULL};
-  static Handle_Standard_Type _aType = new Standard_Type("GEOMImpl_OffsetDriver",
-			                                 sizeof(GEOMImpl_OffsetDriver),
-			                                 1,
-			                                 (Standard_Address)_Ancestors,
-			                                 (Standard_Address)NULL);
-
-  return _aType;
-}
-
-//=======================================================================
-//function : DownCast
-//purpose  :
-//=======================================================================
-const Handle(GEOMImpl_OffsetDriver) Handle(GEOMImpl_OffsetDriver)::DownCast(const Handle(Standard_Transient)& AnObject)
-{
-  Handle(GEOMImpl_OffsetDriver) _anOtherObject;
-
-  if (!AnObject.IsNull()) {
-     if (AnObject->IsKind(STANDARD_TYPE(GEOMImpl_OffsetDriver))) {
-       _anOtherObject = Handle(GEOMImpl_OffsetDriver)((Handle(GEOMImpl_OffsetDriver)&)AnObject);
-     }
+  switch ( aType ) {
+  case OFFSET_SHAPE:
+  case OFFSET_SHAPE_COPY:
+    theOperationName = "OFFSET";
+    AddParam( theParams, "Object", aCI.GetShape() );
+    AddParam( theParams, "Offset", aCI.GetValue() );
+    break;
+  case OFFSET_THICKENING:
+  case OFFSET_THICKENING_COPY:
+    theOperationName = "MakeThickening";
+    AddParam( theParams, "Object", aCI.GetShape() );
+    AddParam( theParams, "Offset", aCI.GetValue() );
+    break;
+  default:
+    return false;
   }
-
-  return _anOtherObject ;
+  
+  return true;
 }
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_OffsetDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_OffsetDriver,GEOM_BaseDriver);
