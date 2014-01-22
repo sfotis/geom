@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -85,18 +87,16 @@ Standard_Integer GEOMImpl_SphereDriver::Execute(TFunction_Logbook& log) const
     aShape = BRepPrimAPI_MakeSphere(anR /*, theVCoordStart, theVCoordEnd*/ , theAngle).Shape();
   }
   else if (aType == SPHERE_PNT_R) {
-
     double anR = aCI.GetR();
     if (anR < Precision::Confusion())
       Standard_ConstructionError::Raise(aMsg);
 
     Handle(GEOM_Function) aRefPoint  = aCI.GetPoint();
     TopoDS_Shape aShapePnt = aRefPoint->GetValue();
-
     if (aShapePnt.ShapeType() != TopAbs_VERTEX)
       Standard_ConstructionError::Raise("Invalid shape given for sphere center: it must be a point");
-
     gp_Pnt aP = BRep_Tool::Pnt(TopoDS::Vertex(aShapePnt));
+
     aShape = BRepPrimAPI_MakeSphere(aP, anR/*, theVCoordStart, theVCoordEnd*/, theAngle).Shape();
   }
   else {
@@ -111,3 +111,38 @@ Standard_Integer GEOMImpl_SphereDriver::Execute(TFunction_Logbook& log) const
   return 1;    
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
+
+bool GEOMImpl_SphereDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
+{
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
+
+  GEOMImpl_ISphere aCI( function );
+  Standard_Integer aType = function->GetType();
+
+  theOperationName = "SPHERE";
+
+  switch ( aType ) {
+  case SPHERE_R:
+    AddParam( theParams, "Radius", aCI.GetR() );
+    break;
+  case SPHERE_PNT_R:
+    AddParam( theParams, "Center", aCI.GetPoint() );
+    AddParam( theParams, "Radius", aCI.GetR() );
+    break;
+  default:
+    return false;
+  }
+  
+  return true;
+}
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_SphereDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_SphereDriver,GEOM_BaseDriver);

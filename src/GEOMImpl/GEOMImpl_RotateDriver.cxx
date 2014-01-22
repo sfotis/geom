@@ -99,15 +99,15 @@ Standard_Integer GEOMImpl_RotateDriver::Execute(TFunction_Logbook& log) const
     Handle(GEOM_Function) anAxis = RI.GetAxis();
     if (anAxis.IsNull()) return 0;
     TopoDS_Shape A = anAxis->GetValue();
-    if (A.IsNull() || A.ShapeType() != TopAbs_EDGE) return 0;
+    // do not take into account edge orientation (it is correct)
+    gp_Vec aV = GEOMUtils::GetVector(A, Standard_False);
     TopoDS_Edge anEdge = TopoDS::Edge(A);
-
     gp_Pnt aP1 = BRep_Tool::Pnt(TopExp::FirstVertex(anEdge));
-    gp_Pnt aP2 = BRep_Tool::Pnt(TopExp::LastVertex(anEdge));
-    gp_Dir aDir(gp_Vec(aP1, aP2));
+    gp_Dir aDir (aV);
     gp_Ax1 anAx1(aP1, aDir);
+
     Standard_Real anAngle = RI.GetAngle();
-    if (fabs(anAngle) < Precision::Angular()) anAngle += 2*M_PI; // NPAL19665,19769
+    if (fabs(anAngle) < Precision::Angular()) anAngle += 2.*M_PI; // NPAL19665,19769
     aTrsf.SetRotation(anAx1, anAngle);
 
     //NPAL18620: performance problem: multiple locations are accumulated
@@ -142,7 +142,7 @@ Standard_Integer GEOMImpl_RotateDriver::Execute(TFunction_Logbook& log) const
     gp_Dir aDir (aVec1 ^ aVec2);
     gp_Ax1 anAx1 (aCP, aDir);
     Standard_Real anAngle = aVec1.Angle(aVec2);
-    if (fabs(anAngle) < Precision::Angular()) anAngle += 2*M_PI; // NPAL19665
+    if (fabs(anAngle) < Precision::Angular()) anAngle += 2.*M_PI; // NPAL19665
     aTrsf.SetRotation(anAx1, anAngle);
     //NPAL18620: performance problem: multiple locations are accumulated
     //           in shape and need a great time to process

@@ -100,6 +100,20 @@ Standard_Integer GEOMImpl_OffsetDriver::Execute(TFunction_Logbook& log) const
 									  aTol);
     if (MO.IsDone()) {
 	  aShape = MO.Shape();
+      // 23.04.2010 skl for bug 21699 from Mantis
+      BRepCheck_Analyzer ana (aShape, Standard_True);
+      ana.Init(aShape);
+      if (!ana.IsValid()) {
+        ShapeFix_ShapeTolerance aSFT;
+        aSFT.LimitTolerance(aShape, Precision::Confusion(),
+                            Precision::Confusion(), TopAbs_SHAPE);
+        Handle(ShapeFix_Shape) aSfs = new ShapeFix_Shape(aShape);
+        aSfs->Perform();
+        aShape = aSfs->Shape();
+        ana.Init(aShape);
+        if (!ana.IsValid())
+          Standard_ConstructionError::Raise("Boolean operation aborted : non valid shape result");
+      }
 	}
     else {
       StdFail_NotDone::Raise("Offset construction failed");
@@ -140,15 +154,12 @@ Standard_Integer GEOMImpl_OffsetDriver::Execute(TFunction_Logbook& log) const
 	TopoDS_Shape aShapeBase = aRefShape->GetValue();
 	Standard_Real anOffset = aCI.GetValue();
 	Standard_Real anAltValue = aCI.GetAltValue();
-
 	if (Abs(anOffset) < Precision::Confusion()) {
 	  TCollection_AsciiString aMsg ("Offset value can not be less than the Confusion tolerance value (");
 	  StdFail_NotDone::Raise(aMsg.ToCString());
 	}
-
 	BRepOffsetAPI_MakeOffset MO;
 	bool isFace = false;
-
 	if (aShapeBase.ShapeType() == TopAbs_FACE)
 	{
 		TopoDS_Face aFace = TopoDS::Face(aShapeBase);
@@ -175,9 +186,7 @@ Standard_Integer GEOMImpl_OffsetDriver::Execute(TFunction_Logbook& log) const
 	{
 		StdFail_NotDone::Raise("Shape is neither a face , a wire or a planar edge");
 	}
-
 	MO.Perform(anOffset, anAltValue);
-
 	if (MO.IsDone()) {
 	  TopoDS_Shape aWireShape;
 	  aWireShape = MO.Shape();
@@ -198,25 +207,7 @@ Standard_Integer GEOMImpl_OffsetDriver::Execute(TFunction_Logbook& log) const
 	  StdFail_NotDone::Raise("Offset construction failed");
 	}
   }
-  else {
-  }
-
   if (aShape.IsNull()) return 0;
-
-  // 23.04.2010 skl for bug 21699 from Mantis
-  BRepCheck_Analyzer ana (aShape, Standard_True);
-  ana.Init(aShape);
-  if (!ana.IsValid()) {
-    ShapeFix_ShapeTolerance aSFT;
-    aSFT.LimitTolerance(aShape, Precision::Confusion(),
-                        Precision::Confusion(), TopAbs_SHAPE);
-    Handle(ShapeFix_Shape) aSfs = new ShapeFix_Shape(aShape);
-    aSfs->Perform();
-    aShape = aSfs->Shape();
-    ana.Init(aShape);
-    if (!ana.IsValid())
-      Standard_ConstructionError::Raise("Offset construction failed : non valid shape result");
-  }
 
   aFunction->SetValue(aShape);
 

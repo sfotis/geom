@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,7 +19,6 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#include "utilities.h"
 
 #include <Standard_Stream.hxx>
 
@@ -25,7 +26,6 @@
 #include <GEOMImpl_IScale.hxx>
 #include <GEOMImpl_Types.hxx>
 #include <GEOM_Function.hxx>
-#include <GEOM_Object.hxx>
 
 #include <ShapeFix_Shape.hxx>
 #include <ShapeFix_ShapeTolerance.hxx>
@@ -34,18 +34,18 @@
 #include <BRepBuilderAPI_GTransform.hxx>
 #include <BRep_Tool.hxx>
 #include <BRepAlgo.hxx>
+#include <BRepCheck_Analyzer.hxx>
+
 #include <TopAbs.hxx>
 #include <TopExp.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_Shape.hxx>
 #include <TopoDS_Vertex.hxx>
-#include <TopoDS_Edge.hxx>
 #include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
-#include <BRepCheck_Analyzer.hxx>
 
 #include <Precision.hxx>
 #include <gp_Pnt.hxx>
-#include <gp_Ax1.hxx>
+#include <gp_Trsf.hxx>
 #include <gp_GTrsf.hxx>
 
 //=======================================================================
@@ -204,13 +204,13 @@ Standard_Integer GEOMImpl_ScaleDriver::Execute(TFunction_Logbook& log) const
     if (!aBRepGTrsf.IsDone())
       Standard_ConstructionError::Raise("Scaling not done");
 	aShape = aBRepGTrsf.Shape();
-  } else {
+  }
+  else {
   }
 
   if (aShape.IsNull()) return 0;
 
-  // Check shape validity
-  BRepCheck_Analyzer ana (aShape, false);
+  BRepCheck_Analyzer ana (aShape, Standard_False);
   if (!ana.IsValid()) {
     ShapeFix_ShapeTolerance aSFT;
     aSFT.LimitTolerance(aShape,Precision::Confusion(),Precision::Confusion());
@@ -247,3 +247,45 @@ Standard_Integer GEOMImpl_ScaleDriver::Execute(TFunction_Logbook& log) const
   return 1;    
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
+
+bool GEOMImpl_ScaleDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
+{
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
+
+  GEOMImpl_IScale aCI( function );
+  Standard_Integer aType = function->GetType();
+
+  theOperationName = "SCALE";
+
+  switch ( aType ) {
+  case SCALE_SHAPE:
+  case SCALE_SHAPE_COPY:
+    AddParam( theParams, "Object", aCI.GetShape() );
+    AddParam( theParams, "Central Point", aCI.GetPoint(), "origin" );
+    AddParam( theParams, "Scale Factor", aCI.GetFactor() );
+    break;
+  case SCALE_SHAPE_AXES:
+  case SCALE_SHAPE_AXES_COPY:
+    AddParam( theParams, "Object", aCI.GetShape() );
+    AddParam( theParams, "Central Point", aCI.GetPoint(), "origin" );
+    AddParam( theParams, "Scale Factor X", aCI.GetFactorX() );
+    AddParam( theParams, "Scale Factor Y", aCI.GetFactorY() );
+    AddParam( theParams, "Scale Factor Z", aCI.GetFactorZ() );
+    break;
+  default:
+    return false;
+  }
+  
+  return true;
+}
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_ScaleDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_ScaleDriver,GEOM_BaseDriver);

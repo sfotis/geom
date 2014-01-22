@@ -1,4 +1,4 @@
-//  Copyright (C) 2007-2010  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -24,83 +24,26 @@
 
 #include "GEOMAlgo_State.hxx"
 
+#include <TopAbs_ShapeEnum.hxx>
 #include <TopTools_ListOfShape.hxx>
 #include <TopTools_HSequenceOfShape.hxx>
 #include <TopTools_IndexedMapOfShape.hxx>
-#include <TopAbs_ShapeEnum.hxx>
 #include <TColStd_HSequenceOfInteger.hxx>
+#include <gp_Ax2.hxx>
 
 #include <Handle_Geom_Surface.hxx>
 
 class Handle_Standard_Type;
 class GEOMImpl_PipeTShapeDriver;
 
-Standard_EXPORT Handle_Standard_Type& STANDARD_TYPE(GEOMImpl_PipeTShapeDriver);
 
-class Handle(GEOMImpl_PipeTShapeDriver) : public Handle(TFunction_Driver) {
+  
+#include "GEOM_BaseDriver.hxx"
+  
+DEFINE_STANDARD_HANDLE( GEOMImpl_PipeTShapeDriver, GEOM_BaseDriver );
+
+class GEOMImpl_PipeTShapeDriver : public GEOM_BaseDriver {
 public:
-  inline void* operator new(size_t,void* anAddress) 
-  {
-    return anAddress;
-  }
-  inline void* operator new(size_t size) 
-  { 
-    return Standard::Allocate(size); 
-  }
-  inline void  operator delete(void *anAddress) 
-  { 
-    if (anAddress) Standard::Free((Standard_Address&)anAddress); 
-  }
-  
-  Handle(GEOMImpl_PipeTShapeDriver)():Handle(TFunction_Driver)() {} 
-  Handle(GEOMImpl_PipeTShapeDriver)(const Handle(GEOMImpl_PipeTShapeDriver)& aHandle) : Handle(TFunction_Driver)(aHandle) 
-  {}
-
-  Handle(GEOMImpl_PipeTShapeDriver)(const GEOMImpl_PipeTShapeDriver* anItem) : Handle(TFunction_Driver)((TFunction_Driver *)anItem) 
-  {}
-
-  Handle(GEOMImpl_PipeTShapeDriver)& operator=(const Handle(GEOMImpl_PipeTShapeDriver)& aHandle)
-  {
-    Assign(aHandle.Access());
-    return *this;
-  }
-  
-  Handle(GEOMImpl_PipeTShapeDriver)& operator=(const GEOMImpl_PipeTShapeDriver* anItem)
-  {
-    Assign((Standard_Transient *)anItem);
-    return *this;
-  }
-  
-  GEOMImpl_PipeTShapeDriver* operator->() 
-  {
-    return (GEOMImpl_PipeTShapeDriver *)ControlAccess();
-  }
-  
-  GEOMImpl_PipeTShapeDriver* operator->() const 
-  {
-    return (GEOMImpl_PipeTShapeDriver *)ControlAccess();
-  }
-  
-  Standard_EXPORT ~Handle(GEOMImpl_PipeTShapeDriver)() {};
-  
-  Standard_EXPORT static const Handle(GEOMImpl_PipeTShapeDriver) DownCast(const Handle(Standard_Transient)& AnObject);
-};
-
-class GEOMImpl_PipeTShapeDriver : public TFunction_Driver {
-public:
-  inline void* operator new(size_t,void* anAddress) 
-  {
-    return anAddress;
-  }
-  inline void* operator new(size_t size) 
-  { 
-    return Standard::Allocate(size); 
-  }
-  inline void  operator delete(void *anAddress) 
-  { 
-    if (anAddress) Standard::Free((Standard_Address&)anAddress); 
-  }
-  
   // Methods PUBLIC
   // 
   Standard_EXPORT GEOMImpl_PipeTShapeDriver();
@@ -113,68 +56,63 @@ public:
   Standard_EXPORT static const Standard_GUID& GetID();
   Standard_EXPORT ~GEOMImpl_PipeTShapeDriver() {};
   
+  Standard_EXPORT virtual
+  bool GetCreationInformation(std::string&             theOperationName,
+                              std::vector<GEOM_Param>& params);
   // Type management
   //
-  Standard_EXPORT friend Handle_Standard_Type& GEOMImpl_PipeTShapeDriver_Type_();
-  Standard_EXPORT const Handle(Standard_Type)& DynamicType() const
-  {
-    return STANDARD_TYPE(GEOMImpl_PipeTShapeDriver);
-  }
-  Standard_EXPORT Standard_Boolean IsKind(const Handle(Standard_Type)& AType) const
-  {
-    return (STANDARD_TYPE(GEOMImpl_PipeTShapeDriver) == AType || TFunction_Driver::IsKind(AType));
-  }
+DEFINE_STANDARD_RTTI( GEOMImpl_PipeTShapeDriver )
+
 private:
+
   /*!
    * \brief Create a T-Shape based on pipes
    * \param r1 - the internal radius of main pipe
-   * \param w1 - the thickness main pipe
+   * \param w1 - the thickness of main pipe
    * \param l1 - the half-length of main pipe
    * \param r2 - the internal radius of incident pipe
-   * \param w2 - the thickness incident pipe
+   * \param w2 - the thickness of incident pipe
    * \param l2 - the half-length of main pipe
    * \retval TopoDS_Shape - Resulting shape
    */
-  TopoDS_Shape MakePipeTShape(double r1, double w1, double l1, double r2, double w2, double l2) const;
+  TopoDS_Shape MakePipeTShape(double r1, double w1, double l1,
+                              double r2, double w2, double l2) const;
 
   /*!
    * \brief Create a quarter of a T-Shape based on pipes
    * \param r1 - the internal radius of main pipe
-   * \param w1 - the thickness main pipe
+   * \param w1 - the thickness of main pipe
    * \param l1 - the half-length of main pipe
    * \param r2 - the internal radius of incident pipe
-   * \param w2 - the thickness incident pipe
+   * \param w2 - the thickness of incident pipe
    * \param l2 - the half-length of main pipe
    * \retval TopoDS_Shape - Resulting shape
    */
-  TopoDS_Shape MakeQuarterPipeTShape(double r1, double w1, double l1, double r2, double w2, double l2) const;
+  TopoDS_Shape MakeQuarterPipeTShape(double r1, double w1, double l1,
+                                     double r2, double w2, double l2) const;
 
-//=======================================================================
-//function : GetShapesOnSurfaceIDs
   /*!
-   * \brief Find IDs of subshapes complying with given status about surface
-   * \param theSurface - the surface to check state of subshapes against
+   * \brief Find IDs of sub-shapes complying with given status about surface
+   * \param theSurface - the surface to check state of sub-shapes against
    * \param theShape - the shape to explore
-   * \param theShapeType - type of subshape of theShape
+   * \param theShapeType - type of sub-shape of theShape
    * \param theState - required state
-   * \retval Handle(TColStd_HSequenceOfInteger) - IDs of found subshapes
+   * \retval Handle(TColStd_HSequenceOfInteger) - IDs of found sub-shapes
    */
   Handle(TColStd_HSequenceOfInteger)
     GetShapesOnSurfaceIDs(const Handle(Geom_Surface)& theSurface,
                           const TopoDS_Shape&         theShape,
                           TopAbs_ShapeEnum            theShapeType,
                           GEOMAlgo_State              theState) const;
-//=======================================================================
-//function : getShapesOnBoxIDs
+
   /*!
-   * \brief Find IDs of subshapes complying with given status about surface
-    * \param theBox - the box to check state of subshapes against
+   * \brief Find IDs of sub-shapes complying with given status about surface
+    * \param theBox - the box to check state of sub-shapes against
     * \param theShape - the shape to explore
-    * \param theShapeType - type of subshape of theShape
+    * \param theShapeType - type of sub-shape of theShape
     * \param theState - required state
-    * \retval Handle(TColStd_HSequenceOfInteger) - IDs of found subshapes
+    * \retval Handle(TColStd_HSequenceOfInteger) - IDs of found sub-shapes
    */
-//=======================================================================
   Handle(TColStd_HSequenceOfInteger)
   GetShapesOnBoxIDs(const TopoDS_Shape& aBox,
                  const TopoDS_Shape& aShape,

@@ -1,4 +1,4 @@
-//  Copyright (C) 2007-2010  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 //  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 //  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
@@ -20,44 +20,44 @@
 //  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
 
-#include "utilities.h"
-
 #include <GEOMImpl_ShapeDriver.hxx>
 
+#include <GEOMImpl_IIsoline.hxx>
 #include <GEOMImpl_IShapes.hxx>
 #include <GEOMImpl_IVector.hxx>
 #include <GEOMImpl_Types.hxx>
 #include <GEOMImpl_Block6Explorer.hxx>
 
 #include <GEOM_Function.hxx>
-#include <GEOM_Object.hxx>
+#include <GEOMUtils_Hatcher.hxx>
 
 // OCCT Includes
 #include <ShapeFix_Wire.hxx>
 #include <ShapeFix_Edge.hxx>
 #include <ShapeFix_Shape.hxx>
 
-#include <BRep_Tool.hxx>
 #include <BRep_Builder.hxx>
+#include <BRep_Tool.hxx>
+#include <BRepAdaptor_Curve.hxx>
 #include <BRepAlgo_FaceRestrictor.hxx>
-#include <BRepBuilderAPI_Sewing.hxx>
 #include <BRepBuilderAPI_Copy.hxx>
+#include <BRepBuilderAPI_Sewing.hxx>
+#include <BRepBuilderAPI_MakeWire.hxx>
+#include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepCheck.hxx>
 #include <BRepCheck_Analyzer.hxx>
 #include <BRepCheck_Shell.hxx>
 #include <BRepClass3d_SolidClassifier.hxx>
-#include <BRepBuilderAPI_MakeWire.hxx>
-#include <BRepBuilderAPI_Sewing.hxx>
 #include <BRepLib.hxx>
 #include <BRepLib_MakeEdge.hxx>
 #include <BRepTools_WireExplorer.hxx>
-#include <BRepAdaptor_Curve.hxx>
-#include <BRepBuilderAPI_MakeEdge.hxx>
 
+#include <ShapeAnalysis.hxx>
 #include <ShapeAnalysis_FreeBounds.hxx>
-#include <ElCLib.hxx>
 
 #include <TopAbs.hxx>
+#include <TopExp.hxx>
+#include <TopExp_Explorer.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_Shape.hxx>
 #include <TopoDS_Edge.hxx>
@@ -66,11 +66,20 @@
 #include <TopoDS_Solid.hxx>
 #include <TopoDS_Compound.hxx>
 #include <TopoDS_Iterator.hxx>
-#include <TopExp.hxx>
-#include <TopExp_Explorer.hxx>
 
 #include <TopTools_MapOfShape.hxx>
 #include <TopTools_HSequenceOfShape.hxx>
+
+#include <ElCLib.hxx>
+
+#include <GCPnts_AbscissaPoint.hxx>
+
+#include <Geom_TrimmedCurve.hxx>
+#include <Geom_Surface.hxx>
+#include <GeomAbs_CurveType.hxx>
+#include <GeomConvert_CompCurveToBSplineCurve.hxx>
+#include <GeomConvert.hxx>
+#include <GeomLProp.hxx>
 
 #include <TColStd_SequenceOfReal.hxx>
 #include <TColStd_HSequenceOfTransient.hxx>
@@ -79,18 +88,17 @@
 #include <TColGeom_Array1OfBSplineCurve.hxx>
 #include <TColGeom_HArray1OfBSplineCurve.hxx>
 
-#include <GeomAbs_CurveType.hxx>
-#include <Geom_TrimmedCurve.hxx>
-#include <GeomConvert_CompCurveToBSplineCurve.hxx>
-#include <GeomConvert.hxx>
-#include <GeomLProp.hxx>
-
-#include <GCPnts_AbscissaPoint.hxx>
-
 #include <Precision.hxx>
+
 #include <Standard_NullObject.hxx>
 #include <Standard_TypeMismatch.hxx>
 #include <Standard_ConstructionError.hxx>
+
+//modified by NIZNHY-PKV Wed Dec 28 13:48:20 2011f
+//static
+//  void KeepEdgesOrder(const Handle(TopTools_HSequenceOfShape)& aEdges,
+//                    const Handle(TopTools_HSequenceOfShape)& aWires);
+//modified by NIZNHY-PKV Wed Dec 28 13:48:23 2011t
 
 //=======================================================================
 //function : GetID
@@ -124,6 +132,8 @@ Standard_Integer GEOMImpl_ShapeDriver::Execute(TFunction_Logbook& log) const
   Standard_Integer aType = aFunction->GetType();
 
   TopoDS_Shape aShape;
+  TCollection_AsciiString aWarning;
+
   BRep_Builder B;
 
   if (aType == WIRE_EDGES) {
@@ -920,3 +930,163 @@ Standard_Integer GEOMImpl_ShapeDriver::Execute(TFunction_Logbook& log) const
 
   return 1;
 }
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
+
+bool GEOMImpl_ShapeDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
+{
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
+
+  GEOMImpl_IShapes aCI( function );
+  Standard_Integer aType = function->GetType();
+
+  switch ( aType ) {
+  case WIRE_EDGES:
+    theOperationName = "WIRE";
+    AddParam( theParams, "Wires/edges", aCI.GetShapes() );
+    AddParam( theParams, "Tolerance", aCI.GetTolerance() );
+    break;
+  case FACE_WIRE:
+    theOperationName = "FACE";
+    AddParam( theParams, "Wire/edge", aCI.GetBase() );
+    AddParam( theParams, "Is planar wanted", aCI.GetIsPlanar() );
+    break;
+  case FACE_WIRES:
+    theOperationName = "FACE";
+    AddParam( theParams, "Wires/edges", aCI.GetShapes() );
+    AddParam( theParams, "Is planar wanted", aCI.GetIsPlanar() );
+    break;
+  case SHELL_FACES:
+    theOperationName = "SHELL";
+    AddParam( theParams, "Objects", aCI.GetShapes() );
+    break;
+  case SOLID_SHELL:
+  case SOLID_SHELLS:
+    theOperationName = "SOLID";
+    AddParam( theParams, "Objects", aCI.GetShapes() );
+    break;
+  case COMPOUND_SHAPES:
+    theOperationName = "COMPOUND";
+    AddParam( theParams, "Objects", aCI.GetShapes() );
+    break;
+  case EDGE_WIRE:
+    theOperationName = "EDGE";
+    AddParam( theParams, "Wire", aCI.GetBase() );
+    AddParam( theParams, "Linear Tolerance", aCI.GetTolerance() );
+    AddParam( theParams, "Angular Tolerance", aCI.GetAngularTolerance() );
+    break;
+  case EDGE_CURVE_LENGTH:
+    theOperationName = "EDGE";
+    {
+      GEOMImpl_IVector aCI( function );
+      AddParam( theParams, "Edge", aCI.GetPoint1() );
+      AddParam( theParams, "Start point", aCI.GetPoint2() );
+      AddParam( theParams, "Length", aCI.GetParameter() );
+    }
+    break;
+  case SHAPES_ON_SHAPE:
+  {
+    theOperationName = "GetShapesOnShapeAsCompound";
+    Handle(TColStd_HSequenceOfTransient) shapes = aCI.GetShapes();
+    if ( !shapes.IsNull() && shapes->Length() > 0 )
+      AddParam( theParams, "Check shape", shapes->Value(1) );
+    if ( !shapes.IsNull() && shapes->Length() > 1 )
+      AddParam( theParams, "Shape", shapes->Value(2) );
+    AddParam( theParams, "Shape type", TopAbs_ShapeEnum( aCI.GetSubShapeType() ));
+    AddParam( theParams, "State", TopAbs_State((int) aCI.GetTolerance() ));
+    break;
+  }
+  case SHAPE_ISOLINE:
+  {
+    GEOMImpl_IIsoline aII (function);
+
+    theOperationName = "ISOLINE";
+    AddParam(theParams, "Face", aII.GetFace());
+    AddParam(theParams, "Isoline type", (aII.GetIsUIso() ? "U" : "V"));
+    AddParam(theParams, "Parameter", aII.GetParameter());
+    break;
+  }
+  default:
+    return false;
+  }
+
+  return true;
+}
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_ShapeDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_ShapeDriver,GEOM_BaseDriver);
+
+//modified by NIZNHY-PKV Wed Dec 28 13:48:31 2011f
+#include <TopoDS_Iterator.hxx>
+#include <TopTools_HSequenceOfShape.hxx>
+#include <ShapeAnalysis_FreeBounds.hxx>
+#include <TopTools_MapOfShape.hxx>
+#include <TopTools_MapOfOrientedShape.hxx>
+#include <BRep_Builder.hxx>
+#include <TopoDS_Wire.hxx>
+
+//=======================================================================
+//function : KeepEdgesOrder
+//purpose  : 
+//=======================================================================
+/*
+void KeepEdgesOrder(const Handle(TopTools_HSequenceOfShape)& aEdges,
+                    const Handle(TopTools_HSequenceOfShape)& aWires)
+{
+  Standard_Integer aNbWires, aNbEdges;
+  // 
+  if (aEdges.IsNull()) {
+    return;
+  }
+  //
+  if (aWires.IsNull()) {
+    return;
+  }
+  //
+  aNbEdges=aEdges->Length();
+  aNbWires=aWires->Length();
+  if (!aNbEdges || !aNbWires) {
+    return;
+  }
+  //-----
+  Standard_Boolean bClosed;
+  Standard_Integer i, j;
+  TopoDS_Wire aWy;
+  TopoDS_Iterator aIt;
+  BRep_Builder aBB;
+  TopTools_MapOfOrientedShape aMEx;
+  //
+  for (i=1; i<=aNbWires; ++i) {
+    const TopoDS_Shape& aWx=aWires->Value(i);
+    //
+    aMEx.Clear();
+    aIt.Initialize (aWx);
+    for (; aIt.More(); aIt.Next()) {
+      const TopoDS_Shape& aEx=aIt.Value();
+      aMEx.Add(aEx);
+    }
+    // aWy
+    aBB.MakeWire (aWy);
+    for (j=1; j<=aNbEdges; ++j) {
+      const TopoDS_Shape& aE=aEdges->Value(j);
+      if (aMEx.Contains(aE)) {
+        aBB.Add(aWy, aE);
+      }
+    }
+    //
+    bClosed=aWx.Closed();
+    aWy.Closed(bClosed);
+    //
+    aWires->Append(aWy);
+  }// for (i=1; i<=aNbWires; ++i) {
+  //
+  aWires->Remove(1, aNbWires);
+}
+*/
+//modified by NIZNHY-PKV Wed Dec 28 13:48:34 2011t

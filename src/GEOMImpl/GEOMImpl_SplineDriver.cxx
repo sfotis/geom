@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -18,12 +20,14 @@
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
 
-#include <Standard_Stream.hxx>
+#include "GEOMImpl_SplineDriver.hxx"
 
-#include <GEOMImpl_SplineDriver.hxx>
-#include <GEOMImpl_ISpline.hxx>
-#include <GEOMImpl_Types.hxx>
-#include <GEOM_Function.hxx>
+#include "GEOMImpl_ISpline.hxx"
+#include "GEOMImpl_Types.hxx"
+#include "GEOMImpl_ICurveParametric.hxx"
+
+#include "GEOM_Function.hxx"
+#include "GEOMUtils.hxx"
 
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakeVertex.hxx>
@@ -37,7 +41,6 @@
 #include <TopoDS_Vertex.hxx>
 
 #include <Geom_BezierCurve.hxx>
-//#include <GeomAPI_PointsToBSpline.hxx>
 #include <GeomAPI_Interpolate.hxx>
 
 #include <gp.hxx>
@@ -46,6 +49,8 @@
 #include <Precision.hxx>
 #include <TColgp_Array1OfPnt.hxx>
 #include <TColgp_HArray1OfPnt.hxx>
+
+#include <Standard_NullObject.hxx>
 
 //=======================================================================
 //function : GetID
@@ -223,3 +228,72 @@ Standard_Integer GEOMImpl_SplineDriver::Execute(TFunction_Logbook& log) const
   return 1;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
+
+bool GEOMImpl_SplineDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
+{
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
+
+  GEOMImpl_ISpline          aCI( function );
+  GEOMImpl_ICurveParametric aPI( function );
+  Standard_Integer aType = function->GetType();
+
+  theOperationName = "CURVE";
+
+  switch ( aType ) {
+  case SPLINE_BEZIER:
+  case SPLINE_INTERPOLATION:
+  case SPLINE_INTERPOL_TANGENTS:
+
+    AddParam( theParams, "Type", ( aType == SPLINE_BEZIER ? "Bezier" : "Interpolation"));
+
+    if ( aPI.HasData() )
+    {
+      AddParam( theParams, "X(t) equation", aPI.GetExprX() );
+      AddParam( theParams, "Y(t) equation", aPI.GetExprY() );
+      AddParam( theParams, "Z(t) equation", aPI.GetExprZ() );
+      AddParam( theParams, "Min t", aPI.GetParamMin() );
+      AddParam( theParams, "Max t", aPI.GetParamMax() );
+      if ( aPI.GetParamNbStep() )
+        AddParam( theParams, "Number of steps", aPI.GetParamNbStep() );
+      else
+        AddParam( theParams, "t step", aPI.GetParamStep() );
+    }
+    else
+    {
+      if ( aCI.GetConstructorType() == COORD_CONSTRUCTOR )
+      {
+        Handle(TColStd_HArray1OfReal) coords = aCI.GetCoordinates();
+        GEOM_Param& pntParam = AddParam( theParams, "Points");
+        pntParam << ( coords->Length() ) / 3 << " points: ";
+        for ( int i = coords->Lower(), nb = coords->Upper(); i <= nb; )
+          pntParam << "( " << coords->Value( i++ )
+                   << ", " << coords->Value( i++ )
+                   << ", " << coords->Value( i++ ) << " ) ";
+      }
+      else
+      {
+        AddParam( theParams, "Points", aCI.GetPoints() );
+      }
+      Handle(GEOM_Function) v1 = aCI.GetFirstVector();
+      Handle(GEOM_Function) v2 = aCI.GetLastVector();
+      if ( !v1.IsNull() ) AddParam( theParams, "First tangent vector", v1 );
+      if ( !v2.IsNull() ) AddParam( theParams, "Last tangent vector", v2 );
+    }
+    break;
+  default:
+    return false;
+  }
+
+  return true;
+}
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_SplineDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_SplineDriver,GEOM_BaseDriver);

@@ -1,4 +1,4 @@
-//  Copyright (C) 2007-2010  CEA/DEN, EDF R&D, OPEN CASCADE
+//  Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -15,20 +15,21 @@
 //  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 //  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
-//
-
-#include <Standard_Stream.hxx>
 
 #include <GEOMImpl_PipeTShapeDriver.hxx>
+
 #include <GEOMImpl_IPipeTShape.hxx>
 #include <GEOMImpl_Types.hxx>
-
 #include <GEOMImpl_Block6Explorer.hxx>
-#include <GEOM_Function.hxx>
+#include <GEOMImpl_IAdvancedOperations.hxx>
 
-#include <GEOMImpl_IShapesOperations.hxx>
-#include "GEOMAlgo_FinderShapeOn1.hxx"
-#include "GEOMAlgo_FinderShapeOn2.hxx"
+#include <GEOM_Function.hxx>
+#include <GEOM_IOperations.hxx>
+
+#include <GEOMUtils.hxx>
+
+#include <GEOMAlgo_FinderShapeOn1.hxx>
+#include <GEOMAlgo_FinderShapeOn2.hxx>
 #include <GEOMAlgo_ClsfBox.hxx>
 
 #include <TFunction_Logbook.hxx>
@@ -45,6 +46,7 @@
 #include <gp_Dir.hxx>
 #include <gp_Trsf.hxx>
 
+#include <BRepPrimAPI_MakeCone.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
 #include <BRepAlgoAPI_Cut.hxx>
@@ -68,6 +70,7 @@
 #include <vector>
 //@@ include required header files here @@//
 
+
 //=======================================================================
 //function : GetID
 //purpose  :
@@ -89,12 +92,12 @@ GEOMImpl_PipeTShapeDriver::GEOMImpl_PipeTShapeDriver()
 //=======================================================================
 //function : getShapesOnBoxIDs
   /*!
-   * \brief Find IDs of subshapes complying with given status about surface
-    * \param theBox - the box to check state of subshapes against
+   * \brief Find IDs of sub-shapes complying with given status about surface
+    * \param theBox - the box to check state of sub-shapes against
     * \param theShape - the shape to explore
-    * \param theShapeType - type of subshape of theShape
+    * \param theShapeType - type of sub-shape of theShape
     * \param theState - required state
-    * \retval Handle(TColStd_HSequenceOfInteger) - IDs of found subshapes
+    * \retval Handle(TColStd_HSequenceOfInteger) - IDs of found sub-shapes
    */
 //=======================================================================
 Handle(TColStd_HSequenceOfInteger)
@@ -106,7 +109,7 @@ GEOMImpl_PipeTShapeDriver::GetShapesOnBoxIDs(const TopoDS_Shape& aBox,
   Handle(TColStd_HSequenceOfInteger) aSeqOfIDs;
 
   // Check presence of triangulation, build if need
-  if (!GEOMImpl_IShapesOperations::CheckTriangulation(aShape)) {
+  if (!GEOMUtils::CheckTriangulation(aShape)) {
     StdFail_NotDone::Raise("Cannot build triangulation on the shape");
     return aSeqOfIDs;
   }
@@ -162,12 +165,12 @@ GEOMImpl_PipeTShapeDriver::GetShapesOnBoxIDs(const TopoDS_Shape& aBox,
 //=======================================================================
 //function : GetShapesOnSurfaceIDs
   /*!
-   * \brief Find IDs of subshapes complying with given status about surface
-    * \param theSurface - the surface to check state of subshapes against
+   * \brief Find IDs of sub-shapes complying with given status about surface
+    * \param theSurface - the surface to check state of sub-shapes against
     * \param theShape - the shape to explore
-    * \param theShapeType - type of subshape of theShape
+    * \param theShapeType - type of sub-shape of theShape
     * \param theState - required state
-    * \retval Handle(TColStd_HSequenceOfInteger) - IDs of found subshapes
+    * \retval Handle(TColStd_HSequenceOfInteger) - IDs of found sub-shapes
    */
 //=======================================================================
 Handle(TColStd_HSequenceOfInteger)
@@ -179,7 +182,7 @@ Handle(TColStd_HSequenceOfInteger)
   Handle(TColStd_HSequenceOfInteger) aSeqOfIDs;
 
   // Check presence of triangulation, build if need
-  if (!GEOMImpl_IShapesOperations::CheckTriangulation(theShape)) {
+  if (!GEOMUtils::CheckTriangulation(theShape)) {
     StdFail_NotDone::Raise("Cannot build triangulation on the shape");
     return aSeqOfIDs;
   }
@@ -258,7 +261,7 @@ void GEOMImpl_PipeTShapeDriver::GetCommonShapesOnCylinders(const TopoDS_Shape& t
 {
   gp_Pnt aP0 (0, 0, 0);
   gp_Vec aVX = gp::DX(), aVZ = gp::DZ();
-  gp_Ax3 anAxis1 (aP0, aVX), anAxis2 (aP0, aVZ);
+  gp_Ax3 anAxis1 (aP0, aVX, aVZ), anAxis2 (aP0, aVZ, aVX);
 
   TopTools_IndexedMapOfShape aMapOfShapes;
   aMapOfShapes.Clear();
@@ -312,8 +315,8 @@ TopoDS_Shape GEOMImpl_PipeTShapeDriver::MakePipeTShape(const double r1, const do
   gp_Pnt aP0 (0, 0, 0);
   gp_Pnt aP1 (-l1, 0, 0);
   gp_Vec aVX = gp::DX(), aVY = gp::DY(), aVZ = gp::DZ();
-  gp_Ax2 anAxes1 (aP1, aVX);
-  gp_Ax2 anAxes2 (aP0, aVZ);
+  gp_Ax2 anAxes1 (aP1, aVX, aVZ);
+  gp_Ax2 anAxes2 (aP0, aVZ, aVX);
 
   // Build the initial pipes
   BRepPrimAPI_MakeCylinder C1Int (anAxes1, r1, Abs(2 * l1));
@@ -325,13 +328,13 @@ TopoDS_Shape GEOMImpl_PipeTShapeDriver::MakePipeTShape(const double r1, const do
   C2Int.Build();
   C2Ext.Build();
   if (!C1Int.IsDone() || !C1Ext.IsDone() || !C2Int.IsDone() || !C2Ext.IsDone()) {
-    StdFail_NotDone::Raise("Couldn't build cylinders");
+    StdFail_NotDone::Raise("Cannot build cylinders");
   }
 
   // Fuse the 2 pipes
   BRepAlgoAPI_Fuse fuse1 (C1Ext.Shape(), C2Ext.Shape());
   if (!fuse1.IsDone()) {
-    StdFail_NotDone::Raise("Couldn't fuse cylinders");
+    StdFail_NotDone::Raise("Cannot fuse cylinders");
   }
 
   // Remove small radius main pipe
@@ -356,12 +359,12 @@ TopoDS_Shape GEOMImpl_PipeTShapeDriver::MakePipeTShape(const double r1, const do
 TopoDS_Shape GEOMImpl_PipeTShapeDriver::MakeQuarterPipeTShape(const double r1, const double w1, const double l1,
 						      const double r2, const double w2, const double l2) const
 {
-  double r1Ext = r1 + w1;
   TopoDS_Shape Te = MakePipeTShape(r1, w1, l1, r2, w2, l2);
   if (Te.IsNull())
     StdFail_NotDone::Raise("Couldn't build Pipe TShape");
 
   // Get a quarter of shape => Te2
+  double r1Ext = r1 + w1;
   BRepPrimAPI_MakeBox box1 (gp_Pnt(0,-2*r1Ext,-2*r1Ext),gp_Pnt(Abs(2 * l1), 2*r1Ext, Abs(2*l2)));
   BRepPrimAPI_MakeBox box2 (gp_Pnt(0,2*r1Ext,-2*r1Ext),gp_Pnt(-Abs(2 * l1), 0, Abs(2*l2)));
   box1.Build();
@@ -427,7 +430,6 @@ Standard_Integer GEOMImpl_PipeTShapeDriver::Execute(TFunction_Logbook& log) cons
       StdFail_NotDone::Raise("TShape cannot be computed if R2+W2 = R1+W1 and R2 != R1");
     }
   }
-
 
   if (aR1Ext >= aData.GetL2() + epsilon) {
     StdFail_NotDone::Raise("TShape cannot be computed if R1+W1 >= L2");
@@ -503,7 +505,6 @@ Standard_Integer GEOMImpl_PipeTShapeDriver::Execute(TFunction_Logbook& log) cons
       StdFail_NotDone::Raise("Common edges not found");
     }
   
-
     TopTools_IndexedDataMapOfShapeListOfShape M;
     GEOMImpl_Block6Explorer::MapShapesAndAncestors(Te4, TopAbs_EDGE, TopAbs_FACE, M);
 //     std::cerr << "Number of IDs: " << edges_e->Length() << std::endl;
@@ -549,7 +550,6 @@ Standard_Integer GEOMImpl_PipeTShapeDriver::Execute(TFunction_Logbook& log) cons
     }
     
 //     BB.Add(CC, chamfer.Shape());
-    
     
 //     aShape = CC;
     aShape = chamfer.Shape();
@@ -615,3 +615,62 @@ Standard_Integer GEOMImpl_PipeTShapeDriver::Execute(TFunction_Logbook& log) cons
 
   return 1;
 }
+
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
+
+bool GEOMImpl_PipeTShapeDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
+{
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
+
+  GEOMImpl_IPipeTShape aCI( function );
+  Standard_Integer aType = function->GetType();
+
+  theOperationName = "PIPETSHAPE";
+
+  switch ( aType ) {
+  case TSHAPE_BASIC:
+    AddParam( theParams, "Main radius", aCI.GetR1() );
+    AddParam( theParams, "Main width", aCI.GetW1() );
+    AddParam( theParams, "Main half-length", aCI.GetL1() );
+    AddParam( theParams, "Incident pipe radius", aCI.GetR2() );
+    AddParam( theParams, "Incident pipe width", aCI.GetW2() );
+    AddParam( theParams, "Incident pipe half-length", aCI.GetL2() );
+    AddParam( theParams, "For hex mesh", aCI.GetHexMesh() );
+    break;
+  case TSHAPE_CHAMFER:
+    AddParam( theParams, "Main radius", aCI.GetR1() );
+    AddParam( theParams, "Main width", aCI.GetW1() );
+    AddParam( theParams, "Main half-length", aCI.GetL1() );
+    AddParam( theParams, "Incident pipe radius", aCI.GetR2() );
+    AddParam( theParams, "Incident pipe width", aCI.GetW2() );
+    AddParam( theParams, "Incident pipe half-length", aCI.GetL2() );
+    AddParam( theParams, "Chamfer height", aCI.GetH() );
+    AddParam( theParams, "Chamfer width", aCI.GetW() );
+    AddParam( theParams, "For hex mesh", aCI.GetHexMesh() );
+    break;
+  case TSHAPE_FILLET:
+    AddParam( theParams, "Main radius", aCI.GetR1() );
+    AddParam( theParams, "Main width", aCI.GetW1() );
+    AddParam( theParams, "Main half-length", aCI.GetL1() );
+    AddParam( theParams, "Incident pipe radius", aCI.GetR2() );
+    AddParam( theParams, "Incident pipe width", aCI.GetW2() );
+    AddParam( theParams, "Incident pipe half-length", aCI.GetL2() );
+    AddParam( theParams, "Fillet radius", aCI.GetRF() );
+    AddParam( theParams, "For hex mesh", aCI.GetHexMesh() );
+    break;
+  default:
+    return false;
+  }
+  
+  return true;
+}
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_PipeTShapeDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_PipeTShapeDriver,GEOM_BaseDriver);

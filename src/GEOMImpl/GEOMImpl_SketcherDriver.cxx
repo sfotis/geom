@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -16,7 +18,6 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
-//
 
 #include <Standard_Stream.hxx>
 
@@ -24,8 +25,10 @@
 #include <GEOMImpl_ISketcher.hxx>
 #include <GEOMImpl_Types.hxx>
 #include <GEOM_Function.hxx>
+#include <GEOMUtils.hxx>
+#include <Sketcher_Profile.hxx>
 
-#include <GEOMImpl_IMeasureOperations.hxx>
+#include <Basics_Utils.hxx>
 
 // OCCT Includes
 #include <BRepBuilderAPI_Transform.hxx>
@@ -34,9 +37,6 @@
 #include <TopoDS.hxx>
 #include <TopoDS_Shape.hxx>
 #include <gp_Pln.hxx>
-
-#include <Sketcher_Profile.hxx>
-
 #include <Standard_ConstructionError.hxx>
 
 //=======================================================================
@@ -75,6 +75,7 @@ Standard_Integer GEOMImpl_SketcherDriver::Execute(TFunction_Logbook& log) const
   if (aCommand.IsEmpty())
     return 0;
 
+
   // create sketcher
   Sketcher_Profile aProfile (aCommand.ToCString());
   bool isDone = false;
@@ -109,7 +110,7 @@ Standard_Integer GEOMImpl_SketcherDriver::Execute(TFunction_Logbook& log) const
     //  return 0;
     //Handle(Geom_Plane) aGPlane = Handle(Geom_Plane)::DownCast( aGS );
     //aWPlane = aGPlane->Pln().Position();
-    aWPlane = GEOMImpl_IMeasureOperations::GetPosition(aShape);
+    aWPlane = GEOMUtils::GetPosition(aShape);
   }
   gp_Trsf aTrans;
   aTrans.SetTransformation(aWPlane);
