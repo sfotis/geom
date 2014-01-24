@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,9 +19,9 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+
 //NOTE: This is an intreface to a function for the Archimede operation.
-
-
+//
 #include "GEOM_Function.hxx"
 
 #define ARG_WEIGHT   1  
@@ -33,19 +35,15 @@ class GEOMImpl_IArchimede
   
   GEOMImpl_IArchimede(Handle(GEOM_Function) theFunction): _func(theFunction) {}
 
+  void SetWeight(Standard_Real theWeight) { _func->SetReal(ARG_WEIGHT, theWeight); }
 
-  void SetWeight(const double& theWeight) { _func->SetReal(ARG_WEIGHT, theWeight); }
-  void SetWeight(const TCollection_AsciiString& theWeight) { _func->SetReal(ARG_WEIGHT, theWeight); }
-  
   Standard_Real GetWeight() { return _func->GetReal(ARG_WEIGHT); }
 
-  void SetDensity(const double& theDensity) { _func->SetReal(ARG_DENSITY, theDensity); }
-  void SetDensity(const TCollection_AsciiString& theDensity) { _func->SetReal(ARG_DENSITY, theDensity); }
+  void SetDensity(Standard_Real theDensity) { _func->SetReal(ARG_DENSITY, theDensity); }
 
   Standard_Real GetDensity() { return _func->GetReal(ARG_DENSITY); }
 
-  void SetDeflection(const double& theDeflection) { _func->SetReal(ARG_DEFLECT, theDeflection); }
-  void SetDeflection(const TCollection_AsciiString& theDeflection) { _func->SetReal(ARG_DEFLECT, theDeflection); }
+  void SetDeflection(Standard_Real theDeflection) { _func->SetReal(ARG_DEFLECT, theDeflection); }
 
   Standard_Real GetDeflection() { return _func->GetReal(ARG_DEFLECT); }
   
@@ -53,6 +51,10 @@ class GEOMImpl_IArchimede
 
   Handle(GEOM_Function) GetBasicShape() { return _func->GetReference(ARG_SHAPE); }
   
+  void SetWeight(const TCollection_AsciiString& theWeight) { _func->SetReal(ARG_WEIGHT, theWeight); }
+  void SetDensity(const TCollection_AsciiString& theDensity) { _func->SetReal(ARG_DENSITY, theDensity); }
+  void SetDeflection(const TCollection_AsciiString& theDeflection) { _func->SetReal(ARG_DEFLECT, theDeflection); }
+
  private:
   
   Handle(GEOM_Function) _func;  

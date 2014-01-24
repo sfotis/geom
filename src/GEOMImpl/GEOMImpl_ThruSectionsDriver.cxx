@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,F
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,7 +19,6 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#include "utilities.h"
 
 #include <Standard_Stream.hxx>
 
@@ -25,7 +26,6 @@
 #include <GEOMImpl_IThruSections.hxx>
 #include <GEOMImpl_Types.hxx>
 #include <GEOM_Function.hxx>
-#include <GEOM_Object.hxx>
 
 #include <TColStd_HSequenceOfTransient.hxx>
 #include <Precision.hxx>
@@ -170,3 +170,38 @@ Standard_Integer GEOMImpl_ThruSectionsDriver::Execute(TFunction_Logbook& log) co
   return 1;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
+
+bool GEOMImpl_ThruSectionsDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
+{
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
+
+  GEOMImpl_IThruSections aCI( function );
+  Standard_Integer aType = function->GetType();
+
+  theOperationName = "MakeThruSections";
+
+  switch ( aType ) {
+  case THRUSECTIONS_RULED:
+  case THRUSECTIONS_SMOOTHED:
+    AddParam( theParams, "Sections", aCI.GetSections() );
+    AddParam( theParams, "Is solid", aCI.GetSolidMode() );
+    AddParam( theParams, "Precision", aCI.GetPrecision() );
+    AddParam( theParams, "Is ruled", aType == THRUSECTIONS_RULED );
+    break;
+  default:
+    return false;
+  }
+  
+  return true;
+}
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_ThruSectionsDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_ThruSectionsDriver,GEOM_BaseDriver);

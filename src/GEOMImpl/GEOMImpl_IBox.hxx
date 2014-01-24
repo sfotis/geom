@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,9 +19,9 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+
 //NOTE: This is an intreface to a function for the Box creation.
-
-
+//
 #include "GEOM_Function.hxx"
 
 #define BOX_ARG_DX   1
@@ -34,18 +36,15 @@ class GEOMImpl_IBox
 
   GEOMImpl_IBox(Handle(GEOM_Function) theFunction): _func(theFunction) {}
 
-  void SetDX(const TCollection_AsciiString& theX) { _func->SetReal(BOX_ARG_DX, theX); }
-  void SetDX(const double& theX) { _func->SetReal(BOX_ARG_DX, theX); }
+  void SetDX(double theX) { _func->SetReal(BOX_ARG_DX, theX); }
 
   double GetDX() { return _func->GetReal(BOX_ARG_DX); }
 
-  void SetDY(const TCollection_AsciiString& theY) { _func->SetReal(BOX_ARG_DY, theY); }
-  void SetDY(const double& theY) { _func->SetReal(BOX_ARG_DY, theY); }
+  void SetDY(double theY) { _func->SetReal(BOX_ARG_DY, theY); }
 
   double GetDY() { return _func->GetReal(BOX_ARG_DY); }
 
-  void SetDZ(const TCollection_AsciiString& theZ) { _func->SetReal(BOX_ARG_DZ, theZ); }
-  void SetDZ(const double& theZ) { _func->SetReal(BOX_ARG_DZ, theZ); }
+  void SetDZ(double theZ) { _func->SetReal(BOX_ARG_DZ, theZ); }
 
   double GetDZ() { return _func->GetReal(BOX_ARG_DZ); }
 
@@ -57,6 +56,9 @@ class GEOMImpl_IBox
 
   Handle(GEOM_Function) GetRef2() { return _func->GetReference(BOX_ARG_REF2); }
 
+  void SetDX(const TCollection_AsciiString& theX) { _func->SetReal(BOX_ARG_DX, theX); }
+  void SetDY(const TCollection_AsciiString& theY) { _func->SetReal(BOX_ARG_DY, theY); }
+  void SetDZ(const TCollection_AsciiString& theZ) { _func->SetReal(BOX_ARG_DZ, theZ); }
  private:
 
   Handle(GEOM_Function) _func;

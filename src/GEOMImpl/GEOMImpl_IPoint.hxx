@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,8 +19,8 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-//NOTE: This is an intreface to a function for the point creation.
 
+//NOTE: This is an interface to a function for the point creation.
 
 #include "GEOM_Function.hxx"
 
@@ -30,7 +32,6 @@
 
 #define ARG_PARAM 5
 #define ARG_CURVE 6
-
 #define ARG_LINE1 7
 #define ARG_LINE2 8 
 
@@ -38,6 +39,8 @@
 #define ARG_PARAM2 10
 
 #define ARG_LENGTH 11
+
+//#define ARG_FLAG 12
 
 class GEOMImpl_IPoint
 {
@@ -49,9 +52,9 @@ class GEOMImpl_IPoint
   void SetY(const TCollection_AsciiString& theY) { _func->SetReal(ARG_Y, theY); }
   void SetZ(const TCollection_AsciiString& theZ) { _func->SetReal(ARG_Z, theZ); }
   
-  void SetX(const double theX) { _func->SetReal(ARG_X, theX); }
-  void SetY(const double theY) { _func->SetReal(ARG_Y, theY); }
-  void SetZ(const double theZ) { _func->SetReal(ARG_Z, theZ); }
+  void SetX(double theX) { _func->SetReal(ARG_X, theX); }
+  void SetY(double theY) { _func->SetReal(ARG_Y, theY); }
+  void SetZ(double theZ) { _func->SetReal(ARG_Z, theZ); }
 
   double GetX() { return _func->GetReal(ARG_X); }
   double GetY() { return _func->GetReal(ARG_Y); }
@@ -62,31 +65,27 @@ class GEOMImpl_IPoint
   Handle(GEOM_Function) GetRef() { return _func->GetReference(ARG_REF); }
 
   void SetCurve(Handle(GEOM_Function) theRef) { _func->SetReference(ARG_CURVE, theRef); }
-
-  Handle(GEOM_Function) GetCurve() { return _func->GetReference(ARG_CURVE); }
-
-  void SetParameter(const double& theParam) { _func->SetReal(ARG_PARAM, theParam); }
-  void SetParameter(const TCollection_AsciiString& theParam) { _func->SetReal(ARG_PARAM, theParam); }
-
-  double GetParameter() { return _func->GetReal(ARG_PARAM); }
-
   void SetSurface(Handle(GEOM_Function) theRef) { _func->SetReference(ARG_SURFACE, theRef); }
   void SetLine1(Handle(GEOM_Function) theRef) { _func->SetReference(ARG_LINE1, theRef); }
   void SetLine2(Handle(GEOM_Function) theRef) { _func->SetReference(ARG_LINE2, theRef); }
 
+  Handle(GEOM_Function) GetCurve() { return _func->GetReference(ARG_CURVE); }
   Handle(GEOM_Function) GetSurface() { return _func->GetReference(ARG_SURFACE); }
   Handle(GEOM_Function) GetLine1() { return _func->GetReference(ARG_LINE1); }
   Handle(GEOM_Function) GetLine2() { return _func->GetReference(ARG_LINE2); }
 
+  void SetParameter(double theParam) { _func->SetReal(ARG_PARAM, theParam); }
+  void SetParameter(const TCollection_AsciiString& theParam) { _func->SetReal(ARG_PARAM, theParam); }
   void SetParameter2(double theParam) { _func->SetReal(ARG_PARAM2, theParam); }
   void SetParameter2(const TCollection_AsciiString& theParam) { _func->SetReal(ARG_PARAM2, theParam); }
-
-  double GetParameter2() { return _func->GetReal(ARG_PARAM2); }
-
   void SetLength(double theLength) { _func->SetReal(ARG_LENGTH, theLength); }
   void SetLength(const TCollection_AsciiString& theLength) { _func->SetReal(ARG_LENGTH, theLength); }
+  //void SetReversed(bool theReversed)  { _func->SetInteger(ARG_FLAG, theReversed); }
 
+  double GetParameter() { return _func->GetReal(ARG_PARAM); }
+  double GetParameter2() { return _func->GetReal(ARG_PARAM2); }
   double GetLength() { return _func->GetReal(ARG_LENGTH); }
+  //bool   GetReversed() { return _func->GetInteger(ARG_FLAG); }
   
  private:
 

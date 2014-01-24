@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,9 +19,9 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+
 //NOTE: This is an intreface to a function for the Torus creation.
-
-
+//
 #include "GEOM_Function.hxx"
 
 #define TORUS_ARG_CC   1
@@ -39,13 +41,11 @@ class GEOMImpl_ITorus
   void SetCenter(Handle(GEOM_Function) theP) { _func->SetReference(TORUS_ARG_CC, theP); }
   void SetVector(Handle(GEOM_Function) theV) { _func->SetReference(TORUS_ARG_VV, theV); }
 
-  void SetRMajor(const double& theR) { _func->SetReal(TORUS_ARG_RMAJ, theR); }
-  void SetRMinor(const double& theR) { _func->SetReal(TORUS_ARG_RMIN, theR); }
+  void SetRMajor(double theR) { _func->SetReal(TORUS_ARG_RMAJ, theR); }
+  void SetRMinor(double theR) { _func->SetReal(TORUS_ARG_RMIN, theR); }
 
   void SetRMajor(const TCollection_AsciiString& theR) { _func->SetReal(TORUS_ARG_RMAJ, theR); }
   void SetRMinor(const TCollection_AsciiString& theR) { _func->SetReal(TORUS_ARG_RMIN, theR); }
-
-
 
   void SetAngle(const TCollection_AsciiString& theAngle) { _func->SetReal(TORUS_ARG_ANG, theAngle); }
   void SetAngle(const double& theAngle) { _func->SetReal(TORUS_ARG_ANG, theAngle); }

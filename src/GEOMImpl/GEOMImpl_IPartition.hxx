@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,9 +19,9 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+
 //NOTE: This is an intreface to a function for the Partition creation.
-
-
+//
 #include "GEOM_Function.hxx"
 
 #include "TColStd_HSequenceOfTransient.hxx"
@@ -37,6 +39,7 @@
 #define PART_ARG_PLANE 8
 
 #define PART_ARG_KEEP_NONLIMIT_SHAPES 9
+#define BOOL_ARG_CHECK_SELF_INTERSECTION 10
 
 class GEOMImpl_IPartition
 {
@@ -46,6 +49,9 @@ class GEOMImpl_IPartition
 
   void SetLimit(int theLimit) { _func->SetInteger(PART_ARG_LIMIT, theLimit); }
 
+  void SetKeepNonlimitShapes(int theKeepNonlimitShapes) 
+  { _func->SetInteger(PART_ARG_KEEP_NONLIMIT_SHAPES,theKeepNonlimitShapes ); }
+  
   void SetShapes(const Handle(TColStd_HSequenceOfTransient)& theShapes)
   { _func->SetReferenceList(PART_ARG_SHAPES, theShapes); }
 
@@ -61,8 +67,12 @@ class GEOMImpl_IPartition
   void SetMaterials(const Handle(TColStd_HArray1OfInteger)& theMaterials)
   { _func->SetIntegerArray(PART_ARG_MATERIALS, theMaterials); }
 
+  void SetCheckSelfIntersection (Standard_Boolean theFlag)
+  { _func->SetInteger(BOOL_ARG_CHECK_SELF_INTERSECTION, theFlag ? 1 : 0); }
 
   int GetLimit() { return _func->GetInteger(PART_ARG_LIMIT); }
+
+int GetKeepNonlimitShapes() { return _func->GetInteger(PART_ARG_KEEP_NONLIMIT_SHAPES); }
 
   Handle(TColStd_HSequenceOfTransient) GetShapes()    { return _func->GetReferenceList(PART_ARG_SHAPES); }
   Handle(TColStd_HSequenceOfTransient) GetTools()     { return _func->GetReferenceList(PART_ARG_TOOLS); }
@@ -78,9 +88,8 @@ class GEOMImpl_IPartition
   Handle(GEOM_Function) GetShape() { return _func->GetReference(PART_ARG_SHAPE); }
   Handle(GEOM_Function) GetPlane() { return _func->GetReference(PART_ARG_PLANE); }
 
-  void SetKeepNonlimitShapes(int theKeepNonlimitShapes) { _func->SetInteger(PART_ARG_KEEP_NONLIMIT_SHAPES,theKeepNonlimitShapes ); }
-  int GetKeepNonlimitShapes() { return _func->GetInteger(PART_ARG_KEEP_NONLIMIT_SHAPES); }
-
+  Standard_Boolean GetCheckSelfIntersection()
+  { return (_func->GetInteger(BOOL_ARG_CHECK_SELF_INTERSECTION) != 0); }
 
  private:
 

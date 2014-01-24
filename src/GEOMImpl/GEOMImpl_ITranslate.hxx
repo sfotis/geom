@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,9 +19,9 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+
 //NOTE: This is an intreface to a function for the Translate creation.
-
-
+//
 #include "GEOM_Function.hxx"
 
 #define TRANSLATE_ARG_POINT1   1  
@@ -88,6 +90,11 @@ class GEOMImpl_ITranslate
 
   double GetDX() { return _func->GetReal(TRANSLATE_ARG_DX); }
 
+  void SetDistance(double theDistance) { return _func->SetReal(TRANSLATE_ARG_DISTANCE, theDistance); }
+  void SetDistance(const TCollection_AsciiString& theDistance) { return _func->SetReal(TRANSLATE_ARG_DISTANCE, theDistance); }
+
+  double GetDistance() { return _func->GetReal(TRANSLATE_ARG_DISTANCE); }
+
   void SetDY(double theDY) { return _func->SetReal(TRANSLATE_ARG_DY, theDY); }
   void SetDY(const TCollection_AsciiString& theDY) { return _func->SetReal(TRANSLATE_ARG_DY, theDY); }
 
@@ -97,11 +104,6 @@ class GEOMImpl_ITranslate
   void SetDZ(const TCollection_AsciiString& theDZ) { return _func->SetReal(TRANSLATE_ARG_DZ, theDZ); }
 
   double GetDZ() { return _func->GetReal(TRANSLATE_ARG_DZ); }
-
-  void SetDistance(double theDistance) { return _func->SetReal(TRANSLATE_ARG_DISTANCE, theDistance); }
-  void SetDistance(const TCollection_AsciiString& theDistance) { return _func->SetReal(TRANSLATE_ARG_DISTANCE, theDistance); }
-
-  double GetDistance() { return _func->GetReal(TRANSLATE_ARG_DISTANCE); }
 
   void SetRailShape(Handle(GEOM_Function) theRail) { _func->SetReference(TRANSLATE_ARG_RAIL, theRail); }
 

@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,10 +19,11 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+
 //NOTE: This is an intreface to a function for the Prism creation.
 
-
 #include "GEOM_Function.hxx"
+// #include <GEOMImpl_Mode.hxx>  TEST
 
 #define PRISM_ARG_H     1
 #define PRISM_ARG_VEC   2
@@ -32,6 +35,10 @@
 #define PRISM_ARG_DY    8
 #define PRISM_ARG_DZ    9
 #define PRISM_ARG_SCALE 10
+#define PRISM_ARG_DRAFT 11
+#define PRISM_ARG_FUSE  12
+#define PRISM_ARG_INIT  13
+#define PRISM_ARG_MODE  14
 
 class GEOMImpl_IPrism
 {
@@ -43,27 +50,18 @@ class GEOMImpl_IPrism
   void SetVector(Handle(GEOM_Function) theRefVector) { _func->SetReference(PRISM_ARG_VEC , theRefVector); }
   void SetFirstPoint(Handle(GEOM_Function) thePoint) { _func->SetReference(PRISM_ARG_PNT_F, thePoint); }
   void SetLastPoint (Handle(GEOM_Function) thePoint) { _func->SetReference(PRISM_ARG_PNT_L, thePoint); }
+  void SetInitShape (Handle(GEOM_Function) theInitShape) { _func->SetReference(PRISM_ARG_INIT,  theInitShape); }
 
   Handle(GEOM_Function) GetBase  () { return _func->GetReference(PRISM_ARG_BASE); }
   Handle(GEOM_Function) GetVector() { return _func->GetReference(PRISM_ARG_VEC ); }
   Handle(GEOM_Function) GetFirstPoint() { return _func->GetReference(PRISM_ARG_PNT_F ); }
   Handle(GEOM_Function) GetLastPoint () { return _func->GetReference(PRISM_ARG_PNT_L ); }
-
-  void SetH(const double& theH) { _func->SetReal(PRISM_ARG_H, theH); }
-  void SetH(const TCollection_AsciiString& theH) { _func->SetReal(PRISM_ARG_H, theH); }
-
-  void SetAngle(const double& theAngle) { _func->SetReal(PRISM_ARG_ANG, theAngle); }
-  void SetAngle(const TCollection_AsciiString& theAngle) { _func->SetReal(PRISM_ARG_ANG, theAngle); }
-
-  double GetH() { return _func->GetReal(PRISM_ARG_H); }
-  double GetAngle() { return _func->GetReal(PRISM_ARG_ANG); }
+  Handle(GEOM_Function) GetInitShape () { return _func->GetReference(PRISM_ARG_INIT  ); }
 
   void SetDX(double theDX) { _func->SetReal(PRISM_ARG_DX, theDX); }
   void SetDX(const TCollection_AsciiString& theDX) { _func->SetReal(PRISM_ARG_DX, theDX); }
-
   void SetDY(double theDY) { _func->SetReal(PRISM_ARG_DY, theDY); }
   void SetDY(const TCollection_AsciiString& theDY) { _func->SetReal(PRISM_ARG_DY, theDY); }
-
   void SetDZ(double theDZ) { _func->SetReal(PRISM_ARG_DZ, theDZ); }
   void SetDZ(const TCollection_AsciiString& theDZ) { _func->SetReal(PRISM_ARG_DZ, theDZ); }
 
@@ -71,10 +69,26 @@ class GEOMImpl_IPrism
   double GetDY() { return _func->GetReal(PRISM_ARG_DY); }
   double GetDZ() { return _func->GetReal(PRISM_ARG_DZ); }
 
+  void SetH(double theH) { _func->SetReal(PRISM_ARG_H, theH); }
+  void SetH(const TCollection_AsciiString& theH) { _func->SetReal(PRISM_ARG_H, theH); }
   void SetScale(double theH) { _func->SetReal(PRISM_ARG_SCALE, theH); }
   void SetScale(const TCollection_AsciiString& theH) { _func->SetReal(PRISM_ARG_SCALE, theH); }
+  void SetDraftAngle(double theAngle) { _func->SetReal(PRISM_ARG_DRAFT, theAngle); }
+  void SetDraftAngle(const TCollection_AsciiString& theAngle) { _func->SetReal(PRISM_ARG_DRAFT, theAngle); }
+  void SetAngle(const double& theAngle) { _func->SetReal(PRISM_ARG_ANG, theAngle); }
+  void SetAngle(const TCollection_AsciiString& theAngle) { _func->SetReal(PRISM_ARG_ANG, theAngle); }
 
+  double GetH() { return _func->GetReal(PRISM_ARG_H); }
   double GetScale() { return _func->GetReal(PRISM_ARG_SCALE); }
+  double GetDraftAngle() { return _func->GetReal(PRISM_ARG_DRAFT); }
+  double GetAngle() { return _func->GetReal(PRISM_ARG_ANG); }
+
+  void SetFuseFlag(int theFlag) { _func->SetInteger(PRISM_ARG_FUSE, theFlag); }
+  void SetFuseFlag(const TCollection_AsciiString& theFlag) { _func->SetInteger(PRISM_ARG_FUSE, theFlag); }
+//   void SetMode(GEOMImpl_Mode theMode) { _func->SetInteger(PRISM_ARG_MODE, theMode); }  //TEST
+
+  int  GetFuseFlag()      { return _func->GetInteger(PRISM_ARG_FUSE); }
+//   GEOMImpl_Mode GetMode() { return _func->GetInteger(PRISM_ARG_MODE); }   //TEST
 
  private:
 

@@ -138,66 +138,12 @@ Standard_Integer GEOMImpl_ShapeDriver::Execute(TFunction_Logbook& log) const
 
   if (aType == WIRE_EDGES) {
     Handle(TColStd_HSequenceOfTransient) aShapes = aCI.GetShapes();
-    TopoDS_Wire aWire;
-    B.MakeWire(aWire);
 
-    // add edges
-    for (unsigned int ind = 1; ind <= aShapes->Length(); ind++) {
-      Handle(GEOM_Function) aRefShape = Handle(GEOM_Function)::DownCast(aShapes->Value(ind));
-      TopoDS_Shape aShape_i = aRefShape->GetValue();
-      if (aShape_i.IsNull()) {
-        Standard_NullObject::Raise("Shape for wire construction is null");
-      }
-     if (aShape_i.ShapeType() == TopAbs_EDGE || aShape_i.ShapeType() == TopAbs_WIRE) {
-       TopExp_Explorer exp (aShape_i, TopAbs_EDGE);
-       for (; exp.More(); exp.Next())
-         B.Add(aWire, TopoDS::Edge(exp.Current()));
-     } else {
-       Standard_TypeMismatch::Raise
-         ("Shape for wire construction is neither an edge nor a wire");
-     }
-    }
-
-    // fix edges order
-    Handle(ShapeFix_Wire) aFW = new ShapeFix_Wire;
-    aFW->Load(aWire);
-    aFW->FixReorder();
-    
-    if (aFW->StatusReorder(ShapeExtend_FAIL1)) {
-      Standard_ConstructionError::Raise("Wire construction failed: several loops detected");
-    } else if (aFW->StatusReorder(ShapeExtend_FAIL)) {
-      Standard_ConstructionError::Raise("Wire construction failed");
-    } else {
-    }
-
-    // IMP 0019766: Building a Wire from unconnected edges by introducing a tolerance
     Standard_Real aTolerance = aCI.GetTolerance();
     if (aTolerance < Precision::Confusion())
       aTolerance = Precision::Confusion();
     
-    aFW->ClosedWireMode() = Standard_False;
-    aFW->FixConnected(aTolerance);
-    if (aFW->StatusConnected(ShapeExtend_FAIL)) {
-      Standard_ConstructionError::Raise("Wire construction failed: cannot build connected wire");
-    }
-    // IMP 0019766
-    if (aFW->StatusConnected(ShapeExtend_DONE3)) {
-      // Confused with <prec> but not Analyzer.Precision(), set the same
-      aFW->FixGapsByRangesMode() = Standard_True;
-      if (aFW->FixGaps3d()) {
-        Handle(ShapeExtend_WireData) sbwd = aFW->WireData();
-        Handle(ShapeFix_Edge) aFe = new ShapeFix_Edge;
-        for (Standard_Integer iedge = 1; iedge <= sbwd->NbEdges(); iedge++) {
-          TopoDS_Edge aEdge = TopoDS::Edge(sbwd->Edge(iedge));
-          aFe->FixVertexTolerance(aEdge);
-          aFe->FixSameParameter(aEdge);
-        }
-      }
-      else if (aFW->StatusGaps3d(ShapeExtend_FAIL)) {
-        Standard_ConstructionError::Raise("Wire construction failed: cannot fix 3d gaps");
-      }
-    }
-      aShape = aFW->WireAPIMake();
+    aShape = MakeWireFromEdges(aShapes, aTolerance);
   }
   else if (aType == FACE_WIRE) {
     Handle(GEOM_Function) aRefBase = aCI.GetBase();
@@ -227,7 +173,7 @@ Standard_Integer GEOMImpl_ShapeDriver::Execute(TFunction_Logbook& log) const
       Standard_NullObject::Raise
         ("Shape for face construction is neither a wire nor a closed edge");
     }
-    GEOMImpl_Block6Explorer::MakeFace(W, aCI.GetIsPlanar(), aShape);
+    aWarning = GEOMImpl_Block6Explorer::MakeFace(W, aCI.GetIsPlanar(), aShape);
     if (aShape.IsNull()) {
       Standard_ConstructionError::Raise("Face construction failed");
     }
@@ -262,6 +208,9 @@ Standard_Integer GEOMImpl_ShapeDriver::Execute(TFunction_Logbook& log) const
     Handle(TopTools_HSequenceOfShape) aSeqWiresOut;
     ShapeAnalysis_FreeBounds::ConnectEdgesToWires(aSeqEdgesIn, Precision::Confusion(),
                                                   /*shared*/Standard_False, aSeqWiresOut);
+    //modified by NIZNHY-PKV Wed Dec 28 13:46:55 2011f
+    //KeepEdgesOrder(aSeqEdgesIn, aSeqWiresOut);
+    //modified by NIZNHY-PKV Wed Dec 28 13:46:59 2011t
 
     // 3. Separate closed wires
     Handle(TopTools_HSequenceOfShape) aSeqClosedWires = new TopTools_HSequenceOfShape;
@@ -283,7 +232,7 @@ Standard_Integer GEOMImpl_ShapeDriver::Execute(TFunction_Logbook& log) const
     // 4.a. Basic face
     TopoDS_Shape aFFace;
     TopoDS_Wire aW1 = TopoDS::Wire(aSeqClosedWires->Value(1));
-    GEOMImpl_Block6Explorer::MakeFace(aW1, aCI.GetIsPlanar(), aFFace);
+    aWarning = GEOMImpl_Block6Explorer::MakeFace(aW1, aCI.GetIsPlanar(), aFFace);
     if (aFFace.IsNull()) {
       Standard_ConstructionError::Raise("Face construction failed");
     }
@@ -379,8 +328,25 @@ Standard_Integer GEOMImpl_ShapeDriver::Execute(TFunction_Logbook& log) const
         ish++;
       }
 
-      if (ish != 1)
+      if (ish != 1) {
+        // try the case of one face (Mantis issue 0021809)
+        TopExp_Explorer expF (sh, TopAbs_FACE);
+        Standard_Integer ifa = 0;
+        for (; expF.More(); expF.Next()) {
+          aShape = expF.Current();
+          ifa++;
+        }
+
+        if (ifa == 1) {
+          TopoDS_Shell ss;
+          B.MakeShell(ss);
+          B.Add(ss,aShape);
+          aShape = ss;
+        }
+        else {
         aShape = aSewing.SewedShape();
+    }
+      }
     }
 
   }
@@ -461,6 +427,7 @@ Standard_Integer GEOMImpl_ShapeDriver::Execute(TFunction_Logbook& log) const
     aShape = C;
 
   }
+  /*
   else if (aType == REVERSE_ORIENTATION) {
     Handle(GEOM_Function) aRefShape = aCI.GetBase();
     TopoDS_Shape aShape_i = aRefShape->GetValue();
@@ -483,6 +450,7 @@ Standard_Integer GEOMImpl_ShapeDriver::Execute(TFunction_Logbook& log) const
       aShape = tds;
     }
   }
+  */
   else if (aType == EDGE_WIRE) {
     Handle(GEOM_Function) aRefBase = aCI.GetBase();
     TopoDS_Shape aWire = aRefBase->GetValue();
@@ -490,6 +458,205 @@ Standard_Integer GEOMImpl_ShapeDriver::Execute(TFunction_Logbook& log) const
     Standard_Real AngTol = aCI.GetAngularTolerance();
     if (aWire.IsNull()) Standard_NullObject::Raise("Argument Wire is null");
 
+    aShape = MakeEdgeFromWire(aWire, LinTol, AngTol);
+  }
+  else if (aType == EDGE_CURVE_LENGTH) {
+    GEOMImpl_IVector aVI (aFunction);
+
+    // RefCurve
+    Handle(GEOM_Function) aRefCurve = aVI.GetPoint1();
+    if (aRefCurve.IsNull()) Standard_NullObject::Raise("Argument Curve is null");
+    TopoDS_Shape aRefShape1 = aRefCurve->GetValue();
+    if (aRefShape1.ShapeType() != TopAbs_EDGE) {
+      Standard_TypeMismatch::Raise
+        ("Edge On Curve creation aborted : curve shape is not an edge");
+    }
+    TopoDS_Edge aRefEdge = TopoDS::Edge(aRefShape1);
+    TopoDS_Vertex V1, V2;
+    TopExp::Vertices(aRefEdge, V1, V2, Standard_True);
+
+    // RefPoint
+    TopoDS_Vertex aRefVertex;
+    Handle(GEOM_Function) aRefPoint = aVI.GetPoint2();
+    if (aRefPoint.IsNull()) {
+      aRefVertex = V1;
+    }
+    else {
+      TopoDS_Shape aRefShape2 = aRefPoint->GetValue();
+      if (aRefShape2.ShapeType() != TopAbs_VERTEX) {
+        Standard_TypeMismatch::Raise
+          ("Edge On Curve creation aborted : start point shape is not a vertex");
+      }
+      aRefVertex = TopoDS::Vertex(aRefShape2);
+    }
+    gp_Pnt aRefPnt = BRep_Tool::Pnt(aRefVertex);
+
+    // Length
+    Standard_Real aLength = aVI.GetParameter();
+    //Standard_Real aCurveLength = IntTools::Length(aRefEdge);
+    //if (aLength > aCurveLength) {
+    //  Standard_ConstructionError::Raise
+    //    ("Edge On Curve creation aborted : given length is greater than edges length");
+    //}
+    if (fabs(aLength) < Precision::Confusion()) {
+      Standard_ConstructionError::Raise
+        ("Edge On Curve creation aborted : given length is smaller than Precision::Confusion()");
+    }
+
+    // Check orientation
+    Standard_Real UFirst, ULast;
+    Handle(Geom_Curve) EdgeCurve = BRep_Tool::Curve(aRefEdge, UFirst, ULast);
+    Handle(Geom_Curve) ReOrientedCurve = EdgeCurve;
+
+    Standard_Real dU = ULast - UFirst;
+    Standard_Real par1 = UFirst + 0.1 * dU;
+    Standard_Real par2 = ULast  - 0.1 * dU;
+
+    gp_Pnt P1 = EdgeCurve->Value(par1);
+    gp_Pnt P2 = EdgeCurve->Value(par2);
+
+    if (aRefPnt.SquareDistance(P2) < aRefPnt.SquareDistance(P1)) {
+      ReOrientedCurve = EdgeCurve->Reversed();
+      UFirst = EdgeCurve->ReversedParameter(ULast);
+    }
+
+    // Get the point by length
+    GeomAdaptor_Curve AdapCurve = GeomAdaptor_Curve(ReOrientedCurve);
+    GCPnts_AbscissaPoint anAbsPnt (AdapCurve, aLength, UFirst);
+    Standard_Real aParam = anAbsPnt.Parameter();
+
+    if (AdapCurve.IsClosed() && aLength < 0.0) {
+      Standard_Real aTmp = aParam;
+      aParam = UFirst;
+      UFirst = aTmp;
+    }
+
+    BRepBuilderAPI_MakeEdge aME (ReOrientedCurve, UFirst, aParam);
+    if (aME.IsDone())
+      aShape = aME.Shape();
+  } else if (aType == SHAPE_ISOLINE) {
+    GEOMImpl_IIsoline     aII (aFunction);
+    Handle(GEOM_Function) aRefFace = aII.GetFace();
+    TopoDS_Shape          aShapeFace = aRefFace->GetValue();
+
+    if (aShapeFace.ShapeType() == TopAbs_FACE) {
+      TopoDS_Face   aFace  = TopoDS::Face(aShapeFace);
+      bool          isUIso = aII.GetIsUIso();
+      Standard_Real aParam = aII.GetParameter();
+      Standard_Real U1,U2,V1,V2;
+
+      // Construct a real geometric parameter.
+      aFace.Orientation(TopAbs_FORWARD);
+      ShapeAnalysis::GetFaceUVBounds(aFace,U1,U2,V1,V2);
+
+      if (isUIso) {
+        aParam = U1 + (U2 - U1)*aParam;
+      } else {
+        aParam = V1 + (V2 - V1)*aParam;
+      }
+
+      aShape = MakeIsoline(aFace, isUIso, aParam);
+    } else {
+      Standard_NullObject::Raise
+        ("Shape for isoline construction is not a face");
+    }
+  }
+  else {
+  }
+
+  if (aShape.IsNull()) return 0;
+
+  // Check shape validity
+  BRepCheck_Analyzer ana (aShape, false);
+  if (!ana.IsValid()) {
+    //Standard_ConstructionError::Raise("Algorithm have produced an invalid shape result");
+    // For Mantis issue 0021772: EDF 2336 GEOM: Non valid face created from two circles
+    Handle(ShapeFix_Shape) aSfs = new ShapeFix_Shape (aShape);
+    aSfs->Perform();
+    aShape = aSfs->Shape();
+  }
+
+  aFunction->SetValue(aShape);
+
+  log.SetTouched(Label());
+
+  if (!aWarning.IsEmpty())
+    Standard_Failure::Raise(aWarning.ToCString());
+
+  return 1;
+}
+
+TopoDS_Wire GEOMImpl_ShapeDriver::MakeWireFromEdges(const Handle(TColStd_HSequenceOfTransient)& theEdgesFuncs,
+                                                    const Standard_Real theTolerance)
+{
+  BRep_Builder B;
+
+  TopoDS_Wire aWire;
+  B.MakeWire(aWire);
+
+  // add edges
+  for (unsigned int ind = 1; ind <= theEdgesFuncs->Length(); ind++) {
+    Handle(GEOM_Function) aRefShape = Handle(GEOM_Function)::DownCast(theEdgesFuncs->Value(ind));
+    TopoDS_Shape aShape_i = aRefShape->GetValue();
+    if (aShape_i.IsNull()) {
+      Standard_NullObject::Raise("Shape for wire construction is null");
+    }
+    if (aShape_i.ShapeType() == TopAbs_EDGE || aShape_i.ShapeType() == TopAbs_WIRE) {
+      TopExp_Explorer exp (aShape_i, TopAbs_EDGE);
+      for (; exp.More(); exp.Next())
+        B.Add(aWire, TopoDS::Edge(exp.Current()));
+    } else {
+      Standard_TypeMismatch::Raise
+        ("Shape for wire construction is neither an edge nor a wire");
+    }
+  }
+
+  // fix edges order
+  Handle(ShapeFix_Wire) aFW = new ShapeFix_Wire;
+  aFW->Load(aWire);
+  aFW->FixReorder();
+
+  if (aFW->StatusReorder(ShapeExtend_FAIL1)) {
+    Standard_ConstructionError::Raise("Wire construction failed: several loops detected");
+  }
+  else if (aFW->StatusReorder(ShapeExtend_FAIL)) {
+    Standard_ConstructionError::Raise("Wire construction failed");
+  }
+  else {
+  }
+
+  // IMP 0019766: Building a Wire from unconnected edges by introducing a tolerance
+  aFW->ClosedWireMode() = Standard_False;
+  aFW->FixConnected(theTolerance);
+  if (aFW->StatusConnected(ShapeExtend_FAIL)) {
+    Standard_ConstructionError::Raise("Wire construction failed: cannot build connected wire");
+  }
+  // IMP 0019766
+  if (aFW->StatusConnected(ShapeExtend_DONE3)) {
+    // Confused with <prec> but not Analyzer.Precision(), set the same
+    aFW->FixGapsByRangesMode() = Standard_True;
+    if (aFW->FixGaps3d()) {
+      Handle(ShapeExtend_WireData) sbwd = aFW->WireData();
+      Handle(ShapeFix_Edge) aFe = new ShapeFix_Edge;
+      for (Standard_Integer iedge = 1; iedge <= sbwd->NbEdges(); iedge++) {
+        TopoDS_Edge aEdge = TopoDS::Edge(sbwd->Edge(iedge));
+        aFe->FixVertexTolerance(aEdge);
+        aFe->FixSameParameter(aEdge);
+      }
+    }
+    else if (aFW->StatusGaps3d(ShapeExtend_FAIL)) {
+      Standard_ConstructionError::Raise("Wire construction failed: cannot fix 3d gaps");
+    }
+  }
+  aWire = aFW->WireAPIMake();
+
+  return aWire;
+}
+
+TopoDS_Edge GEOMImpl_ShapeDriver::MakeEdgeFromWire(const TopoDS_Shape& aWire,
+                                                   const Standard_Real LinTol,
+                                                   const Standard_Real AngTol)
+{
     TopoDS_Edge ResEdge;
 
     BRepLib::BuildCurves3d(aWire);
@@ -506,6 +673,7 @@ Standard_Integer GEOMImpl_ShapeDriver::Execute(TFunction_Logbook& log) const
     TColStd_SequenceOfReal TolSeq;
     GeomAbs_CurveType CurType;
     TopoDS_Vertex FirstVertex, LastVertex;
+    Standard_Boolean FinalReverse = Standard_False;
 
     BRepTools_WireExplorer wexp(theWire) ;
     for (; wexp.More(); wexp.Next())
@@ -537,6 +705,8 @@ Standard_Integer GEOMImpl_ShapeDriver::Execute(TFunction_Logbook& log) const
 	LparSeq.Append(lpar);
 	CurType = aType;
 	FirstVertex = wexp.CurrentVertex();
+        if (anEdge.Orientation() == TopAbs_REVERSED)
+          FinalReverse = Standard_True;
       }
       else
       {
@@ -739,6 +909,11 @@ Standard_Integer GEOMImpl_ShapeDriver::Execute(TFunction_Logbook& log) const
     LastVertex = wexp.CurrentVertex();
     TolSeq.Append(BRep_Tool::Tolerance(LastVertex));
 
+    TopoDS_Vertex FirstVtx_final = (FinalReverse)? LastVertex : FirstVertex;
+    FirstVtx_final.Orientation(TopAbs_FORWARD);
+    TopoDS_Vertex LastVtx_final = (FinalReverse)? FirstVertex : LastVertex;
+    LastVtx_final.Orientation(TopAbs_REVERSED);
+
     if (!CurveSeq.IsEmpty())
     {
       Standard_Integer nb_curve = CurveSeq.Length();   //number of curves
@@ -806,129 +981,121 @@ Standard_Integer GEOMImpl_ShapeDriver::Execute(TFunction_Logbook& log) const
           Standard_ConstructionError::Raise("Construction aborted : The given Wire has sharp bends between some Edges, no valid Edge can be built");
         }
 	ResEdge = BRepLib_MakeEdge(concatcurve->Value(concatcurve->Lower()),
-				   FirstVertex, LastVertex);
+                                   FirstVtx_final, LastVtx_final,
+                                   concatcurve->Value(concatcurve->Lower())->FirstParameter(),
+                                   concatcurve->Value(concatcurve->Lower())->LastParameter());
       }
       else
       {
 	if (CurveSeq(1)->IsInstance(STANDARD_TYPE(Geom_TrimmedCurve)))
-	  CurveSeq(1) = (*((Handle(Geom_TrimmedCurve)*)&(CurveSeq(i))))->BasisCurve();
+          CurveSeq(1) = (*((Handle(Geom_TrimmedCurve)*)&(CurveSeq(1))))->BasisCurve();
 	
 	CurveSeq(1)->Transform(LocSeq(1).Location().Transformation());
 	ResEdge = BRepLib_MakeEdge(CurveSeq(1),
-				   FirstVertex, LastVertex,
+                                   FirstVtx_final, LastVtx_final,
 				   FparSeq(1), LparSeq(1));
       }
     }
       
-    aShape = ResEdge;
-  }
-  else if (aType == EDGE_CURVE_LENGTH) {
-    GEOMImpl_IVector aVI (aFunction);
+    if (FinalReverse)
+      ResEdge.Reverse();
 
-    // RefCurve
-    Handle(GEOM_Function) aRefCurve = aVI.GetPoint1();
-    if (aRefCurve.IsNull()) Standard_NullObject::Raise("Argument Curve is null");
-    TopoDS_Shape aRefShape1 = aRefCurve->GetValue();
-    if (aRefShape1.ShapeType() != TopAbs_EDGE) {
-      Standard_TypeMismatch::Raise
-        ("Edge On Curve creation aborted : curve shape is not an edge");
+    return ResEdge;
     }
-    TopoDS_Edge aRefEdge = TopoDS::Edge(aRefShape1);
-    TopoDS_Vertex V1, V2;
-    TopExp::Vertices(aRefEdge, V1, V2, Standard_True);
 
-    // RefPoint
-    TopoDS_Vertex aRefVertex;
-    Handle(GEOM_Function) aRefPoint = aVI.GetPoint2();
-    if (aRefPoint.IsNull()) {
-      aRefVertex = V1;
+//=============================================================================
+/*!
+ * \brief Returns an isoline for a face.
+ */
+//=============================================================================
+
+TopoDS_Shape GEOMImpl_ShapeDriver::MakeIsoline
+                            (const TopoDS_Face &theFace,
+                             const bool         IsUIso,
+                             const double       theParameter) const
+{
+  TopoDS_Shape          aResult;
+  GEOMUtils_Hatcher     aHatcher(theFace);
+  const GeomAbs_IsoType aType = (IsUIso ? GeomAbs_IsoU : GeomAbs_IsoV);
+
+  aHatcher.Init(aType, theParameter);
+  aHatcher.Perform();
+
+  if (!aHatcher.IsDone()) {
+    Standard_ConstructionError::Raise("MakeIsoline : Hatcher failure");
     }
-    else {
-      TopoDS_Shape aRefShape2 = aRefPoint->GetValue();
-      if (aRefShape2.ShapeType() != TopAbs_VERTEX) {
-        Standard_TypeMismatch::Raise
-          ("Edge On Curve creation aborted : start point shape is not a vertex");
+
+  const Handle(TColStd_HArray1OfInteger) &anIndices =
+    (IsUIso ? aHatcher.GetUIndices() : aHatcher.GetVIndices());
+
+  if (anIndices.IsNull()) {
+    Standard_ConstructionError::Raise("MakeIsoline : Null hatching indices");
+    }
+
+  const Standard_Integer anIsoInd = anIndices->Lower();
+  const Standard_Integer aHatchingIndex = anIndices->Value(anIsoInd);
+
+  if (aHatchingIndex == 0) {
+    Standard_ConstructionError::Raise("MakeIsoline : Invalid hatching index");
+    }
+
+  const Standard_Integer aNbDomains =
+    aHatcher.GetNbDomains(aHatchingIndex);
+
+  if (aNbDomains < 0) {
+    Standard_ConstructionError::Raise("MakeIsoline : Invalid number of domains");
+    }
+
+  // The hatching is performed successfully. Create the 3d Curve.
+  Handle(Geom_Surface) aSurface   = BRep_Tool::Surface(theFace);
+  Handle(Geom_Curve)   anIsoCurve = (IsUIso ?
+    aSurface->UIso(theParameter) : aSurface->VIso(theParameter));
+  Handle(Geom2d_Curve) aPIsoCurve =
+    aHatcher.GetHatching(aHatchingIndex);
+  const Standard_Real  aTol = Precision::Confusion();
+  Standard_Integer     anIDom = 1;
+  Standard_Real        aV1;
+  Standard_Real        aV2;
+  BRep_Builder         aBuilder;
+  Standard_Integer     aNbEdges = 0;
+
+  for (; anIDom <= aNbDomains; anIDom++) {
+    if (aHatcher.GetDomain(aHatchingIndex, anIDom, aV1, aV2)) {
+      // Check first and last parameters.
+      if (!aHatcher.IsDomainInfinite(aHatchingIndex, anIDom)) {
+        // Create an edge.
+        TopoDS_Edge anEdge = BRepBuilderAPI_MakeEdge(anIsoCurve, aV1, aV2);
+
+        // Update it with a parametric curve on face.
+        aBuilder.UpdateEdge(anEdge, aPIsoCurve, theFace, aTol);
+        aNbEdges++;
+
+        if (aNbEdges > 1) {
+          // Result is a compond.
+          if (aNbEdges == 2) {
+            // Create a new compound.
+            TopoDS_Compound aCompound;
+
+            aBuilder.MakeCompound(aCompound);
+            aBuilder.Add(aCompound, aResult);
+            aResult = aCompound;
+          }
+
+          // Add an edge to the compound.
+          aBuilder.Add(aResult, anEdge);
+        } else {
+          // Result is the edge.
+          aResult = anEdge;
+        }
       }
-      aRefVertex = TopoDS::Vertex(aRefShape2);
-    }
-    gp_Pnt aRefPnt = BRep_Tool::Pnt(aRefVertex);
-
-    // Length
-    Standard_Real aLength = aVI.GetParameter();
-    //Standard_Real aCurveLength = XIntTools::Length(aRefEdge);
-    //if (aLength > aCurveLength) {
-    //  Standard_ConstructionError::Raise
-    //    ("Edge On Curve creation aborted : given length is greater than edges length");
-    //}
-    if (fabs(aLength) < Precision::Confusion()) {
-      Standard_ConstructionError::Raise
-        ("Edge On Curve creation aborted : given length is smaller than Precision::Confusion()");
-    }
-
-    // Check orientation
-    Standard_Real UFirst, ULast;
-    Handle(Geom_Curve) EdgeCurve = BRep_Tool::Curve(aRefEdge, UFirst, ULast);
-    Handle(Geom_Curve) ReOrientedCurve = EdgeCurve;
-
-    Standard_Real dU = ULast - UFirst;
-    Standard_Real par1 = UFirst + 0.1 * dU;
-    Standard_Real par2 = ULast  - 0.1 * dU;
-
-    gp_Pnt P1 = EdgeCurve->Value(par1);
-    gp_Pnt P2 = EdgeCurve->Value(par2);
-
-    if (aRefPnt.SquareDistance(P2) < aRefPnt.SquareDistance(P1)) {
-      ReOrientedCurve = EdgeCurve->Reversed();
-      UFirst = EdgeCurve->ReversedParameter(ULast);
-    }
-
-    // Get the point by length
-    GeomAdaptor_Curve AdapCurve = GeomAdaptor_Curve(ReOrientedCurve);
-    GCPnts_AbscissaPoint anAbsPnt (AdapCurve, aLength, UFirst);
-    Standard_Real aParam = anAbsPnt.Parameter();
-
-    if (AdapCurve.IsClosed() && aLength < 0.0) {
-      Standard_Real aTmp = aParam;
-      aParam = UFirst;
-      UFirst = aTmp;
-    }
-
-    BRepBuilderAPI_MakeEdge aME (ReOrientedCurve, UFirst, aParam);
-    if (aME.IsDone())
-      aShape = aME.Shape();
-  }
-  else {
-  }
-
-  if (aShape.IsNull()) return 0;
-
-  // Check shape validity
-  BRepCheck_Analyzer ana (aShape, false);
-  if (!ana.IsValid()) {
-    //Standard_ConstructionError::Raise("Algorithm have produced an invalid shape result");
-	Standard_CString anErrStr("Algorithm has produced an invalid shape result");
-	#ifdef THROW_ON_INVALID_SH
-	  Standard_ConstructionError::Raise(anErrStr);
-	#else
-	  MESSAGE(anErrStr);
-	  //further processing can be performed here
-	  //...
-	  //in case of failure of automatic treatment
-	  //mark the corresponding GEOM_Object as problematic
-	  TDF_Label aLabel = aFunction->GetOwnerEntry();
-	  if (!aLabel.IsRoot()) {
-		Handle(GEOM_Object) aMainObj = GEOM_Object::GetObject(aLabel);
-		if (!aMainObj.IsNull())
-		  aMainObj->SetDirty(Standard_True);
 	  }
-	#endif
   }
 
-  aFunction->SetValue(aShape);
+  if (aNbEdges == 0) {
+    Standard_ConstructionError::Raise("MakeIsoline : Empty result");
+  }
 
-  log.SetTouched(Label());
-
-  return 1;
+  return aResult;
 }
 //================================================================================
 /*!

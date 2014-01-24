@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -133,3 +135,41 @@ Standard_Integer GEOMImpl_TorusDriver::Execute(TFunction_Logbook& log) const
   return 1;    
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
+
+bool GEOMImpl_TorusDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
+{
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
+
+  GEOMImpl_ITorus aCI( function );
+  Standard_Integer aType = function->GetType();
+
+  theOperationName = "TORUS";
+
+  switch ( aType ) {
+  case TORUS_RR:
+    AddParam( theParams, "Radius 1", aCI.GetRMajor() );
+    AddParam( theParams, "Radius 2", aCI.GetRMinor() );
+    break;
+  case TORUS_PNT_VEC_RR:
+    AddParam( theParams, "Base Point", aCI.GetCenter() );
+    AddParam( theParams, "Vector", aCI.GetVector() );
+    AddParam( theParams, "Radius 1", aCI.GetRMajor() );
+    AddParam( theParams, "Radius 2", aCI.GetRMinor() );
+    break;
+  default:
+    return false;
+  }
+
+  return true;
+}
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_TorusDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_TorusDriver,GEOM_BaseDriver);

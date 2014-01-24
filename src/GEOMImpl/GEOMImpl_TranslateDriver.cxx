@@ -1,4 +1,4 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 //  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 //  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
@@ -19,18 +19,15 @@
 //
 //  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-//
-#include <utilities.h>
 
 #include <Standard_Stream.hxx>
 
 #include <GEOMImpl_TranslateDriver.hxx>
-#include <GEOMImpl_IMeasureOperations.hxx>
 #include <GEOMImpl_ITranslate.hxx>
+#include <GEOMImpl_ITransformOperations.hxx>
 #include <GEOMImpl_Types.hxx>
 #include <GEOM_Function.hxx>
-#include <GEOM_Object.hxx>
+#include <GEOMUtils.hxx>
 
 #include <ShapeFix_Shape.hxx>
 #include <ShapeFix_ShapeTolerance.hxx>
@@ -39,8 +36,6 @@
 #include <BRep_Builder.hxx>
 #include <BRepCheck_Analyzer.hxx>
 #include <BRepBuilderAPI_Transform.hxx>
-#include <BRepBuilderAPI_MakeWire.hxx>
-#include <BRepAdaptor_CompCurve.hxx>
 
 #include <TopoDS.hxx>
 #include <TopoDS_Shape.hxx>
@@ -54,9 +49,6 @@
 #include <gp_Trsf.hxx>
 #include <gp_Pnt.hxx>
 #include <gp_Vec.hxx>
-#include <gp_Ax3.hxx>
-
-#include <cmath>
 
 //=======================================================================
 //function : GetID
@@ -182,13 +174,11 @@ Standard_Integer GEOMImpl_TranslateDriver::Execute(TFunction_Logbook& log) const
     B.MakeCompound( aCompound );
 
     Handle(GEOM_Function) aVector = TI.GetVector();
-    if(aVector.IsNull()) return 0;
-    TopoDS_Shape aV = aVector->GetValue();
-    if(aV.IsNull() || aV.ShapeType() != TopAbs_EDGE) return 0;
-    TopoDS_Edge anEdge = TopoDS::Edge(aV);
-
-    gp_Vec Vec(BRep_Tool::Pnt(TopExp::FirstVertex(anEdge)), BRep_Tool::Pnt(TopExp::LastVertex(anEdge)));
+    gp_Vec Vec = gp::DX();
+    if (!aVector.IsNull()) {
+      Vec = GEOMUtils::GetVector( aVector->GetValue(), Standard_False );
     Vec.Normalize();
+    }
 
     TopLoc_Location aLocOrig = anOriginal.Location();
     gp_Trsf aTrsfOrig = aLocOrig.Transformation();
@@ -207,28 +197,26 @@ Standard_Integer GEOMImpl_TranslateDriver::Execute(TFunction_Logbook& log) const
       B.Add(aCompound, anOriginal.Located(aLocRes));
     }
     aShape = aCompound;
+    //aShape = GEOMImpl_ITransformOperations::TranslateShape1D(anOriginal, &TI);
   }
   else if (aType == TRANSLATE_2D) {
     Standard_Integer nbtimes1 = TI.GetNbIter1(), nbtimes2 = TI.GetNbIter2();
     Standard_Real DX, DY, DZ,  step1 = TI.GetStep1(),  step2 = TI.GetStep2();
-    gp_Vec aVec;
     Handle(GEOM_Function) aVector = TI.GetVector();
-    if(aVector.IsNull()) return 0;
-    TopoDS_Shape aV = aVector->GetValue();
-    if(aV.IsNull() || aV.ShapeType() != TopAbs_EDGE) return 0;
-    TopoDS_Edge anEdge = TopoDS::Edge(aV);
-
-    gp_Vec Vec1(BRep_Tool::Pnt(TopExp::FirstVertex(anEdge)), BRep_Tool::Pnt(TopExp::LastVertex(anEdge)));
-    Vec1.Normalize();
-
     Handle(GEOM_Function) aVector2 = TI.GetVector2();
-    if(aVector2.IsNull()) return 0;
-    aV = aVector2->GetValue();
-    if(aV.IsNull() || aV.ShapeType() != TopAbs_EDGE) return 0;
-    anEdge = TopoDS::Edge(aV);
 
-    gp_Vec Vec2(BRep_Tool::Pnt(TopExp::FirstVertex(anEdge)), BRep_Tool::Pnt(TopExp::LastVertex(anEdge)));
+    gp_Vec Vec1 = gp::DX();
+    gp_Vec Vec2 = gp::DY();
+
+    if (!aVector.IsNull()) {
+      Vec1 = GEOMUtils::GetVector( aVector->GetValue(), Standard_False );
+      Vec1.Normalize();
+    }
+
+    if (!aVector2.IsNull()) {
+      Vec2 = GEOMUtils::GetVector( aVector2->GetValue(), Standard_False );
     Vec2.Normalize();
+    }
 
     TopoDS_Compound aCompound;
     BRep_Builder B;
@@ -236,6 +224,7 @@ Standard_Integer GEOMImpl_TranslateDriver::Execute(TFunction_Logbook& log) const
 
     TopLoc_Location aLocOrig = anOriginal.Location();
     gp_Trsf aTrsfOrig = aLocOrig.Transformation();
+    gp_Vec aVec;
 
     for (int i = 0; i < nbtimes1; i++) {
       for (int j = 0; j < nbtimes2; j++) {
@@ -253,6 +242,7 @@ Standard_Integer GEOMImpl_TranslateDriver::Execute(TFunction_Logbook& log) const
       }
     }
    aShape = aCompound;
+   //aShape = GEOMImpl_ITransformOperations::TranslateShape2D(anOriginal, &TI);
   }
   else if (aType == TRANSLATE_ALONG_RAIL) {
     TopoDS_Wire aWireRail;
@@ -403,4 +393,73 @@ Standard_Integer GEOMImpl_TranslateDriver::Execute(TFunction_Logbook& log) const
   return 1;
 }
 
+//================================================================================
+/*!
+ * \brief Returns a name of creation operation and names and values of creation parameters
+ */
+//================================================================================
 
+bool GEOMImpl_TranslateDriver::
+GetCreationInformation(std::string&             theOperationName,
+                       std::vector<GEOM_Param>& theParams)
+{
+  if (Label().IsNull()) return 0;
+  Handle(GEOM_Function) function = GEOM_Function::GetFunction(Label());
+
+  GEOMImpl_ITranslate aCI( function );
+  Standard_Integer aType = function->GetType();
+
+  switch ( aType ) {
+  case TRANSLATE_TWO_POINTS:
+  case TRANSLATE_TWO_POINTS_COPY:
+    theOperationName = "TRANSLATION";
+    AddParam( theParams, "Object", aCI.GetOriginal() );
+    AddParam( theParams, "Point 1", aCI.GetPoint1() );
+    AddParam( theParams, "Point 2", aCI.GetPoint2() );
+    break;
+  case TRANSLATE_VECTOR:
+  case TRANSLATE_VECTOR_COPY:
+    theOperationName = "TRANSLATION";
+    AddParam( theParams, "Object", aCI.GetOriginal() );
+    AddParam( theParams, "Vector", aCI.GetVector() );
+    break;
+  case TRANSLATE_VECTOR_DISTANCE:
+    theOperationName = "TRANSLATION";
+    AddParam( theParams, "Object", aCI.GetOriginal() );
+    AddParam( theParams, "Vector", aCI.GetVector() );
+    AddParam( theParams, "Distance", aCI.GetDistance() );
+    break;
+  case TRANSLATE_XYZ:
+  case TRANSLATE_XYZ_COPY:
+    theOperationName = "TRANSLATION";
+    AddParam( theParams, "Object", aCI.GetOriginal() );
+    AddParam( theParams, "Dx", aCI.GetDX() );
+    AddParam( theParams, "Dy", aCI.GetDY() );
+    AddParam( theParams, "Dz", aCI.GetDZ() );
+    break;
+  case TRANSLATE_1D:
+    theOperationName = "MUL_TRANSLATION";
+    AddParam( theParams, "Main Object", aCI.GetOriginal() );
+    AddParam( theParams, "Vector", aCI.GetVector(), "DX" );
+    AddParam( theParams, "Step", aCI.GetStep1() );
+    AddParam( theParams, "Nb. Times", aCI.GetNbIter1() );
+    break;
+  case TRANSLATE_2D:
+    theOperationName = "MUL_TRANSLATION";
+    AddParam( theParams, "Main Object", aCI.GetOriginal() );
+    AddParam( theParams, "Vector U", aCI.GetVector(), "DX" );
+    AddParam( theParams, "Vector V", aCI.GetVector2(), "DY" );
+    AddParam( theParams, "Step U", aCI.GetStep1() );
+    AddParam( theParams, "Nb. Times U", aCI.GetNbIter1() );
+    AddParam( theParams, "Step V", aCI.GetStep2() );
+    AddParam( theParams, "Nb. Times V", aCI.GetNbIter2() );
+    break;
+  default:
+    return false;
+  }
+
+  return true;
+}
+
+IMPLEMENT_STANDARD_HANDLE (GEOMImpl_TranslateDriver,GEOM_BaseDriver);
+IMPLEMENT_STANDARD_RTTIEXT (GEOMImpl_TranslateDriver,GEOM_BaseDriver);

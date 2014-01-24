@@ -1,7 +1,4 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
-//
-//  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-//  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -19,6 +16,7 @@
 //
 //  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+
 //NOTE: This is an intreface to a function for the Disk creation.
 //
 #include "GEOM_Function.hxx"
@@ -47,8 +45,6 @@ class GEOMImpl_IDisk
   void SetVector(Handle(GEOM_Function) theV) { _func->SetReference(DISK_ARG_VV, theV); }
 
   void SetRadius(double theR) { _func->SetReal(DISK_ARG_RR, theR); }
-  void SetRadius(const TCollection_AsciiString& theR) { _func->SetReal(DISK_ARG_RR, theR); }
-
   void SetOrientation(double theO) { _func->SetReal(DISK_ARG_ORIENT, theO); }
 
   Handle(GEOM_Function) GetPoint1() { return _func->GetReference(DISK_ARG_P1); }
@@ -61,6 +57,7 @@ class GEOMImpl_IDisk
   double GetRadius() { return _func->GetReal(DISK_ARG_RR); }
   double GetOrientation() { return _func->GetReal(DISK_ARG_ORIENT); }
 
+  void SetRadius(const TCollection_AsciiString& theR) { _func->SetReal(DISK_ARG_RR, theR); }
  private:
 
   Handle(GEOM_Function) _func;

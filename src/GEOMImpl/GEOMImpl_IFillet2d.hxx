@@ -44,6 +44,8 @@ class GEOMImpl_IFillet2d
   int GetLength() { return _func->GetInteger(FILLET2D_ARG_LENG); }
   int GetVertex(int theInd) { return _func->GetInteger(FILLET2D_ARG_LAST + theInd); }
 
+  void SetR(const TCollection_AsciiString& theR) { _func->SetReal(FILLET2D_ARG_R, theR); }
+
  private:
 
   Handle(GEOM_Function) _func;

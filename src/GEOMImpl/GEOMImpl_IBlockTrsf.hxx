@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,9 +19,9 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-//NOTE: This is an interface to a function for the Blocks Multi-Transformations.
 
-
+//NOTE: This is an interface to a functions for the Blocks Multi-Transformations and repairing
+//
 #include "GEOM_Function.hxx"
 
 #define TRSF_ORIGIN  1
@@ -30,6 +32,7 @@
 #define TRSF_FACE_1_V  5
 #define TRSF_FACE_2_V  6
 #define TRSF_NBITER_V  7
+
 #define TRSF_NB_FACES  8
 
 class GEOMImpl_IBlockTrsf
@@ -46,12 +49,8 @@ class GEOMImpl_IBlockTrsf
   void SetFace2U  (int theFaceId) { _func->SetInteger(TRSF_FACE_2_U, theFaceId); }
   void SetFace1V  (int theFaceId) { _func->SetInteger(TRSF_FACE_1_V, theFaceId); }
   void SetFace2V  (int theFaceId) { _func->SetInteger(TRSF_FACE_2_V, theFaceId); }
-  
   void SetNbIterU (int theNbIter) { _func->SetInteger(TRSF_NBITER_U, theNbIter); }
   void SetNbIterV (int theNbIter) { _func->SetInteger(TRSF_NBITER_V, theNbIter); }
-
-  void SetNbIterU (const TCollection_AsciiString& theNbIter) { _func->SetInteger(TRSF_NBITER_U, theNbIter); }
-  void SetNbIterV (const TCollection_AsciiString& theNbIter) { _func->SetInteger(TRSF_NBITER_V, theNbIter); }
 
   void SetOptimumNbFaces (int theNbFaces) { _func->SetInteger(TRSF_NB_FACES, theNbFaces); }
 
@@ -63,6 +62,9 @@ class GEOMImpl_IBlockTrsf
   int GetNbIterV() { return _func->GetInteger(TRSF_NBITER_V); }
   
   int GetOptimumNbFaces() { return _func->GetInteger(TRSF_NB_FACES); }
+
+  void SetNbIterU (const TCollection_AsciiString& theNbIter) { _func->SetInteger(TRSF_NBITER_U, theNbIter); }
+  void SetNbIterV (const TCollection_AsciiString& theNbIter) { _func->SetInteger(TRSF_NBITER_V, theNbIter); }
 
  private:
 

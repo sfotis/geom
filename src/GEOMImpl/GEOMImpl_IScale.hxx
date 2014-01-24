@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,9 +19,9 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+
 //NOTE: This is an intreface to a function for the Scale creation.
-
-
+//
 #include "GEOM_Function.hxx"
 
 #define SCALE_ARG_SHAPE   1
@@ -54,10 +56,8 @@ class GEOMImpl_IScale
 
   void SetFactorX(double theValue) { _func->SetReal(SCALE_ARG_VALUE  , theValue); }
   void SetFactorX(const TCollection_AsciiString& theValue) { _func->SetReal(SCALE_ARG_VALUE  , theValue); }
-
   void SetFactorY(double theValue) { _func->SetReal(SCALE_ARG_VALUE_Y, theValue); }
   void SetFactorY(const TCollection_AsciiString& theValue) { _func->SetReal(SCALE_ARG_VALUE_Y, theValue); }
-
   void SetFactorZ(double theValue) { _func->SetReal(SCALE_ARG_VALUE_Z, theValue); }
   void SetFactorZ(const TCollection_AsciiString& theValue) { _func->SetReal(SCALE_ARG_VALUE_Z, theValue); }
 

@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,9 +19,9 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+
 //NOTE: This is an intreface to a function for the vector creation.
-
-
+//
 #include "GEOM_Function.hxx"
 
 #define PLN_ARG_SIZE 1
@@ -43,14 +45,13 @@
 
 #define PLN_ARG_LCS     12
 
-
 class GEOMImpl_IPlane
 {
  public:
 
   GEOMImpl_IPlane(Handle(GEOM_Function) theFunction): _func(theFunction) {}
 
-  void SetSize(const double& theSize) { _func->SetReal(PLN_ARG_SIZE, theSize); }
+  void SetSize(double theSize) { _func->SetReal(PLN_ARG_SIZE, theSize); }
   void SetSize(const TCollection_AsciiString& theSize) { _func->SetReal(PLN_ARG_SIZE, theSize); }
 
   double GetSize() { return _func->GetReal(PLN_ARG_SIZE); }
@@ -77,7 +78,6 @@ class GEOMImpl_IPlane
   Handle(GEOM_Function) GetVector1() { return _func->GetReference(PLN_ARG_VEC1 ); }
   Handle(GEOM_Function) GetVector2() { return _func->GetReference(PLN_ARG_VEC2 ); }
 
-
   Handle(GEOM_Function) GetFace  () { return _func->GetReference(PLN_ARG_REF ); }
   Handle(GEOM_Function) GetLCS   () { return _func->GetReference(PLN_ARG_LCS ); }
   
@@ -85,12 +85,12 @@ class GEOMImpl_IPlane
   Handle(GEOM_Function) GetPoint2() { return _func->GetReference(PLN_ARG_PNT2); }
   Handle(GEOM_Function) GetPoint3() { return _func->GetReference(PLN_ARG_PNT3); }
   
-  void SetParameterU(const double& theParamU) { _func->SetReal(PLN_ARG_PARAM_U, theParamU); }
+  void SetParameterU(double theParamU) { _func->SetReal(PLN_ARG_PARAM_U, theParamU); }
   void SetParameterU(const TCollection_AsciiString& theParamU) { _func->SetReal(PLN_ARG_PARAM_U, theParamU); }
 
   double GetParameterU() { return _func->GetReal(PLN_ARG_PARAM_U); }
 
-  void SetParameterV(const double& theParamV) { _func->SetReal(PLN_ARG_PARAM_V, theParamV); }
+  void SetParameterV(double theParamV) { _func->SetReal(PLN_ARG_PARAM_V, theParamV); }
   void SetParameterV(const TCollection_AsciiString& theParamV) { _func->SetReal(PLN_ARG_PARAM_V, theParamV); }
 
   double GetParameterV() { return _func->GetReal(PLN_ARG_PARAM_V); }

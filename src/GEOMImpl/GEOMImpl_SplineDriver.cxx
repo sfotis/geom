@@ -85,12 +85,29 @@ Standard_Integer GEOMImpl_SplineDriver::Execute(TFunction_Logbook& log) const
 
   TopoDS_Shape aShape;
 
-  if (aType == SPLINE_BEZIER || aType == SPLINE_INTERPOLATION) {
+  if (aType == SPLINE_BEZIER ||
+      aType == SPLINE_INTERPOLATION ||
+      aType == SPLINE_INTERPOL_TANGENTS) {
 
     bool useCoords = aCI.GetConstructorType() == COORD_CONSTRUCTOR;
-    TColgp_Array1OfPnt points(1, (useCoords ? aCI.GetLength() : 1) );
+
+    Handle(TColStd_HArray1OfReal) aCoordsArray; // parametric case
+    Handle(TColStd_HSequenceOfTransient) aPoints; // points case
+
+    int aLen = 0;
+    if (useCoords) {
+      aCoordsArray = aCI.GetCoordinates();
+      aLen = aCoordsArray->Length() / 3;
+    }
+    else {
+      aPoints = aCI.GetPoints();
+      aLen = aPoints->Length();
+    }
+
+    if (aLen < 2) return 0;
+
+    TColgp_Array1OfPnt points (1, (useCoords ? aLen : 1));
     if(useCoords) {
-      Handle(TColStd_HArray1OfReal) aCoordsArray = aCI.GetCoordinates();
       int anArrayLength = aCoordsArray->Length();
       for (int i = 0, j = 1; i <= (anArrayLength-3); i += 3) {
 	gp_Pnt aPnt = gp_Pnt(aCoordsArray->Value(i+1), aCoordsArray->Value(i+2), aCoordsArray->Value(i+3));
@@ -99,18 +116,15 @@ Standard_Integer GEOMImpl_SplineDriver::Execute(TFunction_Logbook& log) const
       } 
     }
 
-    
-    int ind, aLen = aCI.GetLength();
-    if (aLen < 2) return 0;
-    Standard_Boolean isSeveral = Standard_False;
-    gp_Pnt aPrevP;
     int aRealLen = aLen;
+
     if (aType == SPLINE_BEZIER && aCI.GetIsClosed()) {
       TopoDS_Vertex aV1;
       if(useCoords) {
 	aV1 = BRepBuilderAPI_MakeVertex(points.Value(1));
-      } else {
-	Handle(GEOM_Function) aFPoint = aCI.GetPoint(1);
+      }
+      else {
+        Handle(GEOM_Function) aFPoint = Handle(GEOM_Function)::DownCast(aPoints->Value(1));
 	TopoDS_Shape aFirstPnt = aFPoint->GetValue();
 	aV1 = TopoDS::Vertex(aFirstPnt);
       }
@@ -118,8 +132,9 @@ Standard_Integer GEOMImpl_SplineDriver::Execute(TFunction_Logbook& log) const
       TopoDS_Vertex aV2;
       if(useCoords) { 
 	aV2 = BRepBuilderAPI_MakeVertex(points.Value(aLen));
-      } else {
-	Handle(GEOM_Function) aLPoint = aCI.GetPoint(aLen);
+      }
+      else {
+        Handle(GEOM_Function) aLPoint = Handle(GEOM_Function)::DownCast(aPoints->Value(aLen));
 	TopoDS_Shape aLastPnt = aLPoint->GetValue();
 	aV2 = TopoDS::Vertex(aLastPnt);
       }
@@ -129,6 +144,10 @@ Standard_Integer GEOMImpl_SplineDriver::Execute(TFunction_Logbook& log) const
       }
     }
     
+    int ind;
+    Standard_Boolean isSeveral = Standard_False;
+    gp_Pnt aPrevP;
+
     TColgp_Array1OfPnt CurvePoints (1, aRealLen);
     for (ind = 1; ind <= aLen; ind++) {
       gp_Pnt aP;
@@ -141,8 +160,9 @@ Standard_Integer GEOMImpl_SplineDriver::Execute(TFunction_Logbook& log) const
         }
         CurvePoints.SetValue(ind, aP);
         aPrevP = aP;
-      } else {      
-      Handle(GEOM_Function) aRefPoint = aCI.GetPoint(ind);
+      }
+      else {
+        Handle(GEOM_Function) aRefPoint = Handle(GEOM_Function)::DownCast(aPoints->Value(ind));
       TopoDS_Shape aShapePnt = aRefPoint->GetValue();
       if (aShapePnt.ShapeType() == TopAbs_VERTEX) {
 	  aP = BRep_Tool::Pnt(TopoDS::Vertex(aShapePnt));
@@ -156,6 +176,7 @@ Standard_Integer GEOMImpl_SplineDriver::Execute(TFunction_Logbook& log) const
       }
     }
     }
+
     if (aType == SPLINE_BEZIER) {
       if (!isSeveral) {
         Standard_ConstructionError::Raise("Points for Bezier Curve are too close");
@@ -165,12 +186,11 @@ Standard_Integer GEOMImpl_SplineDriver::Execute(TFunction_Logbook& log) const
       }
       Handle(Geom_BezierCurve) GBC = new Geom_BezierCurve(CurvePoints);
       aShape = BRepBuilderAPI_MakeEdge(GBC).Edge();
-    } else {
+    }
+    else {
 //      GeomAPI_PointsToBSpline GBC (CurvePoints);
 //      aShape = BRepBuilderAPI_MakeEdge(GBC).Edge();
       
-      Handle(TColgp_HArray1OfPnt) aHCurvePoints = new TColgp_HArray1OfPnt(1, aLen);
-
       if (aCI.GetDoReordering()) {
         for (int curInd = 1; curInd < aLen - 1; curInd++) {
           gp_Pnt curPnt = CurvePoints.Value(curInd);
@@ -197,18 +217,36 @@ Standard_Integer GEOMImpl_SplineDriver::Execute(TFunction_Logbook& log) const
             CurvePoints.SetValue(curInd + 1, nearPnt);
           }
         }
-        for (ind = 1; ind <= aLen; ind++) {
-          aHCurvePoints->SetValue(ind, CurvePoints.Value(ind));
         }
-      }
-      else {
+
+      Handle(TColgp_HArray1OfPnt) aHCurvePoints = new TColgp_HArray1OfPnt (1, aLen);
       for (ind = 1; ind <= aLen; ind++) {
  	aHCurvePoints->SetValue(ind, CurvePoints.Value(ind));
       }
-      }
       
-      bool isClosed = aCI.GetIsClosed();
+      bool isClosed = Standard_False;
+      if (aType == SPLINE_INTERPOLATION)
+        isClosed = aCI.GetIsClosed();
+
       GeomAPI_Interpolate GBC (aHCurvePoints, isClosed, gp::Resolution());
+
+      if (aType == SPLINE_INTERPOL_TANGENTS) {
+        Handle(GEOM_Function) aVec1Ref  = aCI.GetFirstVector();
+        Handle(GEOM_Function) aVec2Ref  = aCI.GetLastVector();
+
+        if (aVec1Ref.IsNull() || aVec2Ref.IsNull())
+          Standard_NullObject::Raise("Null object is given for a vector");
+
+        TopoDS_Shape aVec1Sh = aVec1Ref->GetValue();
+        TopoDS_Shape aVec2Sh = aVec2Ref->GetValue();
+
+        // take orientation of edge into account to avoid regressions, as it was implemented so
+        gp_Vec aV1 = GEOMUtils::GetVector(aVec1Sh, Standard_True);
+        gp_Vec aV2 = GEOMUtils::GetVector(aVec2Sh, Standard_True);
+
+        GBC.Load(aV1, aV2, /*Scale*/Standard_True);
+      }
+
       GBC.Perform();
       if (GBC.IsDone())
         aShape = BRepBuilderAPI_MakeEdge(GBC.Curve()).Edge();

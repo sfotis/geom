@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,8 +19,8 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-//NOTE: This is an intreface to a function for the vector creation.
 
+//NOTE: This is an interface to a function for the vector creation.
 
 #include "GEOM_Function.hxx"
 
@@ -39,13 +41,13 @@ class GEOMImpl_IVector
 
   GEOMImpl_IVector(Handle(GEOM_Function) theFunction): _func(theFunction) {}
 
+  void SetDX(double theDX) { _func->SetReal(VEC_ARG_DX, theDX); }
+  void SetDY(double theDY) { _func->SetReal(VEC_ARG_DY, theDY); }
+  void SetDZ(double theDZ) { _func->SetReal(VEC_ARG_DZ, theDZ); }
+
   void SetDX(const TCollection_AsciiString& theDX) { _func->SetReal(VEC_ARG_DX, theDX); }
   void SetDY(const TCollection_AsciiString& theDY) { _func->SetReal(VEC_ARG_DY, theDY); }
   void SetDZ(const TCollection_AsciiString& theDZ) { _func->SetReal(VEC_ARG_DZ, theDZ); }
-
-  void SetDX(const double& theDX) { _func->SetReal(VEC_ARG_DX, theDX); }
-  void SetDY(const double& theDY) { _func->SetReal(VEC_ARG_DY, theDY); }
-  void SetDZ(const double& theDZ) { _func->SetReal(VEC_ARG_DZ, theDZ); }
 
   double GetDX() { return _func->GetReal(VEC_ARG_DX); }
   double GetDY() { return _func->GetReal(VEC_ARG_DY); }
@@ -61,6 +63,7 @@ class GEOMImpl_IVector
 
   Handle(GEOM_Function) GetCurve() { return _func->GetReference(VEC_ARG_CURVE); }
 
+void SetParameter(double theParam) { _func->SetReal(VEC_ARG_PARAM, theParam); }
   void SetParameter(const TCollection_AsciiString& theParam) { _func->SetReal(VEC_ARG_PARAM, theParam); }
 
   double GetParameter() { return _func->GetReal(VEC_ARG_PARAM); }

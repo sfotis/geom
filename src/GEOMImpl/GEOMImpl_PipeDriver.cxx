@@ -658,7 +658,7 @@ static void FindFirstPairFaces(const TopoDS_Shape& S1, const TopoDS_Shape& S2,
 
 //=======================================================================
 //function : CreatePipeWithDifferentSections
-//purpose  : auxilary for Execute()
+//purpose  :
 //=======================================================================
 TopoDS_Shape GEOMImpl_PipeDriver::CreatePipeWithDifferentSections
                                   (const TopoDS_Wire& theWirePath,
@@ -1377,7 +1377,7 @@ static TopoDS_Shape CreatePipeForShellSections(const TopoDS_Wire& aWirePath,
       }
       cout<<"VN("<<VN.X()<<","<<VN.Y()<<","<<VN.Z()<<")"<<endl;
       cout<<"PathNorm("<<PathNorm.X()<<","<<PathNorm.Y()<<","<<PathNorm.Z()<<")"<<endl;
-      if(fabs(VN.Angle(PathNorm))>M_PI/2.) {
+      if (fabs(VN.Angle(PathNorm))>PI/2.) {
         NeedReverse = true;
         aShBase1.Reverse();
       }
@@ -1449,7 +1449,7 @@ static TopoDS_Shape CreatePipeForShellSections(const TopoDS_Wire& aWirePath,
       }
       //cout<<"VN("<<VN.X()<<","<<VN.Y()<<","<<VN.Z()<<")"<<endl;
       //cout<<"PathNorm("<<PathNorm.X()<<","<<PathNorm.Y()<<","<<PathNorm.Z()<<")"<<endl;
-      if(fabs(VN.Angle(PathNorm))>M_PI/2.)
+      if (fabs(VN.Angle(PathNorm))>PI/2.)
         aShBase2.Reverse();
     }
     */
