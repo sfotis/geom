@@ -56,11 +56,13 @@ class GEOMImpl_IPosition
   Handle(GEOM_Function) GetPath() { return _func->GetReference(POSITION_ARG_PATH); }
 
   void SetDistance(double theDistance) { _func->SetReal(POSITION_ARG_DISTANCE, theDistance); }
-  void SetDistance(const TCollection_AsciiString& theDistance) { _func->SetReal(POSITION_ARG_DISTANCE, theDistance); }
+
   double GetDistance() { return _func->GetReal(POSITION_ARG_DISTANCE); }
 
   void SetReverse(bool theReverse) { _func->SetReal(POSITION_ARG_REVERSE, theReverse); }
   bool GetReverse() { return _func->GetReal(POSITION_ARG_REVERSE); }
+
+  void SetDistance(const TCollection_AsciiString& theDistance) { _func->SetReal(POSITION_ARG_DISTANCE, theDistance); }
 
  private:
 

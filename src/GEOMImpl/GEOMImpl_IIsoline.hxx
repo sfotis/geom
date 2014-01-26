@@ -48,6 +48,9 @@ class GEOMImpl_IIsoline
     { return (_func->GetInteger(ISOLINE_ARG_U_OR_V) != 0); }
   double GetParameter() { return _func->GetReal(ISOLINE_ARG_PARAMETER ); }
 
+  void SetParameter (const TCollection_AsciiString& theParameter)
+      { _func->SetReal(ISOLINE_ARG_PARAMETER,  theParameter); }
+
  private:
 
   Handle(GEOM_Function) _func;

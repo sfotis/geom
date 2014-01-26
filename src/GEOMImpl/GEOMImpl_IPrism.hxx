@@ -59,36 +59,37 @@ class GEOMImpl_IPrism
   Handle(GEOM_Function) GetInitShape () { return _func->GetReference(PRISM_ARG_INIT  ); }
 
   void SetDX(double theDX) { _func->SetReal(PRISM_ARG_DX, theDX); }
-  void SetDX(const TCollection_AsciiString& theDX) { _func->SetReal(PRISM_ARG_DX, theDX); }
   void SetDY(double theDY) { _func->SetReal(PRISM_ARG_DY, theDY); }
-  void SetDY(const TCollection_AsciiString& theDY) { _func->SetReal(PRISM_ARG_DY, theDY); }
   void SetDZ(double theDZ) { _func->SetReal(PRISM_ARG_DZ, theDZ); }
-  void SetDZ(const TCollection_AsciiString& theDZ) { _func->SetReal(PRISM_ARG_DZ, theDZ); }
-
+  
   double GetDX() { return _func->GetReal(PRISM_ARG_DX); }
   double GetDY() { return _func->GetReal(PRISM_ARG_DY); }
   double GetDZ() { return _func->GetReal(PRISM_ARG_DZ); }
 
   void SetH(double theH) { _func->SetReal(PRISM_ARG_H, theH); }
-  void SetH(const TCollection_AsciiString& theH) { _func->SetReal(PRISM_ARG_H, theH); }
   void SetScale(double theH) { _func->SetReal(PRISM_ARG_SCALE, theH); }
-  void SetScale(const TCollection_AsciiString& theH) { _func->SetReal(PRISM_ARG_SCALE, theH); }
   void SetDraftAngle(double theAngle) { _func->SetReal(PRISM_ARG_DRAFT, theAngle); }
-  void SetDraftAngle(const TCollection_AsciiString& theAngle) { _func->SetReal(PRISM_ARG_DRAFT, theAngle); }
-  void SetAngle(const double& theAngle) { _func->SetReal(PRISM_ARG_ANG, theAngle); }
-  void SetAngle(const TCollection_AsciiString& theAngle) { _func->SetReal(PRISM_ARG_ANG, theAngle); }
 
   double GetH() { return _func->GetReal(PRISM_ARG_H); }
   double GetScale() { return _func->GetReal(PRISM_ARG_SCALE); }
   double GetDraftAngle() { return _func->GetReal(PRISM_ARG_DRAFT); }
-  double GetAngle() { return _func->GetReal(PRISM_ARG_ANG); }
 
   void SetFuseFlag(int theFlag) { _func->SetInteger(PRISM_ARG_FUSE, theFlag); }
-  void SetFuseFlag(const TCollection_AsciiString& theFlag) { _func->SetInteger(PRISM_ARG_FUSE, theFlag); }
 //   void SetMode(GEOMImpl_Mode theMode) { _func->SetInteger(PRISM_ARG_MODE, theMode); }  //TEST
 
   int  GetFuseFlag()      { return _func->GetInteger(PRISM_ARG_FUSE); }
 //   GEOMImpl_Mode GetMode() { return _func->GetInteger(PRISM_ARG_MODE); }   //TEST
+
+  void SetDX(const TCollection_AsciiString& theDX) { _func->SetReal(PRISM_ARG_DX, theDX); }
+  void SetDY(const TCollection_AsciiString& theDY) { _func->SetReal(PRISM_ARG_DY, theDY); }
+  void SetDZ(const TCollection_AsciiString& theDZ) { _func->SetReal(PRISM_ARG_DZ, theDZ); }
+  void SetH(const TCollection_AsciiString& theH) { _func->SetReal(PRISM_ARG_H, theH); }
+  void SetScale(const TCollection_AsciiString& theH) { _func->SetReal(PRISM_ARG_SCALE, theH); }
+  void SetDraftAngle(const TCollection_AsciiString& theAngle) { _func->SetReal(PRISM_ARG_DRAFT, theAngle); }
+
+  void SetAngle(const double& theAngle) { _func->SetReal(PRISM_ARG_ANG, theAngle); }
+  void SetAngle(const TCollection_AsciiString& theAngle) { _func->SetReal(PRISM_ARG_ANG, theAngle); }
+  double GetAngle() { return _func->GetReal(PRISM_ARG_ANG); }
 
  private:
 

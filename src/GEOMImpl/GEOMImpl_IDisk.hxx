@@ -58,6 +58,8 @@ class GEOMImpl_IDisk
   double GetOrientation() { return _func->GetReal(DISK_ARG_ORIENT); }
 
   void SetRadius(const TCollection_AsciiString& theR) { _func->SetReal(DISK_ARG_RR, theR); }
+  void SetOrientation(const TCollection_AsciiString& theO) { _func->SetReal(DISK_ARG_ORIENT, theO); }
+
  private:
 
   Handle(GEOM_Function) _func;

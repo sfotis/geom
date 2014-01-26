@@ -44,6 +44,12 @@ class GEOMImpl_ITorus
   void SetRMajor(double theR) { _func->SetReal(TORUS_ARG_RMAJ, theR); }
   void SetRMinor(double theR) { _func->SetReal(TORUS_ARG_RMIN, theR); }
 
+  Handle(GEOM_Function) GetCenter() { return _func->GetReference(TORUS_ARG_CC); }
+  Handle(GEOM_Function) GetVector() { return _func->GetReference(TORUS_ARG_VV); }
+
+  double GetRMajor() { return _func->GetReal(TORUS_ARG_RMAJ); }
+  double GetRMinor() { return _func->GetReal(TORUS_ARG_RMIN); }
+
   void SetRMajor(const TCollection_AsciiString& theR) { _func->SetReal(TORUS_ARG_RMAJ, theR); }
   void SetRMinor(const TCollection_AsciiString& theR) { _func->SetReal(TORUS_ARG_RMIN, theR); }
 
@@ -61,13 +67,6 @@ class GEOMImpl_ITorus
   void SetVCoordEnd(const double& theAngle) { _func->SetReal(TORUS_ARG_VMAX, theAngle); }
 
   double GetVCoordEnd() { return _func->GetReal(TORUS_ARG_VMAX); }
-
-
-  Handle(GEOM_Function) GetCenter() { return _func->GetReference(TORUS_ARG_CC); }
-  Handle(GEOM_Function) GetVector() { return _func->GetReference(TORUS_ARG_VV); }
-
-  double GetRMajor() { return _func->GetReal(TORUS_ARG_RMAJ); }
-  double GetRMinor() { return _func->GetReal(TORUS_ARG_RMIN); }
 
  private:
 

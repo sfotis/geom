@@ -62,23 +62,19 @@ class GEOMImpl_ITranslate
   Handle(GEOM_Function) GetOriginal() { return _func->GetReference(TRANSLATE_ARG_ORIGINAL); }
 
   void SetStep1(double theStep) { return _func->SetReal(TRANSLATE_ARG_STEP1, theStep); }
-  void SetStep1(const TCollection_AsciiString& theStep) { return _func->SetReal(TRANSLATE_ARG_STEP1, theStep); }
-
+  
   double GetStep1() { return _func->GetReal(TRANSLATE_ARG_STEP1); }
 
   void SetNbIter1(int theNbIter) { _func->SetInteger(TRANSLATE_ARG_NBITER1, theNbIter); }
-  void SetNbIter1(const TCollection_AsciiString& theNbIter) { _func->SetInteger(TRANSLATE_ARG_NBITER1, theNbIter); }
-
+  
   int GetNbIter1() { return _func->GetInteger(TRANSLATE_ARG_NBITER1); } 
 
   void SetStep2(double theStep) { return _func->SetReal(TRANSLATE_ARG_STEP2, theStep); }
-  void SetStep2(const TCollection_AsciiString& theStep) { return _func->SetReal(TRANSLATE_ARG_STEP2, theStep); }
-
+  
   double GetStep2() { return _func->GetReal(TRANSLATE_ARG_STEP2); }
 
   void SetNbIter2(int theNbIter) { _func->SetInteger(TRANSLATE_ARG_NBITER2, theNbIter); }
-  void SetNbIter2(const TCollection_AsciiString& theNbIter) { _func->SetInteger(TRANSLATE_ARG_NBITER2, theNbIter); }
-
+  
   int GetNbIter2() { return _func->GetInteger(TRANSLATE_ARG_NBITER2); } 
 
   void SetVector2(Handle(GEOM_Function) theVector) { _func->SetReference(TRANSLATE_ARG_VECTOR2, theVector); }
@@ -86,24 +82,29 @@ class GEOMImpl_ITranslate
   Handle(GEOM_Function) GetVector2() { return _func->GetReference(TRANSLATE_ARG_VECTOR2); } 
 
   void SetDX(double theDX) { return _func->SetReal(TRANSLATE_ARG_DX, theDX); }
-  void SetDX(const TCollection_AsciiString& theDX) { return _func->SetReal(TRANSLATE_ARG_DX, theDX); }
-
+  
   double GetDX() { return _func->GetReal(TRANSLATE_ARG_DX); }
 
   void SetDistance(double theDistance) { return _func->SetReal(TRANSLATE_ARG_DISTANCE, theDistance); }
-  void SetDistance(const TCollection_AsciiString& theDistance) { return _func->SetReal(TRANSLATE_ARG_DISTANCE, theDistance); }
-
+  
   double GetDistance() { return _func->GetReal(TRANSLATE_ARG_DISTANCE); }
 
   void SetDY(double theDY) { return _func->SetReal(TRANSLATE_ARG_DY, theDY); }
-  void SetDY(const TCollection_AsciiString& theDY) { return _func->SetReal(TRANSLATE_ARG_DY, theDY); }
-
+  
   double GetDY() { return _func->GetReal(TRANSLATE_ARG_DY); }
 
   void SetDZ(double theDZ) { return _func->SetReal(TRANSLATE_ARG_DZ, theDZ); }
-  void SetDZ(const TCollection_AsciiString& theDZ) { return _func->SetReal(TRANSLATE_ARG_DZ, theDZ); }
-
+  
   double GetDZ() { return _func->GetReal(TRANSLATE_ARG_DZ); }
+
+  void SetStep1(const TCollection_AsciiString& theStep) { return _func->SetReal(TRANSLATE_ARG_STEP1, theStep); }
+  void SetNbIter1(const TCollection_AsciiString& theNbIter) { _func->SetInteger(TRANSLATE_ARG_NBITER1, theNbIter); }
+  void SetStep2(const TCollection_AsciiString& theStep) { return _func->SetReal(TRANSLATE_ARG_STEP2, theStep); }
+  void SetNbIter2(const TCollection_AsciiString& theNbIter) { _func->SetInteger(TRANSLATE_ARG_NBITER2, theNbIter); }
+  void SetDX(const TCollection_AsciiString& theDX) { return _func->SetReal(TRANSLATE_ARG_DX, theDX); }
+  void SetDistance(const TCollection_AsciiString& theDistance) { return _func->SetReal(TRANSLATE_ARG_DISTANCE, theDistance); }
+  void SetDY(const TCollection_AsciiString& theDY) { return _func->SetReal(TRANSLATE_ARG_DY, theDY); }
+  void SetDZ(const TCollection_AsciiString& theDZ) { return _func->SetReal(TRANSLATE_ARG_DZ, theDZ); }
 
   void SetRailShape(Handle(GEOM_Function) theRail) { _func->SetReference(TRANSLATE_ARG_RAIL, theRail); }
 

@@ -37,9 +37,18 @@ class GEOMImpl_IRevolution
   GEOMImpl_IRevolution(Handle(GEOM_Function) theFunction): _func(theFunction) {}
 
   void SetAngle(double theAngle) { _func->SetReal(REVOL_ARG_ANGLE, theAngle); }
-  void SetAngle(const TCollection_AsciiString& theAngle) { _func->SetReal(REVOL_ARG_ANGLE, theAngle); }
 
   double GetAngle() { return _func->GetReal(REVOL_ARG_ANGLE); }
+
+  void SetAxis(Handle(GEOM_Function) theRefAxis) { _func->SetReference(REVOL_ARG_AXIS, theRefAxis); }
+
+  Handle(GEOM_Function) GetAxis() { return _func->GetReference(REVOL_ARG_AXIS); }
+
+  void SetBase(Handle(GEOM_Function) theRefBase) { _func->SetReference(REVOL_ARG_BASE, theRefBase); }
+
+  Handle(GEOM_Function) GetBase() { return _func->GetReference(REVOL_ARG_BASE); }
+
+  void SetAngle(const TCollection_AsciiString& theAngle) { _func->SetReal(REVOL_ARG_ANGLE, theAngle); }
 
   void SetConeAngle(double theAngle) { _func->SetReal(REVOL_ARG_CONEANGLE, theAngle); }
   void SetConeAngle(const TCollection_AsciiString& theAngle) { _func->SetReal(REVOL_ARG_CONEANGLE, theAngle); }
@@ -50,14 +59,6 @@ class GEOMImpl_IRevolution
   void SetOffset(const TCollection_AsciiString& theOffset) { _func->SetReal(REVOL_ARG_OFFSET, theOffset); }
 
   double GetOffset() { return _func->GetReal(REVOL_ARG_OFFSET); }
-
-  void SetAxis(Handle(GEOM_Function) theRefAxis) { _func->SetReference(REVOL_ARG_AXIS, theRefAxis); }
-
-  Handle(GEOM_Function) GetAxis() { return _func->GetReference(REVOL_ARG_AXIS); }
-
-  void SetBase(Handle(GEOM_Function) theRefBase) { _func->SetReference(REVOL_ARG_BASE, theRefBase); }
-
-  Handle(GEOM_Function) GetBase() { return _func->GetReference(REVOL_ARG_BASE); }
 
  private:
 

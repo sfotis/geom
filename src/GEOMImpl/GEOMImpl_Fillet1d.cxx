@@ -1,4 +1,4 @@
-//  Copyright (C) 2007-2010  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -19,7 +19,7 @@
 
 //  File   : GEOMImpl_Fillet1d.cxx
 //  Module : GEOMImpl
-//
+
 #include "GEOMImpl_Fillet1d.hxx"
 
 #include <BRep_Tool.hxx>

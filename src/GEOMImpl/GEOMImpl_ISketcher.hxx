@@ -42,15 +42,15 @@ class GEOMImpl_ISketcher
   void SetWorkingPlane(int theInd, double theValue)
 			  { _func->SetReal(SKETCH_ARG_DOUBLE + theInd, theValue); }
 
-  void SetWorkingPlane(int theInd, const TCollection_AsciiString& theValue)
-			  { _func->SetReal(SKETCH_ARG_DOUBLE + theInd, theValue); }
-
   double GetWorkingPlane(int theInd) { return _func->GetReal(SKETCH_ARG_DOUBLE + theInd); }
 
   void SetWorkingPlane(Handle(GEOM_Function) thePlane)
               { _func->SetReference(SKETCH_ARG_WPLANE, thePlane); }
 
   Handle(GEOM_Function) GetWorkingPlane() { return _func->GetReference(SKETCH_ARG_WPLANE); }
+
+  void SetWorkingPlane(int theInd, const TCollection_AsciiString& theValue)
+			  { _func->SetReal(SKETCH_ARG_DOUBLE + theInd, theValue); }
 
  private:
 

@@ -163,6 +163,7 @@ Standard_Integer GEOMImpl_ThruSectionsDriver::Execute(TFunction_Logbook& log) co
 	}
   }
 
+
   aFunction->SetValue(aShape);
 
   log.SetTouched(Label());

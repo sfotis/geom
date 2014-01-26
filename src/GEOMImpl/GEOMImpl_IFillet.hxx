@@ -65,8 +65,6 @@ class GEOMImpl_IFillet
   void SetR1(const TCollection_AsciiString& theR1) { _func->SetReal(FILLET_ARG_R1, theR1); }
   void SetR2(const TCollection_AsciiString& theR2) { _func->SetReal(FILLET_ARG_R2, theR2); }
 
-  void SetLength(const TCollection_AsciiString& theLen) { _func->SetInteger(FILLET_ARG_LENG, theLen); }
-
   void SetVertex(int theInd, int theVertex)
 			  { _func->SetInteger(FILLET_ARG_LAST + theInd, theVertex); }
   int GetVertex(int theInd) { return _func->GetInteger(FILLET_ARG_LAST + theInd); }

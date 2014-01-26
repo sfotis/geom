@@ -158,7 +158,7 @@ Standard_Integer GEOMImpl_FaceDriver::Execute(TFunction_Logbook& log) const
 	  points.SetValue( 2, 2, aP3 );
 	
 	  Handle_Geom_BezierSurface bez = new Geom_BezierSurface(points);
-	  aShape = BRepBuilderaFI_MakeFace(bez, Precision::Confusion()).Shape();
+	  aShape = BRepBuilderAPI_MakeFace(bez, Precision::Confusion()).Shape();
 	}
   }
   else if (aType == FACE_OBJ_H_W) {

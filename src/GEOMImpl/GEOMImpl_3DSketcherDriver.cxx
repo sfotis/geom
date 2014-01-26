@@ -26,6 +26,7 @@
 
 #include <GEOMImpl_IMeasureOperations.hxx>
 
+
 // OCCT Includes
 #include <BRepBuilderAPI_MakePolygon.hxx>
 #include <BRepBuilderAPI_MakeVertex.hxx>
@@ -39,6 +40,7 @@
 #include <Standard_ConstructionError.hxx>
 
 #include <utilities.h>
+
 //=======================================================================
 //function : GetID
 //purpose  :

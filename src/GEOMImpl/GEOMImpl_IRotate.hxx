@@ -59,8 +59,7 @@ class GEOMImpl_IRotate
   Handle(GEOM_Function) GetPoint2() { return _func->GetReference(ROTATE_POINT2); }
   
   void SetAngle(Standard_Real theAngle) { _func->SetReal(ROTATE_ANGLE, theAngle); }
-  void SetAngle(const TCollection_AsciiString& theAngle) { _func->SetReal(ROTATE_ANGLE, theAngle); }
-  
+
   Standard_Real GetAngle() { return _func->GetReal(ROTATE_ANGLE); }
   
   void SetAxis(Handle(GEOM_Function) theVector) { _func->SetReference(ROTATE_AXIS, theVector); }
@@ -72,25 +71,17 @@ class GEOMImpl_IRotate
   Handle(GEOM_Function) GetOriginal() { return _func->GetReference(ROTATE_ORGN); }
 
   void SetStep(double theStep) { _func->SetReal(ROTATE_STEP1, theStep); }
-  void SetStep(const TCollection_AsciiString& theStep) { return _func->SetReal(ROTATE_STEP1, theStep); }
-
+  
   double GetStep() { return _func->GetReal(ROTATE_STEP1); }
 
   void SetNbIter1(int theNbIter) { _func->SetInteger(ROTATE_NBITER1, theNbIter); }
-  void SetNbIter1(const TCollection_AsciiString& theNbIter) { _func->SetInteger(ROTATE_NBITER1, theNbIter); }
-
+  
   int GetNbIter1() { return _func->GetInteger(ROTATE_NBITER1); } 
 
   void SetNbIter2(int theNbIter) { _func->SetInteger(ROTATE_NBITER2, theNbIter); }
-  void SetNbIter2(const TCollection_AsciiString& theNbIter) { _func->SetInteger(ROTATE_NBITER2, theNbIter); }
-
+  
   int GetNbIter2() { return _func->GetInteger(ROTATE_NBITER2); }
 
-  void SetElevationStep(double theElevationStep) { _func->SetReal(ROTATE_ELEVATIONSTEP, theElevationStep); }
-  void SetElevationStep(const TCollection_AsciiString& theElevationStep) { _func->SetReal(ROTATE_ELEVATIONSTEP, theElevationStep); }
-
-  double GetElevationStep() { return _func->GetReal(ROTATE_ELEVATIONSTEP); }
-  
   void SetDir2 (gp_XYZ theDir2)
   {
     _func->SetReal(ROTATE_DIR2_X, theDir2.X());
@@ -106,6 +97,15 @@ class GEOMImpl_IRotate
     aRes.SetZ(_func->GetReal(ROTATE_DIR2_Z));
     return aRes;
   }
+
+  void SetAngle(const TCollection_AsciiString& theAngle) { _func->SetReal(ROTATE_ANGLE, theAngle); }
+  void SetStep(const TCollection_AsciiString& theStep) { return _func->SetReal(ROTATE_STEP1, theStep); }
+  void SetNbIter1(const TCollection_AsciiString& theNbIter) { _func->SetInteger(ROTATE_NBITER1, theNbIter); }
+  void SetNbIter2(const TCollection_AsciiString& theNbIter) { _func->SetInteger(ROTATE_NBITER2, theNbIter); }
+  void SetElevationStep(double theElevationStep) { _func->SetReal(ROTATE_ELEVATIONSTEP, theElevationStep); }
+  void SetElevationStep(const TCollection_AsciiString& theElevationStep) { _func->SetReal(ROTATE_ELEVATIONSTEP, theElevationStep); }
+
+  double GetElevationStep() { return _func->GetReal(ROTATE_ELEVATIONSTEP); }
 
  private:
   

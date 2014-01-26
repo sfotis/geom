@@ -52,12 +52,10 @@ class GEOMImpl_IPlane
   GEOMImpl_IPlane(Handle(GEOM_Function) theFunction): _func(theFunction) {}
 
   void SetSize(double theSize) { _func->SetReal(PLN_ARG_SIZE, theSize); }
-  void SetSize(const TCollection_AsciiString& theSize) { _func->SetReal(PLN_ARG_SIZE, theSize); }
 
   double GetSize() { return _func->GetReal(PLN_ARG_SIZE); }
   
   void SetOrientation(double theOrientation) { _func->SetReal(PLN_ARG_ORIENT, theOrientation); }
-  void SetOrientation(const TCollection_AsciiString& theOrientation) { _func->SetReal(PLN_ARG_ORIENT, theOrientation); }
   
   double GetOrientation() { return _func->GetReal(PLN_ARG_ORIENT); }
 
@@ -86,14 +84,16 @@ class GEOMImpl_IPlane
   Handle(GEOM_Function) GetPoint3() { return _func->GetReference(PLN_ARG_PNT3); }
   
   void SetParameterU(double theParamU) { _func->SetReal(PLN_ARG_PARAM_U, theParamU); }
-  void SetParameterU(const TCollection_AsciiString& theParamU) { _func->SetReal(PLN_ARG_PARAM_U, theParamU); }
-
   double GetParameterU() { return _func->GetReal(PLN_ARG_PARAM_U); }
 
   void SetParameterV(double theParamV) { _func->SetReal(PLN_ARG_PARAM_V, theParamV); }
-  void SetParameterV(const TCollection_AsciiString& theParamV) { _func->SetReal(PLN_ARG_PARAM_V, theParamV); }
-
   double GetParameterV() { return _func->GetReal(PLN_ARG_PARAM_V); }
+
+  void SetSize(const TCollection_AsciiString& theSize) { _func->SetReal(PLN_ARG_SIZE, theSize); }
+  void SetOrientation(const TCollection_AsciiString& theOrientation) { _func->SetReal(PLN_ARG_ORIENT, theOrientation); }
+
+  void SetParameterU(const TCollection_AsciiString& theParamU) { _func->SetReal(PLN_ARG_PARAM_U, theParamU); }
+  void SetParameterV(const TCollection_AsciiString& theParamV) { _func->SetReal(PLN_ARG_PARAM_V, theParamV); }
 
  private:
 

@@ -45,10 +45,6 @@ class GEOMImpl_IVector
   void SetDY(double theDY) { _func->SetReal(VEC_ARG_DY, theDY); }
   void SetDZ(double theDZ) { _func->SetReal(VEC_ARG_DZ, theDZ); }
 
-  void SetDX(const TCollection_AsciiString& theDX) { _func->SetReal(VEC_ARG_DX, theDX); }
-  void SetDY(const TCollection_AsciiString& theDY) { _func->SetReal(VEC_ARG_DY, theDY); }
-  void SetDZ(const TCollection_AsciiString& theDZ) { _func->SetReal(VEC_ARG_DZ, theDZ); }
-
   double GetDX() { return _func->GetReal(VEC_ARG_DX); }
   double GetDY() { return _func->GetReal(VEC_ARG_DY); }
   double GetDZ() { return _func->GetReal(VEC_ARG_DZ); }
@@ -63,11 +59,16 @@ class GEOMImpl_IVector
 
   Handle(GEOM_Function) GetCurve() { return _func->GetReference(VEC_ARG_CURVE); }
 
-void SetParameter(double theParam) { _func->SetReal(VEC_ARG_PARAM, theParam); }
-  void SetParameter(const TCollection_AsciiString& theParam) { _func->SetReal(VEC_ARG_PARAM, theParam); }
+  void SetParameter(double theParam) { _func->SetReal(VEC_ARG_PARAM, theParam); }
 
   double GetParameter() { return _func->GetReal(VEC_ARG_PARAM); }
 
+  void SetDX(const TCollection_AsciiString& theDX) { _func->SetReal(VEC_ARG_DX, theDX); }
+  void SetDY(const TCollection_AsciiString& theDY) { _func->SetReal(VEC_ARG_DY, theDY); }
+  void SetDZ(const TCollection_AsciiString& theDZ) { _func->SetReal(VEC_ARG_DZ, theDZ); }
+
+  void SetParameter(const TCollection_AsciiString& theParam) { _func->SetReal(VEC_ARG_PARAM, theParam); }
+ 
  private:
 
   Handle(GEOM_Function) _func;

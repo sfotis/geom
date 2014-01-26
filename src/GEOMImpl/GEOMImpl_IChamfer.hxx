@@ -69,11 +69,6 @@ class GEOMImpl_IChamfer
   int GetFace2() { return _func->GetInteger(CHAM_ARG_LAST + 2); }
   int GetEdge(int theInd) { return _func->GetInteger(CHAM_ARG_LAST + theInd); }
 
-  void SetD (const TCollection_AsciiString& theD) { _func->SetReal(CHAM_ARG_D1, theD); }
-  void SetD1(const TCollection_AsciiString& theD) { _func->SetReal(CHAM_ARG_D1, theD); }
-  void SetD2(const TCollection_AsciiString& theD) { _func->SetReal(CHAM_ARG_D2, theD); }
-  void SetAngle(const TCollection_AsciiString& theAngle) { _func->SetReal(CHAM_ARG_ANGLE, theAngle); }
-
   //Since we only use Face OR edge then it is OK to keep "CHAM_ARG_LAST + 1 or 2"
   void Set2DEdge1(int theInd)
 			  { _func->SetInteger(CHAM_ARG_LAST + 1, theInd); }
@@ -83,6 +78,11 @@ class GEOMImpl_IChamfer
   //Since we only use Face OR edge then it is OK to keep "CHAM_ARG_LAST + 1 or 2"
   int Get2DEdge1() { return _func->GetInteger(CHAM_ARG_LAST + 1); }
   int Get2DEdge2() { return _func->GetInteger(CHAM_ARG_LAST + 2); }
+
+  void SetD (const TCollection_AsciiString& theD) { _func->SetReal(CHAM_ARG_D1, theD); }
+  void SetD1(const TCollection_AsciiString& theD) { _func->SetReal(CHAM_ARG_D1, theD); }
+  void SetD2(const TCollection_AsciiString& theD) { _func->SetReal(CHAM_ARG_D2, theD); }
+  void SetAngle(const TCollection_AsciiString& theAngle) { _func->SetReal(CHAM_ARG_ANGLE, theAngle); }
 
  private:
 

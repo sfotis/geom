@@ -39,9 +39,10 @@ class GEOMImpl_IOffset
   Handle(GEOM_Function) GetShape() { return _func->GetReference(OFF_ARG_SHAPE); }
 
   void SetValue(double theValue) { _func->SetReal(OFF_ARG_VALUE, theValue); }
-  void SetValue(const TCollection_AsciiString& theValue) { _func->SetReal(OFF_ARG_VALUE, theValue); }
 
   double GetValue() { return _func->GetReal(OFF_ARG_VALUE); }
+
+  void SetValue(const TCollection_AsciiString& theValue) { _func->SetReal(OFF_ARG_VALUE, theValue); }
 
   void SetAltValue(double theValue) { _func->SetReal(OFF_ARG_ALT_VALUE, theValue); }
   void SetAltValue(const TCollection_AsciiString& theValue) { _func->SetReal(OFF_ARG_ALT_VALUE, theValue); }

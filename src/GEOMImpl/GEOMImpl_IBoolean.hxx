@@ -50,9 +50,6 @@ class GEOMImpl_IBoolean
   Standard_Boolean GetCheckSelfIntersection()
   { return (_func->GetInteger(BOOL_ARG_CHECK_SELF_INTERSECTION) != 0); }
 
-  { _func->SetInteger(BOOL_ARG_CHECK_SELF_INTERSECTION, theFlag ? 1 : 0); }
-  void SetCheckSelfIntersection (const TCollection_AsciiString& theFlag)
-
  private:
 
   Handle(GEOM_Function) _func;

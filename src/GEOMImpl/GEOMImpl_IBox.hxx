@@ -59,6 +59,7 @@ class GEOMImpl_IBox
   void SetDX(const TCollection_AsciiString& theX) { _func->SetReal(BOX_ARG_DX, theX); }
   void SetDY(const TCollection_AsciiString& theY) { _func->SetReal(BOX_ARG_DY, theY); }
   void SetDZ(const TCollection_AsciiString& theZ) { _func->SetReal(BOX_ARG_DZ, theZ); }
+
  private:
 
   Handle(GEOM_Function) _func;

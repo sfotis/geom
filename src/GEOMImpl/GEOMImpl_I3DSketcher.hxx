@@ -39,6 +39,9 @@ class GEOMImpl_I3DSketcher
 
   TCollection_AsciiString GetCommand() { return _func->GetString(SKETCH_ARG_COMMAND); }
 
+  void SetCoordinates (const Handle(TColStd_HArray1OfAsciiString)& theValue)
+              { _func->SetRealArray(SKETCH_ARG_COORDS, theValue); }
+
  private:
 
   enum {

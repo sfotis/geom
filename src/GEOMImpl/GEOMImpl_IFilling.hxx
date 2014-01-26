@@ -64,4 +64,3 @@ class GEOMImpl_IFilling
 
   Handle(GEOM_Function) _func;
 };
-

@@ -42,7 +42,6 @@ class GEOMImpl_IScale
   Handle(GEOM_Function) GetShape() { return _func->GetReference(SCALE_ARG_SHAPE); }
 
   void SetFactor(double theValue) { _func->SetReal(SCALE_ARG_VALUE, theValue); }
-  void SetFactor(const TCollection_AsciiString& theValue) { _func->SetReal(SCALE_ARG_VALUE, theValue); }
 
   double GetFactor() { return _func->GetReal(SCALE_ARG_VALUE); }
 
@@ -50,21 +49,22 @@ class GEOMImpl_IScale
 
   Handle(GEOM_Function) GetPoint() { return _func->GetReference(SCALE_ARG_POINT); }
 
-  void SetVector(Handle(GEOM_Function) theVector) { _func->SetReference(SCALE_ARG_VECTOR, theVector); }
-
-  Handle(GEOM_Function) GetVector() { return _func->GetReference(SCALE_ARG_VECTOR); }
-
   void SetFactorX(double theValue) { _func->SetReal(SCALE_ARG_VALUE  , theValue); }
-  void SetFactorX(const TCollection_AsciiString& theValue) { _func->SetReal(SCALE_ARG_VALUE  , theValue); }
   void SetFactorY(double theValue) { _func->SetReal(SCALE_ARG_VALUE_Y, theValue); }
-  void SetFactorY(const TCollection_AsciiString& theValue) { _func->SetReal(SCALE_ARG_VALUE_Y, theValue); }
   void SetFactorZ(double theValue) { _func->SetReal(SCALE_ARG_VALUE_Z, theValue); }
-  void SetFactorZ(const TCollection_AsciiString& theValue) { _func->SetReal(SCALE_ARG_VALUE_Z, theValue); }
 
   double GetFactorX() { return _func->GetReal(SCALE_ARG_VALUE  ); }
   double GetFactorY() { return _func->GetReal(SCALE_ARG_VALUE_Y); }
   double GetFactorZ() { return _func->GetReal(SCALE_ARG_VALUE_Z); }
 
+  void SetVector(Handle(GEOM_Function) theVector) { _func->SetReference(SCALE_ARG_VECTOR, theVector); }
+
+  Handle(GEOM_Function) GetVector() { return _func->GetReference(SCALE_ARG_VECTOR); }
+
+  void SetFactor(const TCollection_AsciiString& theValue) { _func->SetReal(SCALE_ARG_VALUE, theValue); }
+  void SetFactorX(const TCollection_AsciiString& theValue) { _func->SetReal(SCALE_ARG_VALUE  , theValue); }
+  void SetFactorY(const TCollection_AsciiString& theValue) { _func->SetReal(SCALE_ARG_VALUE_Y, theValue); }
+  void SetFactorZ(const TCollection_AsciiString& theValue) { _func->SetReal(SCALE_ARG_VALUE_Z, theValue); }
 
  private:
 

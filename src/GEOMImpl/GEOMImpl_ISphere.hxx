@@ -37,9 +37,14 @@ class GEOMImpl_ISphere
   GEOMImpl_ISphere(Handle(GEOM_Function) theFunction): _func(theFunction) {}
 
   void SetR(double theR) { _func->SetReal(SPH_ARG_R, theR); }
-  void SetR(const TCollection_AsciiString& theR) { _func->SetReal(SPH_ARG_R, theR); }
 
   double GetR() { return _func->GetReal(SPH_ARG_R); }
+
+  void SetPoint(Handle(GEOM_Function) theRefPoint) { _func->SetReference(SPH_ARG_PNT, theRefPoint); }
+
+  Handle(GEOM_Function) GetPoint() { return _func->GetReference(SPH_ARG_PNT); }
+
+  void SetR(const TCollection_AsciiString& theR) { _func->SetReal(SPH_ARG_R, theR); }
 
   void SetAngle(const TCollection_AsciiString& theAngle) { _func->SetReal(SPH_ARG_ANG, theAngle); }
   void SetAngle(const double& theAngle) { _func->SetReal(SPH_ARG_ANG, theAngle); }
@@ -55,10 +60,6 @@ class GEOMImpl_ISphere
   void SetVCoordEnd(const double& theAngle) { _func->SetReal(SPH_ARG_VMAX, theAngle); }
 
   double GetVCoordEnd() { return _func->GetReal(SPH_ARG_VMAX); }
-
-  void SetPoint(Handle(GEOM_Function) theRefPoint) { _func->SetReference(SPH_ARG_PNT, theRefPoint); }
-
-  Handle(GEOM_Function) GetPoint() { return _func->GetReference(SPH_ARG_PNT); }
 
  private:
 

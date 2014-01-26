@@ -312,6 +312,7 @@ Standard_Integer GEOMImpl_ShapeDriver::Execute(TFunction_Logbook& log) const
     aSewing.Perform();
 
     TopoDS_Shape sh = aSewing.SewedShape();
+
     if( sh.ShapeType()==TopAbs_FACE && nbshapes==1 ) {
       // case for creation of shell from one face - PAL12722 (skl 26.06.2006)
       TopoDS_Shell ss;
@@ -1097,6 +1098,7 @@ TopoDS_Shape GEOMImpl_ShapeDriver::MakeIsoline
 
   return aResult;
 }
+
 //================================================================================
 /*!
  * \brief Returns a name of creation operation and names and values of creation parameters

@@ -25,10 +25,9 @@
 #include "GEOM_Function.hxx"
 #include <TColStd_HArray1OfReal.hxx>
 
-#define POLY_ARG_LENG       1
-
-#define POLY_ARG_CLOS       2
+#define POLY_ARG_LENG 1
 #define POLY_ARG_LAST 1
+#define POLY_ARG_CLOS 2
 
 #define POLY_CONSTRUCTOR 3
 #define POLY_ARG_ARRAY 4
@@ -61,7 +60,8 @@ class GEOMImpl_IPolyline
 
   Handle(TColStd_HArray1OfReal) GetCoordinates() { return _func->GetRealArray(POLY_ARG_ARRAY); }
 
-  
+  void SetCoordinates(const Handle(TColStd_HArray1OfAsciiString)& theValue)
+              { _func->SetRealArray(POLY_ARG_ARRAY, theValue); }
 
  private:
 

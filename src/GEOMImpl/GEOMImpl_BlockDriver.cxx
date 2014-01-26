@@ -437,7 +437,6 @@ Standard_Integer GEOMImpl_BlockDriver::Execute(TFunction_Logbook& log) const
       BRepTools_Quilt Glue;
 
       if (aType == BLOCK_SIX_FACES) {
-
         // Make block (hexahedral solid) from six faces
         for (Standard_Integer ind = 1; ind <= nbshapes; ind++) {
           if (anArgs(ind).ShapeType() != TopAbs_FACE) {

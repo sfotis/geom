@@ -48,10 +48,6 @@ class GEOMImpl_IPoint
 
   GEOMImpl_IPoint(Handle(GEOM_Function) theFunction): _func(theFunction) {}
 
-  void SetX(const TCollection_AsciiString& theX) { _func->SetReal(ARG_X, theX); }
-  void SetY(const TCollection_AsciiString& theY) { _func->SetReal(ARG_Y, theY); }
-  void SetZ(const TCollection_AsciiString& theZ) { _func->SetReal(ARG_Z, theZ); }
-  
   void SetX(double theX) { _func->SetReal(ARG_X, theX); }
   void SetY(double theY) { _func->SetReal(ARG_Y, theY); }
   void SetZ(double theZ) { _func->SetReal(ARG_Z, theZ); }
@@ -75,11 +71,8 @@ class GEOMImpl_IPoint
   Handle(GEOM_Function) GetLine2() { return _func->GetReference(ARG_LINE2); }
 
   void SetParameter(double theParam) { _func->SetReal(ARG_PARAM, theParam); }
-  void SetParameter(const TCollection_AsciiString& theParam) { _func->SetReal(ARG_PARAM, theParam); }
   void SetParameter2(double theParam) { _func->SetReal(ARG_PARAM2, theParam); }
-  void SetParameter2(const TCollection_AsciiString& theParam) { _func->SetReal(ARG_PARAM2, theParam); }
   void SetLength(double theLength) { _func->SetReal(ARG_LENGTH, theLength); }
-  void SetLength(const TCollection_AsciiString& theLength) { _func->SetReal(ARG_LENGTH, theLength); }
   //void SetReversed(bool theReversed)  { _func->SetInteger(ARG_FLAG, theReversed); }
 
   double GetParameter() { return _func->GetReal(ARG_PARAM); }
@@ -87,6 +80,14 @@ class GEOMImpl_IPoint
   double GetLength() { return _func->GetReal(ARG_LENGTH); }
   //bool   GetReversed() { return _func->GetInteger(ARG_FLAG); }
   
+  void SetX(const TCollection_AsciiString& theX) { _func->SetReal(ARG_X, theX); }
+  void SetY(const TCollection_AsciiString& theY) { _func->SetReal(ARG_Y, theY); }
+  void SetZ(const TCollection_AsciiString& theZ) { _func->SetReal(ARG_Z, theZ); }
+  
+  void SetParameter(const TCollection_AsciiString& theParam) { _func->SetReal(ARG_PARAM, theParam); }
+  void SetLength(const TCollection_AsciiString& theLength) { _func->SetReal(ARG_LENGTH, theLength); }
+  void SetParameter2(const TCollection_AsciiString& theParam) { _func->SetReal(ARG_PARAM2, theParam); }
+
  private:
 
   Handle(GEOM_Function) _func;

@@ -56,10 +56,13 @@ class GEOMImpl_IEllipse
 
   void SetRMajor(const TCollection_AsciiString& theR) { _func->SetReal(ELLIPS_ARG_RMAJ, theR); }
   void SetRMinor(const TCollection_AsciiString& theR) { _func->SetReal(ELLIPS_ARG_RMIN, theR); }
+
   void SetPMajor(Handle(GEOM_Function) theP) { _func->SetReference(ELLIPS_ARG_PMAJ, theP); }
   void SetPMinor(Handle(GEOM_Function) theP) { _func->SetReference(ELLIPS_ARG_PMIN, theP); }
+
   Handle(GEOM_Function) GetPMajor() { return _func->GetReference(ELLIPS_ARG_PMAJ); }
   Handle(GEOM_Function) GetPMinor() { return _func->GetReference(ELLIPS_ARG_PMIN); }
+
  private:
 
   Handle(GEOM_Function) _func;

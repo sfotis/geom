@@ -63,9 +63,6 @@ class GEOMImpl_IBlockTrsf
   
   int GetOptimumNbFaces() { return _func->GetInteger(TRSF_NB_FACES); }
 
-  void SetNbIterU (const TCollection_AsciiString& theNbIter) { _func->SetInteger(TRSF_NBITER_U, theNbIter); }
-  void SetNbIterV (const TCollection_AsciiString& theNbIter) { _func->SetInteger(TRSF_NBITER_V, theNbIter); }
-
  private:
 
   Handle(GEOM_Function) _func;
