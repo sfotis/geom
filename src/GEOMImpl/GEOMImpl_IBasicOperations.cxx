@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,17 +19,18 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#include "utilities.h"
-
-#include <Standard_Stream.hxx>
-
-#include <GEOMImpl_IBasicOperations.hxx>
 
 #define SETPARAM(aFUNC,aVAL)  \
   if (aVAL.IsString())         \
 	aFUNC( aVAL.GetString() ); \
   else                         \
 	aFUNC( aVAL.GetDouble() );
+
+#include <Standard_Stream.hxx>
+
+#include <GEOMImpl_IBasicOperations.hxx>
+
+#include "utilities.h"
 
 #include <TFunction_DriverTable.hxx>
 #include <TFunction_Driver.hxx>
@@ -211,6 +214,7 @@ Handle(GEOM_Object) GEOMImpl_IBasicOperations::makePointOnGeom
     case PointOn_CurveByCoord:   fType = POINT_CURVE_COORD; break;
     case PointOn_SurfaceByParam: fType = POINT_SURFACE_PAR; break;
     case PointOn_SurfaceByCoord: fType = POINT_SURFACE_COORD; break;
+    case PointOn_Face:           fType = POINT_FACE_ANY; break;
     default: break;
     }
   Handle(GEOM_Function) aFunction = aPoint->AddFunction(GEOMImpl_PointDriver::GetID(), fType);
@@ -253,6 +257,10 @@ Handle(GEOM_Object) GEOMImpl_IBasicOperations::makePointOnGeom
       SETPARAM(aPI.SetX, theParam1);
       SETPARAM(aPI.SetY, theParam2);
       SETPARAM(aPI.SetZ, theParam3);
+      break;
+    case PointOn_Face:
+      aPI.SetSurface(aRefFunction);
+      break;
     default: break;
     }
   
@@ -297,6 +305,11 @@ Handle(GEOM_Object) GEOMImpl_IBasicOperations::makePointOnGeom
   GEOM::TPythonDump(aFunction) << aPoint << " = MakeVertexOnSurfaceByCoord("
                                << theGeomObj << ", " << theParam1 
                                << ", " << theParam2 << ", " << theParam3 << ")";
+      break;
+    case PointOn_Face:
+      GEOM::TPythonDump(aFunction) << aPoint << " = MakeVertexInsideFace("
+                                   << theGeomObj << ")";
+      break;
     default: break;
     }
 
@@ -348,7 +361,9 @@ Handle(GEOM_Object) GEOMImpl_IBasicOperations::MakePointOnCurveByLength
  */
 //=============================================================================
 Handle(GEOM_Object) GEOMImpl_IBasicOperations::MakePointOnSurface
-   (Handle(GEOM_Object) theSurface, const GEOM_Parameter& theUParameter, const GEOM_Parameter& theVParameter)
+                    (Handle(GEOM_Object) theSurface,
+                     const GEOM_Parameter& theUParameter,
+                     const GEOM_Parameter& theVParameter)
 {
   return makePointOnGeom(theSurface, theUParameter, theVParameter, 0., PointOn_SurfaceByParam);
 }
@@ -365,6 +380,16 @@ Handle(GEOM_Object) GEOMImpl_IBasicOperations::MakePointOnSurfaceByCoord
                      const GEOM_Parameter& theZParam)
 {
   return makePointOnGeom(theSurface, theXParam, theYParam, theZParam, PointOn_SurfaceByCoord);
+}
+
+//=============================================================================
+/*!
+ *  MakePointOnFace
+ */
+//=============================================================================
+Handle(GEOM_Object) GEOMImpl_IBasicOperations::MakePointOnFace (Handle(GEOM_Object) theFace)
+{
+  return makePointOnGeom(theFace, 0., 0., 0., PointOn_Face);
 }
 
 //=============================================================================
@@ -575,64 +600,6 @@ Handle(GEOM_Object) GEOMImpl_IBasicOperations::MakeVectorTwoPnt
   //Make a Python command
   GEOM::TPythonDump(aFunction) << aVector << " = MakeVectorTwoPnt("
                                << thePnt1 << ", " << thePnt2 << ")";
-
-  SetErrorCode(GEOM_OK);
-  return aVector;
-}
-
-//=============================================================================
-/*!
- *  MakeVectorPntDXDYDZ
- */
-//=============================================================================
-Handle(GEOM_Object) GEOMImpl_IBasicOperations::MakeVectorPntDXDYDZ
-					 (Handle(GEOM_Object) thePnt, const GEOM_Parameter& theDX, const GEOM_Parameter& theDY, const GEOM_Parameter& theDZ)
-{
-  SetErrorCode(GEOM_KO);
-
-  if (thePnt.IsNull()) return NULL;
-
-  //Add a new Vector object
-  Handle(GEOM_Object) aVector = GetEngine()->AddObject(GetDocID(), GEOM_VECTOR);
-
-  //Add a new Vector function
-  Handle(GEOM_Function) aFunction =
-	aVector->AddFunction(GEOMImpl_VectorDriver::GetID(), VECTOR_PNT_DX_DY_DZ);
-
-  //Check if the function is set correctly
-  if (aFunction->GetDriverGUID() != GEOMImpl_VectorDriver::GetID()) return NULL;
-
-  GEOMImpl_IVector aPI (aFunction);
-
-  Handle(GEOM_Function) aRef = thePnt->GetLastFunction();
-
-  if (aRef.IsNull()) return NULL;
-
-  SETPARAM(aPI.SetDX,theDX);
-  SETPARAM(aPI.SetDY,theDY);
-  SETPARAM(aPI.SetDZ,theDZ);
-
-  aPI.SetPoint1(aRef);
-
-  //Compute the Vector value
-  try {
-#if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
-	OCC_CATCH_SIGNALS;
-#endif
-    if (!GetSolver()->ComputeFunction(aFunction)) {
-	  SetErrorCode("Vector driver failed");
-	  return NULL;
-    }
-  }
-  catch (Standard_Failure) {
-	Handle(Standard_Failure) aFail = Standard_Failure::Caught();
-	SetErrorCode(aFail->GetMessageString());
-	return NULL;
-  }
-
-  //Make a Python command
-  GEOM::TPythonDump(aFunction) << aVector << " = MakeVectorPntDXDYDZ("
-							   << thePnt << ", " << theDX << ", " << theDY << ", " << theDZ << ")";
 
   SetErrorCode(GEOM_OK);
   return aVector;
@@ -1004,7 +971,6 @@ Handle(GEOM_Object) GEOMImpl_IBasicOperations::MakePlane2Vec
 
   aPI.SetVector1(aRefVec1);
   aPI.SetVector2(aRefVec2);
-
   SETPARAM(aPI.SetSize,theSize);
 
   //Compute the Plane value
@@ -1146,123 +1112,6 @@ Handle(GEOM_Object) GEOMImpl_IBasicOperations::MakeMarker
   return aMarker;
 }
 
-//=============================================================================
-/*!
- *  MakeTangentPlaneOnFace
- */
-//=============================================================================
-
-Handle(GEOM_Object) GEOMImpl_IBasicOperations::MakeTangentPlaneOnFace(const Handle(GEOM_Object)& theFace,
-										  const GEOM_Parameter& theParamU,
-									  const GEOM_Parameter& theParamV,
-									  const GEOM_Parameter& theSize)
-{
-   SetErrorCode(GEOM_KO);
-
-  if (theFace.IsNull()) return NULL;
-
-  //Add a new Plane object
-  Handle(GEOM_Object) aPlane = GetEngine()->AddObject(GetDocID(), GEOM_PLANE);
-
-  //Add a new Plane function
-  Handle(GEOM_Function) aFunction =
-    aPlane->AddFunction(GEOMImpl_PlaneDriver::GetID(), PLANE_TANGENT_FACE);
-
-  //Check if the function is set correctly
-  if (aFunction->GetDriverGUID() != GEOMImpl_PlaneDriver::GetID()) return NULL;
-
-  GEOMImpl_IPlane aPI (aFunction);
-
-  Handle(GEOM_Function) aRef = theFace->GetLastFunction();
-  if (aRef.IsNull()) return NULL;
-
-  aPI.SetFace(aRef);
-  SETPARAM(aPI.SetSize,theSize);
-  SETPARAM(aPI.SetParameterU,theParamU);
-  SETPARAM(aPI.SetParameterV,theParamV);
-
-  //Compute the Plane value
-  try {
-#if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
-    OCC_CATCH_SIGNALS;
-#endif
-    if (!GetSolver()->ComputeFunction(aFunction)) {
-      SetErrorCode("Plane driver failed");
-      return NULL;
-    }
-  }
-  catch (Standard_Failure) {
-    Handle(Standard_Failure) aFail = Standard_Failure::Caught();
-    SetErrorCode(aFail->GetMessageString());
-    return NULL;
-  }
-
-  //Make a Python command
-  GEOM::TPythonDump(aFunction) << aPlane << " = MakeTangentPlaneOnFace("
-							   << theFace << ", " <<theParamU <<", "<<theParamV <<", "<< theSize << ")";
-
-  SetErrorCode(GEOM_OK);
-  return aPlane;
-}
-
-
-//=============================================================================
-/*!
- *  MakeFaceThreePnt
- */
-//=============================================================================
-Handle(GEOM_Object) GEOMImpl_IBasicOperations::MakeFaceThreePnt
-		(Handle(GEOM_Object) thePnt1, Handle(GEOM_Object) thePnt2,
-		 Handle(GEOM_Object) thePnt3)
-{
-	SetErrorCode(GEOM_KO);
-
-	if (thePnt1.IsNull() || thePnt2.IsNull() || thePnt3.IsNull()) return NULL;
-
-  //Add a new Face object
-	Handle(GEOM_Object) aFace = GetEngine()->AddObject(GetDocID(), GEOM_FACE);
-
-  //Add a new Face function
-	Handle(GEOM_Function) aFunction =
-			aFace->AddFunction(GEOMImpl_FaceDriver::GetID(), FACE_THREE_PNT);
-
-  //Check if the function is set correctly
-	if (aFunction->GetDriverGUID() != GEOMImpl_FaceDriver::GetID()) return NULL;
-
-	GEOMImpl_IFace aPI (aFunction);
-
-	Handle(GEOM_Function) aRef1 = thePnt1->GetLastFunction();
-	Handle(GEOM_Function) aRef2 = thePnt2->GetLastFunction();
-	Handle(GEOM_Function) aRef3 = thePnt3->GetLastFunction();
-	if (aRef1.IsNull() || aRef2.IsNull() || aRef3.IsNull()) return NULL;
-
-	aPI.SetPoint1(aRef1);
-	aPI.SetPoint2(aRef2);
-	aPI.SetPoint3(aRef3);
-
-  //Compute the Face value
-	try {
-#if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
-							   OCC_CATCH_SIGNALS;
-#endif
-					   if (!GetSolver()->ComputeFunction(aFunction)) {
-						   SetErrorCode("Face driver failed");
-						   return NULL;
-					   }
-	}
-	catch (Standard_Failure) {
-		Handle(Standard_Failure) aFail = Standard_Failure::Caught();
-		SetErrorCode(aFail->GetMessageString());
-		return NULL;
-	}
-
-  //Make a Python command
-	GEOM::TPythonDump(aFunction) << aFace << " = MakeFaceThreePnt("
-			<< thePnt1 << ", " << thePnt2 << ", " << thePnt3 << ")";
-
-	SetErrorCode(GEOM_OK);
-	return aFace;
-}
 
 //=============================================================================
 /*!
@@ -1373,6 +1222,183 @@ Handle(GEOM_Object) GEOMImpl_IBasicOperations::MakeMarkerPntTwoVec
   return aMarker;
 }
 
+
+
+//=============================================================================
+/*!
+ *  MakeTangentPlaneOnFace
+ */
+//=============================================================================
+
+Handle(GEOM_Object) GEOMImpl_IBasicOperations::MakeTangentPlaneOnFace(const Handle(GEOM_Object)& theFace,
+										  const GEOM_Parameter& theParamU,
+									  const GEOM_Parameter& theParamV,
+									  const GEOM_Parameter& theSize)
+{
+   SetErrorCode(GEOM_KO);
+
+  if (theFace.IsNull()) return NULL;
+
+  //Add a new Plane object
+  Handle(GEOM_Object) aPlane = GetEngine()->AddObject(GetDocID(), GEOM_PLANE);
+
+  //Add a new Plane function
+  Handle(GEOM_Function) aFunction =
+    aPlane->AddFunction(GEOMImpl_PlaneDriver::GetID(), PLANE_TANGENT_FACE);
+
+  //Check if the function is set correctly
+  if (aFunction->GetDriverGUID() != GEOMImpl_PlaneDriver::GetID()) return NULL;
+
+  GEOMImpl_IPlane aPI (aFunction);
+
+  Handle(GEOM_Function) aRef = theFace->GetLastFunction();
+  if (aRef.IsNull()) return NULL;
+
+  aPI.SetFace(aRef);
+  SETPARAM(aPI.SetSize,theSize);
+  SETPARAM(aPI.SetParameterU,theParamU);
+  SETPARAM(aPI.SetParameterV,theParamV);
+
+  //Compute the Plane value
+  try {
+#if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
+    OCC_CATCH_SIGNALS;
+#endif
+    if (!GetSolver()->ComputeFunction(aFunction)) {
+      SetErrorCode("Plane driver failed");
+      return NULL;
+    }
+  }
+  catch (Standard_Failure) {
+    Handle(Standard_Failure) aFail = Standard_Failure::Caught();
+    SetErrorCode(aFail->GetMessageString());
+    return NULL;
+  }
+
+  //Make a Python command
+  GEOM::TPythonDump(aFunction) << aPlane << " = MakeTangentPlaneOnFace("
+							   << theFace << ", " <<theParamU <<", "<<theParamV <<", "<< theSize << ")";
+
+  SetErrorCode(GEOM_OK);
+  return aPlane;
+}
+
+//=============================================================================
+/*!
+ *  MakeVectorPntDXDYDZ
+ */
+//=============================================================================
+Handle(GEOM_Object) GEOMImpl_IBasicOperations::MakeVectorPntDXDYDZ
+					 (Handle(GEOM_Object) thePnt, const GEOM_Parameter& theDX, const GEOM_Parameter& theDY, const GEOM_Parameter& theDZ)
+{
+  SetErrorCode(GEOM_KO);
+
+  if (thePnt.IsNull()) return NULL;
+
+  //Add a new Vector object
+  Handle(GEOM_Object) aVector = GetEngine()->AddObject(GetDocID(), GEOM_VECTOR);
+
+  //Add a new Vector function
+  Handle(GEOM_Function) aFunction =
+	aVector->AddFunction(GEOMImpl_VectorDriver::GetID(), VECTOR_PNT_DX_DY_DZ);
+
+  //Check if the function is set correctly
+  if (aFunction->GetDriverGUID() != GEOMImpl_VectorDriver::GetID()) return NULL;
+
+  GEOMImpl_IVector aPI (aFunction);
+
+  Handle(GEOM_Function) aRef = thePnt->GetLastFunction();
+
+  if (aRef.IsNull()) return NULL;
+
+  SETPARAM(aPI.SetDX,theDX);
+  SETPARAM(aPI.SetDY,theDY);
+  SETPARAM(aPI.SetDZ,theDZ);
+
+  aPI.SetPoint1(aRef);
+
+  //Compute the Vector value
+  try {
+#if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
+	OCC_CATCH_SIGNALS;
+#endif
+    if (!GetSolver()->ComputeFunction(aFunction)) {
+	  SetErrorCode("Vector driver failed");
+	  return NULL;
+    }
+  }
+  catch (Standard_Failure) {
+	Handle(Standard_Failure) aFail = Standard_Failure::Caught();
+	SetErrorCode(aFail->GetMessageString());
+	return NULL;
+  }
+
+  //Make a Python command
+  GEOM::TPythonDump(aFunction) << aVector << " = MakeVectorPntDXDYDZ("
+							   << thePnt << ", " << theDX << ", " << theDY << ", " << theDZ << ")";
+
+  SetErrorCode(GEOM_OK);
+  return aVector;
+}
+
+//=============================================================================
+/*!
+ *  MakeFaceThreePnt
+ */
+//=============================================================================
+Handle(GEOM_Object) GEOMImpl_IBasicOperations::MakeFaceThreePnt
+		(Handle(GEOM_Object) thePnt1, Handle(GEOM_Object) thePnt2,
+		 Handle(GEOM_Object) thePnt3)
+{
+	SetErrorCode(GEOM_KO);
+
+	if (thePnt1.IsNull() || thePnt2.IsNull() || thePnt3.IsNull()) return NULL;
+
+  //Add a new Face object
+	Handle(GEOM_Object) aFace = GetEngine()->AddObject(GetDocID(), GEOM_FACE);
+
+  //Add a new Face function
+	Handle(GEOM_Function) aFunction =
+			aFace->AddFunction(GEOMImpl_FaceDriver::GetID(), FACE_THREE_PNT);
+
+  //Check if the function is set correctly
+	if (aFunction->GetDriverGUID() != GEOMImpl_FaceDriver::GetID()) return NULL;
+
+	GEOMImpl_IFace aPI (aFunction);
+
+	Handle(GEOM_Function) aRef1 = thePnt1->GetLastFunction();
+	Handle(GEOM_Function) aRef2 = thePnt2->GetLastFunction();
+	Handle(GEOM_Function) aRef3 = thePnt3->GetLastFunction();
+	if (aRef1.IsNull() || aRef2.IsNull() || aRef3.IsNull()) return NULL;
+
+	aPI.SetPoint1(aRef1);
+	aPI.SetPoint2(aRef2);
+	aPI.SetPoint3(aRef3);
+
+  //Compute the Face value
+	try {
+#if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
+							   OCC_CATCH_SIGNALS;
+#endif
+					   if (!GetSolver()->ComputeFunction(aFunction)) {
+						   SetErrorCode("Face driver failed");
+						   return NULL;
+					   }
+	}
+	catch (Standard_Failure) {
+		Handle(Standard_Failure) aFail = Standard_Failure::Caught();
+		SetErrorCode(aFail->GetMessageString());
+		return NULL;
+	}
+
+  //Make a Python command
+	GEOM::TPythonDump(aFunction) << aFace << " = MakeFaceThreePnt("
+			<< thePnt1 << ", " << thePnt2 << ", " << thePnt3 << ")";
+
+	SetErrorCode(GEOM_OK);
+	return aFace;
+}
+
 //=============================================================================
 /*!
  *  MakeFaceFourPnt
@@ -1432,4 +1458,3 @@ Handle(GEOM_Object) GEOMImpl_IBasicOperations::MakeFaceFourPnt
 	SetErrorCode(GEOM_OK);
 	return aFace;
 }
-

@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,9 +19,14 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#include "utilities.h"
 
-#ifdef WNT
+#define SETPARAM(aFUNC,aVAL)  \
+  if (aVAL.IsString())         \
+	aFUNC( aVAL.GetString() ); \
+  else                         \
+	aFUNC( aVAL.GetDouble() );
+
+#ifdef MSVC
 #pragma warning( disable:4786 )
 #endif
 
@@ -35,6 +42,7 @@
 #include <GEOMImpl_CopyDriver.hxx>
 #include <GEOMImpl_Block6Explorer.hxx>
 #include <GEOMImpl_IShapesOperations.hxx>
+#include <GEOMUtils.hxx>
 
 #include <GEOM_Function.hxx>
 #include <GEOM_PythonDump.hxx>
@@ -45,11 +53,8 @@
 #include <GEOMAlgo_ListIteratorOfListOfCoupleOfShapes.hxx>
 #include <BlockFix_CheckTool.hxx>
 
-#define SETPARAM(aFUNC,aVAL)  \
-  if (aVAL.IsString())         \
-	aFUNC( aVAL.GetString() ); \
-  else                         \
-	aFUNC( aVAL.GetDouble() );
+
+#include "utilities.h"
 
 #include <TFunction_DriverTable.hxx>
 #include <TFunction_Driver.hxx>
@@ -793,72 +798,15 @@ Handle(GEOM_Object) GEOMImpl_IBlocksOperations::GetEdgeNearPoint
 #if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
     OCC_CATCH_SIGNALS;
 #endif
-    TopoDS_Shape aShape;
-
     TopoDS_Vertex aVert = TopoDS::Vertex(anArg);
+    TopoDS_Shape aShape = GEOMUtils::GetEdgeNearPoint(aBlockOrComp, aVert);
 
-    // 1. Explode blocks on edges
-    TopTools_MapOfShape mapShape;
-    Standard_Integer nbEdges = 0;
-    TopExp_Explorer exp (aBlockOrComp, TopAbs_EDGE);
-    for (; exp.More(); exp.Next()) {
-      if (mapShape.Add(exp.Current())) {
-        nbEdges++;
-      }
-    }
-
-    if (nbEdges == 0) {
-      SetErrorCode("Given shape contains no edges");
-      return NULL;
-    }
-
-    mapShape.Clear();
-    Standard_Integer ind = 1;
-    TopTools_Array1OfShape anEdges (1, nbEdges);
-    TColStd_Array1OfReal aDistances (1, nbEdges);
-    for (exp.Init(aBlockOrComp, TopAbs_EDGE); exp.More(); exp.Next()) {
-      if (mapShape.Add(exp.Current())) {
-        TopoDS_Shape anEdge = exp.Current();
-        anEdges(ind) = anEdge;
-
-        // 2. Classify the point relatively each edge
-        BRepExtrema_DistShapeShape aDistTool (aVert, anEdges(ind));
-        if (!aDistTool.IsDone()) {
-          SetErrorCode("Can not find a distance from the given point to one of edges");
-          return NULL;
-        }
-        aDistances(ind) = aDistTool.Value();
-        ind++;
-      }
-    }
-
-    // 3. Define edge, having minimum distance to the point
-    Standard_Real nearest = RealLast(), nbFound = 0;
-    Standard_Real prec = Precision::Confusion();
-    for (ind = 1; ind <= nbEdges; ind++) {
-      if (Abs(aDistances(ind) - nearest) < prec) {
-        nbFound++;
-      } else if (aDistances(ind) < nearest) {
-        nearest = aDistances(ind);
-        aShape = anEdges(ind);
-        nbFound = 1;
-      } else {
-      }
-    }
-    if (nbFound > 1) {
-      SetErrorCode("Multiple edges near the given point are found");
-      return NULL;
-    } else if (nbFound == 0) {
-      SetErrorCode("There are no edges near the given point");
-      return NULL;
-    } else {
       TopTools_IndexedMapOfShape anIndices;
       TopExp::MapShapes(aBlockOrComp, anIndices);
       Handle(TColStd_HArray1OfInteger) anArray = new TColStd_HArray1OfInteger(1,1);
       anArray->SetValue(1, anIndices.FindIndex(aShape));
       aResult = GetEngine()->AddSubShape(theShape, anArray);
     }
-  }
   catch (Standard_Failure) {
     Handle(Standard_Failure) aFail = Standard_Failure::Caught();
     SetErrorCode(aFail->GetMessageString());
@@ -1807,6 +1755,47 @@ void GEOMImpl_IBlocksOperations::AddBlocksFrom (const TopoDS_Shape&   theShape,
       }
     }
     break;
+  case TopAbs_SHELL: //0021483
+  case TopAbs_FACE: //0021483
+    {
+      // Count edges in each face
+      TopTools_MapOfShape mapFaces;
+      TopExp_Explorer expF (theShape, TopAbs_FACE);
+      for (; expF.More(); expF.Next()) {
+        if (mapFaces.Add(expF.Current())) {
+          // get wire
+          TopoDS_Shape aF = expF.Current();
+          TopExp_Explorer wires (aF, TopAbs_WIRE);
+          if (!wires.More()) {
+            // no wire in the face
+            NOQ.Append(aF);//0021483
+            continue;
+          }
+          TopoDS_Shape aWire = wires.Current();
+          wires.Next();
+          if (wires.More()) {
+            // multiple wires in the face
+            NOQ.Append(aF);//0021483
+            continue;
+          }
+
+          // Check number of edges in the face
+          Standard_Integer nbEdges = 0;
+          TopTools_MapOfShape mapEdges;
+          TopExp_Explorer expW (aWire, TopAbs_EDGE);
+          for (; expW.More(); expW.Next()) {
+            if (mapEdges.Add(expW.Current())) {
+              nbEdges++;
+              if (nbEdges > 4) break;
+            }
+          }
+          if (nbEdges != 4) {
+            NOQ.Append(aF);//0021483
+          }
+        }
+      }
+    }
+    break;
   default:
     NOT.Append(theShape);
   }
@@ -2352,7 +2341,8 @@ Standard_Boolean GEOMImpl_IBlocksOperations::CheckCompoundOfBlocks
   TopTools_ListOfShape NOT; // Not blocks
   TopTools_ListOfShape EXT; // Hexahedral solids, having degenerated and/or seam edges
   TopTools_ListOfShape BLO; // All blocks from the given compound
-  AddBlocksFrom(aBlockOrComp, BLO, NOT, EXT);
+  TopTools_ListOfShape NOQ; // All non-quadrangular faces
+  AddBlocksFrom(aBlockOrComp, BLO, NOT, EXT, NOQ);
 
   // Report non-blocks
   if (NOT.Extent() > 0) {
@@ -2514,10 +2504,103 @@ Standard_Boolean GEOMImpl_IBlocksOperations::CheckCompoundOfBlocks
 
 //=============================================================================
 /*!
+ *  GetNonBlocks
+ */
+//=============================================================================
+Handle(GEOM_Object) GEOMImpl_IBlocksOperations::GetNonBlocks
+                                     (Handle(GEOM_Object) theShape,
+                                      Handle(GEOM_Object)& theNonQuads)
+{
+  SetErrorCode(GEOM_KO);
+
+  if (theShape.IsNull()) return NULL;
+  TopoDS_Shape aShape = theShape->GetValue();
+
+  // Separate blocks from non-blocks
+  TopTools_ListOfShape BLO; // All blocks from the given compound
+  TopTools_ListOfShape NOT; // Not blocks
+  TopTools_ListOfShape EXT; // Hexahedral solids, having degenerated and/or seam edges
+  TopTools_ListOfShape NOQ; // All non-quadrangular faces
+  AddBlocksFrom(aShape, BLO, NOT, EXT, NOQ);
+
+  if (NOT.IsEmpty() && EXT.IsEmpty() && NOQ.IsEmpty()) {
+    SetErrorCode("NOT_FOUND_ANY");
+    return NULL;
+  }
+
+  // Map sub-shapes and their indices
+  TopTools_IndexedMapOfShape anIndices;
+  TopExp::MapShapes(aShape, anIndices);
+
+  // Non-blocks
+  Handle(GEOM_Object) aNonBlocks;
+  if (NOT.Extent() > 0 || EXT.Extent() > 0) {
+    Handle(TColStd_HArray1OfInteger) anArray =
+      new TColStd_HArray1OfInteger (1, NOT.Extent() + EXT.Extent());
+    Standard_Integer ii = 1;
+    TopTools_ListIteratorOfListOfShape it1 (NOT);
+    for (; it1.More(); it1.Next(), ii++) {
+      anArray->SetValue(ii, anIndices.FindIndex(it1.Value()));
+    }
+    TopTools_ListIteratorOfListOfShape it2 (EXT);
+    for (; it2.More(); it2.Next(), ii++) {
+      anArray->SetValue(ii, anIndices.FindIndex(it2.Value()));
+    }
+
+    aNonBlocks = GetEngine()->AddSubShape(theShape, anArray);
+    if (aNonBlocks.IsNull()) {
+      SetErrorCode("Error in algorithm: result found, but cannot be returned.");
+      return NULL;
+    }
+    aNonBlocks->SetType(GEOM_GROUP);
+    TDF_Label aFreeLabel = aNonBlocks->GetFreeLabel();
+    TDataStd_Integer::Set(aFreeLabel, (Standard_Integer)TopAbs_SOLID);
+  }
+
+  // Non-quadrangles
+  if (NOQ.Extent() > 0) {
+    Handle(TColStd_HArray1OfInteger) anArray =
+      new TColStd_HArray1OfInteger (1, NOQ.Extent());
+    Standard_Integer ii = 1;
+    TopTools_ListIteratorOfListOfShape it1 (NOQ);
+    for (; it1.More(); it1.Next(), ii++) {
+      anArray->SetValue(ii, anIndices.FindIndex(it1.Value()));
+    }
+
+    theNonQuads = GetEngine()->AddSubShape(theShape, anArray);
+    if (theNonQuads.IsNull()) {
+      SetErrorCode("Error in algorithm: result found, but cannot be returned.");
+      return NULL;
+    }
+    theNonQuads->SetType(GEOM_GROUP);
+    TDF_Label aFreeLabel = theNonQuads->GetFreeLabel();
+    TDataStd_Integer::Set(aFreeLabel, (Standard_Integer)TopAbs_FACE);
+  }
+
+  //Make a Python command
+  Handle(GEOM_Function) aMainShape = theShape->GetLastFunction();
+  GEOM::TPythonDump pd (aMainShape, /*append=*/true);
+  pd << "(";
+  if (aNonBlocks.IsNull())
+    pd << "no_bad_solids";
+  else
+    pd << aNonBlocks;
+  pd << ", ";
+  if (theNonQuads.IsNull())
+    pd << "no_bad_faces";
+  else
+    pd << theNonQuads;
+  pd << ") = GetNonBlocks(" << theShape << ")";
+
+  SetErrorCode(GEOM_OK);
+  return aNonBlocks;
+}
+
+//=============================================================================
+/*!
  *  RemoveExtraEdges
  */
 //=============================================================================
-
 Handle(GEOM_Object) GEOMImpl_IBlocksOperations::RemoveExtraEdges
                                      (Handle(GEOM_Object) theObject,
                                       const Standard_Integer theOptimumNbFaces)
@@ -2563,6 +2646,58 @@ Handle(GEOM_Object) GEOMImpl_IBlocksOperations::RemoveExtraEdges
   std::string doUnionFaces = (theOptimumNbFaces < 0) ? "False" : "True";
   GEOM::TPythonDump(aFunction) << aCopy << " = RemoveExtraEdges("
                                << theObject << ", " << doUnionFaces.data() << ")";
+
+  SetErrorCode(GEOM_OK);
+  return aCopy;
+}
+
+//=============================================================================
+/*!
+ *  UnionFaces
+ */
+//=============================================================================
+Handle(GEOM_Object) GEOMImpl_IBlocksOperations::UnionFaces
+                                     (Handle(GEOM_Object) theObject)
+{
+  SetErrorCode(GEOM_KO);
+
+  if (theObject.IsNull()) return NULL;
+
+  Handle(GEOM_Function) aLastFunction = theObject->GetLastFunction();
+  if (aLastFunction.IsNull()) return NULL; //There is no function which creates an object to be fixed
+
+  //Add a new Copy object
+  Handle(GEOM_Object) aCopy = GetEngine()->AddObject(GetDocID(), GEOM_COPY);
+
+  //Add a function
+  Handle(GEOM_Function) aFunction =
+    aCopy->AddFunction(GEOMImpl_BlockDriver::GetID(), BLOCK_UNION_FACES);
+
+  //Check if the function is set correctly
+  if (aFunction->GetDriverGUID() != GEOMImpl_BlockDriver::GetID()) return NULL;
+
+  GEOMImpl_IBlockTrsf aTI (aFunction);
+  aTI.SetOriginal(aLastFunction);
+
+  //Compute the fixed shape
+  try {
+#if OCC_VERSION_LARGE > 0x06010000
+    OCC_CATCH_SIGNALS;
+#endif
+    if (!GetSolver()->ComputeFunction(aFunction)) {
+      SetErrorCode("Block driver failed to remove extra edges of the given shape");
+      return NULL;
+    }
+  }
+  catch (Standard_Failure) {
+    Handle(Standard_Failure) aFail = Standard_Failure::Caught();
+    SetErrorCode(aFail->GetMessageString());
+    return NULL;
+  }
+
+  //Make a Python command
+  GEOM::TPythonDump(aFunction) << aCopy << " = UnionFaces("
+                               << theObject << ")";
 
   SetErrorCode(GEOM_OK);
   return aCopy;

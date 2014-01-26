@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 //
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License.
 //
-// This library is distributed in the hope that it will be useful
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 // Lesser General Public License for more details.
@@ -17,21 +19,17 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#include "utilities.h"
-
-#include <Standard_Stream.hxx>
-
-#include <GEOMImpl_ITransformOperations.hxx>
 
 #define SETPARAM(aFUNC,aVAL)  \
   if (aVAL.IsString())         \
 	aFUNC( aVAL.GetString() ); \
   else                         \
 	aFUNC( aVAL.GetDouble() );
+#include <Standard_Stream.hxx>
+
+#include <GEOMImpl_ITransformOperations.hxx>
 
 
-#include <GEOM_Function.hxx>
-#include <GEOM_PythonDump.hxx>
 
 #include <GEOMImpl_TranslateDriver.hxx>
 #include <GEOMImpl_MirrorDriver.hxx>
@@ -43,12 +41,22 @@
 
 #include <GEOMImpl_ITranslate.hxx>
 #include <GEOMImpl_IMirror.hxx>
+#include <GEOMImpl_IProjection.hxx>
 #include <GEOMImpl_IOffset.hxx>
 #include <GEOMImpl_IScale.hxx>
 #include <GEOMImpl_IRotate.hxx>
 #include <GEOMImpl_IPosition.hxx>
 
 #include <GEOMImpl_Types.hxx>
+
+#include <GEOM_Function.hxx>
+#include <GEOM_PythonDump.hxx>
+
+//#include <Basics_OCCTVersion.hxx>
+
+#include "utilities.h"
+//#include <OpUtil.hxx>
+//#include <Utils_ExceptHandlers.hxx>
 
 #include <TFunction_DriverTable.hxx>
 #include <TFunction_Driver.hxx>
@@ -368,7 +376,6 @@ Handle(GEOM_Object) GEOMImpl_ITransformOperations::TranslateVector
   SetErrorCode(GEOM_OK);
   return theObject;
 }
-
 //=============================================================================
 /*!
  *  TranslateVectorCopy
@@ -517,8 +524,9 @@ Handle(GEOM_Object) GEOMImpl_ITransformOperations::Translate1D
   if (aFunction->GetDriverGUID() != GEOMImpl_TranslateDriver::GetID()) return NULL;
 
   GEOMImpl_ITranslate aTI(aFunction);
-  aTI.SetVector(theVector->GetLastFunction());
   aTI.SetOriginal(aLastFunction);
+  if (!theVector.IsNull())
+    aTI.SetVector(theVector->GetLastFunction());
   SETPARAM(aTI.SetStep1,theStep);
   SETPARAM(aTI.SetNbIter1,theNbTimes);
 
@@ -577,11 +585,13 @@ Handle(GEOM_Object) GEOMImpl_ITransformOperations::Translate2D (Handle(GEOM_Obje
   if (aFunction->GetDriverGUID() != GEOMImpl_TranslateDriver::GetID()) return NULL;
 
   GEOMImpl_ITranslate aTI(aFunction);
-  aTI.SetVector(theVector->GetLastFunction());
-  aTI.SetVector2(theVector2->GetLastFunction());
   aTI.SetOriginal(aLastFunction);
+  if (!theVector.IsNull())
+  aTI.SetVector(theVector->GetLastFunction());
   SETPARAM(aTI.SetStep1,theStep1);
   SETPARAM(aTI.SetNbIter1,theNbTimes1);
+  if (!theVector2.IsNull())
+    aTI.SetVector2(theVector2->GetLastFunction());
   SETPARAM(aTI.SetStep2,theStep2);
   SETPARAM(aTI.SetNbIter2,theNbTimes2);
 
@@ -610,64 +620,7 @@ Handle(GEOM_Object) GEOMImpl_ITransformOperations::Translate2D (Handle(GEOM_Obje
   return aCopy;
 }
 
-//=============================================================================
-/*!
- *  TranslateAlongRail
- */
-//=============================================================================
-Handle(GEOM_Object) GEOMImpl_ITransformOperations::TranslateAlongRail( Handle(GEOM_Object) theObject,
-                    Handle(GEOM_Object) theRail, const GEOM_Parameter& theStep,
-                    const GEOM_Parameter& theNbTimes, const GEOM_Parameter& theType)
-{
-  SetErrorCode(GEOM_KO);
 
-  if (theObject.IsNull() || theRail.IsNull()) return NULL;
-
-  Handle(GEOM_Function) aLastFunction = theObject->GetLastFunction();
-  if (aLastFunction.IsNull()) return NULL; //There is no function which creates an object to be moved
-
-  //Add a new Copy object
-  Handle(GEOM_Object) aCopy = GetEngine()->AddObject(GetDocID(), theObject->GetType());
-
-  //Add a translate function
-  Handle(GEOM_Function) aFunction =
-    aCopy->AddFunction(GEOMImpl_TranslateDriver::GetID(), TRANSLATE_ALONG_RAIL);
-
-  //Check if the function is set correctly
-  if (aFunction->GetDriverGUID() != GEOMImpl_TranslateDriver::GetID()) return NULL;
-
-  GEOMImpl_ITranslate aTI(aFunction);
-  aTI.SetRailShape(theRail->GetLastFunction());
-  aTI.SetOriginal(aLastFunction);
-
-  SETPARAM(aTI.SetStep1,theStep);
-  SETPARAM(aTI.SetNbIter1,theNbTimes);
-  SETPARAM(aTI.SetNbIter2,theType);     //0=No rotation, 1=Plane based rotation, 2=Freeform rotation
-
-  //Compute the translation
-  try {
-#if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
-    OCC_CATCH_SIGNALS;
-#endif
-    if (!GetSolver()->ComputeFunction(aFunction)) {
-      SetErrorCode("Translation driver failed");
-      return NULL;
-    }
-  }
-  catch (Standard_Failure) {
-    Handle(Standard_Failure) aFail = Standard_Failure::Caught();
-    SetErrorCode(aFail->GetMessageString());
-    return NULL;
-  }
-
-  //Make a Python command
-  GEOM::TPythonDump(aFunction) << aCopy << " = TranslateAlongRail("
-    << theObject << ", " << theRail  << ", " << theStep
-    << ", " << theNbTimes << ", " << theType << ")";
-
-  SetErrorCode(GEOM_OK);
-  return aCopy;
-}
 
 //=============================================================================
 /*!
@@ -1309,6 +1262,78 @@ Handle(GEOM_Object) GEOMImpl_ITransformOperations::ProjectShapeCopy
 
 //=============================================================================
 /*!
+ *  ProjectPointOnWire
+ */
+//=============================================================================
+Standard_Real GEOMImpl_ITransformOperations::ProjectPointOnWire
+                                    (Handle(GEOM_Object) thePoint,
+                                     Handle(GEOM_Object) theWire,
+                                     Handle(GEOM_Object) &thePointOnEdge,
+                                     Standard_Integer    &theEdgeInWireIndex)
+{
+  Standard_Real aResult = -1.;
+
+  SetErrorCode(GEOM_KO);
+
+  if (thePoint.IsNull() || theWire.IsNull()) {
+    return aResult;
+  }
+
+  Handle(GEOM_Function) aLastFunction = thePoint->GetLastFunction();
+
+  if (aLastFunction.IsNull()) {
+    //There is no function which creates an object to be projected
+    return aResult;
+  }
+
+  //Add a new Projection object
+  thePointOnEdge = GetEngine()->AddObject(GetDocID(), GEOM_PROJECTION);
+
+  //Add a Projection function
+  Handle(GEOM_Function) aFunction = thePointOnEdge->AddFunction
+    (GEOMImpl_ProjectionDriver::GetID(), PROJECTION_ON_WIRE);
+
+  //Check if the function is set correctly
+  if (aFunction->GetDriverGUID() != GEOMImpl_ProjectionDriver::GetID()) {
+    return aResult;
+  }
+
+  GEOMImpl_IProjection aProj (aFunction);
+  aProj.SetPoint(aLastFunction);
+  aProj.SetShape(theWire->GetLastFunction());
+
+  //Compute the Projection
+  try {
+#if OCC_VERSION_LARGE > 0x06010000
+    OCC_CATCH_SIGNALS;
+#endif
+    if (!GetSolver()->ComputeFunction(aFunction)) {
+      SetErrorCode("Projection driver failed");
+      return aResult;
+    }
+  }
+  catch (Standard_Failure) {
+    Handle(Standard_Failure) aFail = Standard_Failure::Caught();
+    SetErrorCode(aFail->GetMessageString());
+    return aResult;
+  }
+
+  aResult            = aProj.GetU();
+  theEdgeInWireIndex = aProj.GetIndex();
+
+
+  //Make a Python command
+  GEOM::TPythonDump(aFunction) << "(u, " << thePointOnEdge
+    << ", EdgeInWireIndex) = MakeProjectionOnWire(" << thePoint
+    << ", " << theWire << ")";
+
+  SetErrorCode(GEOM_OK);
+
+  return aResult;
+}
+
+//=============================================================================
+/*!
  *  ScaleShape
  */
 //=============================================================================
@@ -1391,10 +1416,16 @@ Handle(GEOM_Object) GEOMImpl_ITransformOperations::ScaleShapeCopy
   //Check if the function is set correctly
   if (aFunction->GetDriverGUID() != GEOMImpl_ScaleDriver::GetID()) return NULL;
 
+  // Set arguments
   GEOMImpl_IScale aTI (aFunction);
   aTI.SetShape(anOriginal);
-  aTI.SetPoint(thePoint->GetLastFunction());
   SETPARAM(aTI.SetFactor,theFactor);
+
+  // Set point argument
+  if (!thePoint.IsNull()) {
+    Handle(GEOM_Function) aPF = thePoint->GetLastFunction();
+    aTI.SetPoint(aPF);
+  }
 
   //Compute the scale
   try {
@@ -1422,38 +1453,54 @@ Handle(GEOM_Object) GEOMImpl_ITransformOperations::ScaleShapeCopy
 
 //=============================================================================
 /*!
- *  ScaleShapeAffine
+ *  ScaleShapeAlongAxes
  */
 //=============================================================================
-Handle(GEOM_Object) GEOMImpl_ITransformOperations::ScaleShapeAffine
-	   (Handle(GEOM_Object) theObject, Handle(GEOM_Object) theVector, const GEOM_Parameter& theFactor)
+Handle(GEOM_Object) GEOMImpl_ITransformOperations::ScaleShapeAlongAxes (Handle(GEOM_Object) theObject,
+                                                                        Handle(GEOM_Object) thePoint,
+                                                                        double theFactorX,
+                                                                        double theFactorY,
+                                                                        double theFactorZ,
+                                                                        bool   doCopy)
 {
   SetErrorCode(GEOM_KO);
 
-  if (theObject.IsNull() || theVector.IsNull()) return NULL;
+  if (theObject.IsNull()) return NULL;
 
   Handle(GEOM_Function) anOriginal = theObject->GetLastFunction();
   if (anOriginal.IsNull()) return NULL; //There is no function which creates an object to be scaled
 
-  // Get last functions of the arguments
-  Handle(GEOM_Function) aVF = theVector->GetLastFunction();
-
   //Add a scale function
-  Handle(GEOM_Function) aFunction =
-	theObject->AddFunction(GEOMImpl_ScaleDriver::GetID(), SCALE_SHAPE_AFFINE);
+  Handle(GEOM_Object) aCopy;   //Add a new Copy object
+  Handle(GEOM_Function) aFunction;
+  if (doCopy) {
+    aCopy = GetEngine()->AddObject(GetDocID(), theObject->GetType());
+    aFunction = aCopy->AddFunction(GEOMImpl_ScaleDriver::GetID(), SCALE_SHAPE_AXES_COPY);
+  }
+  else {
+    aFunction = theObject->AddFunction(GEOMImpl_ScaleDriver::GetID(), SCALE_SHAPE_AXES);
+  }
   if (aFunction.IsNull()) return NULL;
 
   //Check if the function is set correctly
   if (aFunction->GetDriverGUID() != GEOMImpl_ScaleDriver::GetID()) return NULL;
 
+  // Set arguments
   GEOMImpl_IScale aTI (aFunction);
   aTI.SetShape(anOriginal);
-  aTI.SetVector(aVF);
-  SETPARAM(aTI.SetFactor,theFactor);
+  aTI.SetFactorX(theFactorX);
+  aTI.SetFactorY(theFactorY);
+  aTI.SetFactorZ(theFactorZ);
+
+  // Set point (optional argument)
+  if (!thePoint.IsNull()) {
+    Handle(GEOM_Function) aPF = thePoint->GetLastFunction();
+    aTI.SetPoint(aPF);
+  }
 
   //Compute the scale
   try {
-#if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
+#if OCC_VERSION_LARGE > 0x06010000
     OCC_CATCH_SIGNALS;
 #endif
     if (!GetSolver()->ComputeFunction(aFunction)) {
@@ -1467,67 +1514,20 @@ Handle(GEOM_Object) GEOMImpl_ITransformOperations::ScaleShapeAffine
     return NULL;
   }
 
-  //Make a Python command
-  GEOM::TPythonDump(aFunction) << "ScaleShapeAffine("
-	<< theObject << ", " << theVector << ", " << theFactor << ")";
-
   SetErrorCode(GEOM_OK);
+
+  //Make a Python command
+  if (doCopy) {
+    GEOM::TPythonDump(aFunction) << aCopy << " = MakeScaleAlongAxes("
+                                 << theObject << ", " << thePoint << ", "
+                                 << theFactorX << ", " << theFactorY << ", " << theFactorZ << ")";
+    return aCopy;
+  }
+
+  GEOM::TPythonDump(aFunction) << "ScaleAlongAxes("
+                               << theObject << ", " << thePoint << ", "
+                               << theFactorX << ", " << theFactorY << ", " << theFactorZ << ")";
   return theObject;
-}
-
-//=============================================================================
-/*!
- *  ScaleShapeAffineCopy
- */
-//=============================================================================
-Handle(GEOM_Object) GEOMImpl_ITransformOperations::ScaleShapeAffineCopy
-	   (Handle(GEOM_Object) theObject, Handle(GEOM_Object) theVector, const GEOM_Parameter& theFactor)
-{
-  SetErrorCode(GEOM_KO);
-
-  if (theObject.IsNull() || theVector.IsNull()) return NULL;
-
-  Handle(GEOM_Function) anOriginal = theObject->GetLastFunction();
-  if (anOriginal.IsNull()) return NULL; //There is no function which creates an object to be scaled
-
-  //Add a new Copy object
-  Handle(GEOM_Object) aCopy = GetEngine()->AddObject(GetDocID(), theObject->GetType());
-
-  //Add a scale function
-  Handle(GEOM_Function) aFunction =
-	aCopy->AddFunction(GEOMImpl_ScaleDriver::GetID(), SCALE_SHAPE_AFFINE_COPY);
-  if (aFunction.IsNull()) return NULL;
-
-  //Check if the function is set correctly
-  if (aFunction->GetDriverGUID() != GEOMImpl_ScaleDriver::GetID()) return NULL;
-
-  GEOMImpl_IScale aTI (aFunction);
-  aTI.SetShape(anOriginal);
-  aTI.SetVector(theVector->GetLastFunction());
-  SETPARAM(aTI.SetFactor,theFactor);
-
-  //Compute the scale
-  try {
-#if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
-    OCC_CATCH_SIGNALS;
-#endif
-    if (!GetSolver()->ComputeFunction(aFunction)) {
-      SetErrorCode("Scale driver failed");
-      return NULL;
-    }
-  }
-  catch (Standard_Failure) {
-    Handle(Standard_Failure) aFail = Standard_Failure::Caught();
-    SetErrorCode(aFail->GetMessageString());
-    return NULL;
-  }
-
-  //Make a Python command
-  GEOM::TPythonDump(aFunction) << aCopy << " = ScaleShapeAffineCopy("
-	<< theObject << ", " << theVector << ", " << theFactor << ")";
-
-  SetErrorCode(GEOM_OK);
-  return aCopy;
 }
 
 //=============================================================================
@@ -1776,7 +1776,7 @@ Handle(GEOM_Object) GEOMImpl_ITransformOperations::Rotate (Handle(GEOM_Object) t
 
 //=============================================================================
 /*!
- *  Rotate
+ *  RotateCopy
  */
 //=============================================================================
 Handle(GEOM_Object) GEOMImpl_ITransformOperations::RotateCopy (Handle(GEOM_Object) theObject, Handle(GEOM_Object) theAxis, const GEOM_Parameter& theAngle)
@@ -1829,7 +1829,7 @@ Handle(GEOM_Object) GEOMImpl_ITransformOperations::RotateCopy (Handle(GEOM_Objec
 
 //=============================================================================
 /*!
- *  Rotate1D
+ *  Rotate1D (for MultiRotate1DNbTimes)
  */
 //=============================================================================
 Handle(GEOM_Object) GEOMImpl_ITransformOperations::Rotate1D (Handle(GEOM_Object) theObject,
@@ -1877,6 +1877,132 @@ Handle(GEOM_Object) GEOMImpl_ITransformOperations::Rotate1D (Handle(GEOM_Object)
   //Make a Python command
   GEOM::TPythonDump(aFunction) << aCopy << " = Rotate1D("
     << theObject << ", " << theAxis << ", " << theNbTimes << ")";
+
+  SetErrorCode(GEOM_OK);
+  return aCopy;
+}
+
+//=============================================================================
+/*!
+ *  Rotate1D (for MultiRotate1DByStep)
+ */
+//=============================================================================
+Handle(GEOM_Object) GEOMImpl_ITransformOperations::Rotate1D (Handle(GEOM_Object) theObject,
+                                                             Handle(GEOM_Object) theAxis,
+                                                             double theAngleStep,
+                                                             Standard_Integer theNbSteps)
+{
+  SetErrorCode(GEOM_KO);
+
+  if (theObject.IsNull()) return NULL;
+
+  Handle(GEOM_Function) aFunction, aLastFunction = theObject->GetLastFunction();
+  if (aLastFunction.IsNull()) return NULL;  //There is no function which creates an object to be rotated
+
+  //Add a new Copy object
+  Handle(GEOM_Object) aCopy = GetEngine()->AddObject(GetDocID(), theObject->GetType());
+
+  //Add a rotate function
+  aFunction = aCopy->AddFunction(GEOMImpl_RotateDriver::GetID(), ROTATE_1D_STEP);
+  if (aFunction.IsNull()) return NULL;
+
+  //Check if the function is set correctly
+  if (aFunction->GetDriverGUID() != GEOMImpl_RotateDriver::GetID()) return NULL;
+
+  //Convert angle into degrees
+  double anAngleStep = theAngleStep * 180. / M_PI;
+
+  GEOMImpl_IRotate aRI (aFunction);
+  aRI.SetOriginal(aLastFunction);
+  if (!theAxis.IsNull())
+    aRI.SetAxis(theAxis->GetLastFunction());
+  aRI.SetAngle(anAngleStep);
+  aRI.SetNbIter1(theNbSteps);
+
+  //Compute the translation
+  try {
+#if OCC_VERSION_LARGE > 0x06010000
+    OCC_CATCH_SIGNALS;
+#endif
+    if (!GetSolver()->ComputeFunction(aFunction)) {
+      SetErrorCode("Rotate driver failed");
+      return NULL;
+    }
+  }
+  catch (Standard_Failure) {
+    Handle(Standard_Failure) aFail = Standard_Failure::Caught();
+    SetErrorCode(aFail->GetMessageString());
+    return NULL;
+  }
+
+  //Make a Python command
+  GEOM::TPythonDump(aFunction)
+    << aCopy << " = MultiRotate1DByStep(" << theObject << ", "
+    << theAxis << ", " << anAngleStep << "*math.pi/180.0, " << theNbSteps << ")";
+
+  SetErrorCode(GEOMOK);
+  return aCopy;
+}
+
+//=============================================================================
+/*!
+ *  Rotate2D (for MultiRotate2DNbTimes)
+ */
+//=============================================================================
+Handle(GEOM_Object) GEOMImpl_ITransformOperations::Rotate2D (Handle(GEOM_Object) theObject,
+                                                             Handle(GEOM_Object) theAxis,
+                                                             Standard_Integer theNbObjects,
+                                                             double theRadialStep,
+                                                             Standard_Integer theNbSteps)
+{
+  SetErrorCode(GEOM_KO);
+
+  if (theObject.IsNull()) return NULL;
+
+  Handle(GEOM_Function) aFunction, aLastFunction = theObject->GetLastFunction();
+  if (aLastFunction.IsNull()) return NULL;  //There is no function which creates an object to be rotated
+
+  //Add a new Copy object
+  Handle(GEOM_Object) aCopy = GetEngine()->AddObject(GetDocID(), theObject->GetType());
+
+  //Add a rotate function
+  aFunction = aCopy->AddFunction(GEOMImpl_RotateDriver::GetID(), ROTATE_2D);
+  if (aFunction.IsNull()) return NULL;
+
+  //Check if the function is set correctly
+  if (aFunction->GetDriverGUID() != GEOMImpl_RotateDriver::GetID()) return NULL;
+
+  double anAngle = 360. / (double)theNbObjects;
+
+  GEOMImpl_IRotate aRI (aFunction);
+  aRI.SetOriginal(aLastFunction);
+  if (!theAxis.IsNull())
+    aRI.SetAxis(theAxis->GetLastFunction());
+  aRI.SetAngle(anAngle);
+  aRI.SetNbIter1(theNbObjects);
+  aRI.SetStep(theRadialStep);
+  aRI.SetNbIter2(theNbSteps);
+
+  //Compute the translation
+  try {
+#if OCC_VERSION_LARGE > 0x06010000
+    OCC_CATCH_SIGNALS;
+#endif
+    if (!GetSolver()->ComputeFunction(aFunction)) {
+      SetErrorCode("Rotate driver failed");
+      return NULL;
+    }
+  }
+  catch (Standard_Failure) {
+    Handle(Standard_Failure) aFail = Standard_Failure::Caught();
+    SetErrorCode(aFail->GetMessageString());
+    return NULL;
+  }
+
+  //Make a Python command
+  GEOM::TPythonDump(aFunction) << aCopy << " = MultiRotate2DNbTimes("
+                               << theObject << ", " << theAxis << ", " << theNbObjects
+                               << ", " << theRadialStep << ", " << theNbSteps << ")";
 
   SetErrorCode(GEOM_OK);
   return aCopy;
@@ -2206,6 +2332,175 @@ Handle(GEOM_Object) GEOMImpl_ITransformOperations::TransformLikeOtherCopy
   //Make a Python command
   //GEOM::TPythonDump(aFunction) << aCopy << " = TransformLikeOtherCopy("
   //                             << theObject << ", " << theSample << ")";
+
+  SetErrorCode(GEOM_OK);
+  return aCopy;
+}
+
+//=============================================================================
+/*!
+ *  TranslateAlongRail
+ */
+//=============================================================================
+Handle(GEOM_Object) GEOMImpl_ITransformOperations::TranslateAlongRail( Handle(GEOM_Object) theObject,
+                    Handle(GEOM_Object) theRail, const GEOM_Parameter& theStep,
+                    const GEOM_Parameter& theNbTimes, const GEOM_Parameter& theType)
+{
+  SetErrorCode(GEOM_KO);
+
+  if (theObject.IsNull() || theRail.IsNull()) return NULL;
+
+  Handle(GEOM_Function) aLastFunction = theObject->GetLastFunction();
+  if (aLastFunction.IsNull()) return NULL; //There is no function which creates an object to be moved
+
+  //Add a new Copy object
+  Handle(GEOM_Object) aCopy = GetEngine()->AddObject(GetDocID(), theObject->GetType());
+
+  //Add a translate function
+  Handle(GEOM_Function) aFunction =
+    aCopy->AddFunction(GEOMImpl_TranslateDriver::GetID(), TRANSLATE_ALONG_RAIL);
+
+  //Check if the function is set correctly
+  if (aFunction->GetDriverGUID() != GEOMImpl_TranslateDriver::GetID()) return NULL;
+
+  GEOMImpl_ITranslate aTI(aFunction);
+  aTI.SetRailShape(theRail->GetLastFunction());
+  aTI.SetOriginal(aLastFunction);
+
+  SETPARAM(aTI.SetStep1,theStep);
+  SETPARAM(aTI.SetNbIter1,theNbTimes);
+  SETPARAM(aTI.SetNbIter2,theType);     //0=No rotation, 1=Plane based rotation, 2=Freeform rotation
+
+  //Compute the translation
+  try {
+#if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
+    OCC_CATCH_SIGNALS;
+#endif
+    if (!GetSolver()->ComputeFunction(aFunction)) {
+      SetErrorCode("Translation driver failed");
+      return NULL;
+    }
+  }
+  catch (Standard_Failure) {
+    Handle(Standard_Failure) aFail = Standard_Failure::Caught();
+    SetErrorCode(aFail->GetMessageString());
+    return NULL;
+  }
+
+  //Make a Python command
+  GEOM::TPythonDump(aFunction) << aCopy << " = TranslateAlongRail("
+    << theObject << ", " << theRail  << ", " << theStep
+    << ", " << theNbTimes << ", " << theType << ")";
+
+  SetErrorCode(GEOM_OK);
+  return aCopy;
+}
+
+//=============================================================================
+/*!
+ *  ScaleShapeAffine
+ */
+//=============================================================================
+Handle(GEOM_Object) GEOMImpl_ITransformOperations::ScaleShapeAffine
+	   (Handle(GEOM_Object) theObject, Handle(GEOM_Object) theVector, const GEOM_Parameter& theFactor)
+{
+  SetErrorCode(GEOM_KO);
+
+  if (theObject.IsNull() || theVector.IsNull()) return NULL;
+
+  Handle(GEOM_Function) anOriginal = theObject->GetLastFunction();
+  if (anOriginal.IsNull()) return NULL; //There is no function which creates an object to be scaled
+
+  // Get last functions of the arguments
+  Handle(GEOM_Function) aVF = theVector->GetLastFunction();
+
+  //Add a scale function
+  Handle(GEOM_Function) aFunction =
+	theObject->AddFunction(GEOMImpl_ScaleDriver::GetID(), SCALE_SHAPE_AFFINE);
+  if (aFunction.IsNull()) return NULL;
+
+  //Check if the function is set correctly
+  if (aFunction->GetDriverGUID() != GEOMImpl_ScaleDriver::GetID()) return NULL;
+
+  GEOMImpl_IScale aTI (aFunction);
+  aTI.SetShape(anOriginal);
+  aTI.SetVector(aVF);
+  SETPARAM(aTI.SetFactor,theFactor);
+
+  //Compute the scale
+  try {
+#if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
+    OCC_CATCH_SIGNALS;
+#endif
+    if (!GetSolver()->ComputeFunction(aFunction)) {
+      SetErrorCode("Scale driver failed");
+      return NULL;
+    }
+  }
+  catch (Standard_Failure) {
+    Handle(Standard_Failure) aFail = Standard_Failure::Caught();
+    SetErrorCode(aFail->GetMessageString());
+    return NULL;
+  }
+
+  //Make a Python command
+  GEOM::TPythonDump(aFunction) << "ScaleShapeAffine("
+	<< theObject << ", " << theVector << ", " << theFactor << ")";
+
+  SetErrorCode(GEOM_OK);
+  return theObject;
+}
+
+//=============================================================================
+/*!
+ *  ScaleShapeAffineCopy
+ */
+//=============================================================================
+Handle(GEOM_Object) GEOMImpl_ITransformOperations::ScaleShapeAffineCopy
+	   (Handle(GEOM_Object) theObject, Handle(GEOM_Object) theVector, const GEOM_Parameter& theFactor)
+{
+  SetErrorCode(GEOM_KO);
+
+  if (theObject.IsNull() || theVector.IsNull()) return NULL;
+
+  Handle(GEOM_Function) anOriginal = theObject->GetLastFunction();
+  if (anOriginal.IsNull()) return NULL; //There is no function which creates an object to be scaled
+
+  //Add a new Copy object
+  Handle(GEOM_Object) aCopy = GetEngine()->AddObject(GetDocID(), theObject->GetType());
+
+  //Add a scale function
+  Handle(GEOM_Function) aFunction =
+	aCopy->AddFunction(GEOMImpl_ScaleDriver::GetID(), SCALE_SHAPE_AFFINE_COPY);
+  if (aFunction.IsNull()) return NULL;
+
+  //Check if the function is set correctly
+  if (aFunction->GetDriverGUID() != GEOMImpl_ScaleDriver::GetID()) return NULL;
+
+  GEOMImpl_IScale aTI (aFunction);
+  aTI.SetShape(anOriginal);
+  aTI.SetVector(theVector->GetLastFunction());
+  SETPARAM(aTI.SetFactor,theFactor);
+
+  //Compute the scale
+  try {
+#if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
+    OCC_CATCH_SIGNALS;
+#endif
+    if (!GetSolver()->ComputeFunction(aFunction)) {
+      SetErrorCode("Scale driver failed");
+      return NULL;
+    }
+  }
+  catch (Standard_Failure) {
+    Handle(Standard_Failure) aFail = Standard_Failure::Caught();
+    SetErrorCode(aFail->GetMessageString());
+    return NULL;
+  }
+
+  //Make a Python command
+  GEOM::TPythonDump(aFunction) << aCopy << " = ScaleShapeAffineCopy("
+	<< theObject << ", " << theVector << ", " << theFactor << ")";
 
   SetErrorCode(GEOM_OK);
   return aCopy;

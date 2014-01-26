@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -48,12 +50,13 @@ class GEOMImpl_IHealingOperations : public GEOM_IOperations {
 	                                              std::list<std::string>& theValues );
 
   //! Retrieve default Shape Process parameters for given operator
-  Standard_EXPORT bool GetOperatorParameters( const std::string theOperation, 
+  Standard_EXPORT bool GetOperatorParameters( const std::string& theOperation, 
 	                                          std::list<std::string>& theParams,
 	                                          std::list<std::string>& theValues );
 
   //! returns all parameters that are valid for the given operation (Shape Process operator)
-  Standard_EXPORT static bool GetParameters( const std::string theOperation, std::list<std::string>& theParams );                                      
+  Standard_EXPORT static bool GetParameters( const std::string theOperation, 
+                                             std::list<std::string>& theParams );                                      
 
   Standard_EXPORT Handle(GEOM_Object) SuppressFaces( Handle(GEOM_Object) theObject,
                                      const Handle(TColStd_HArray1OfInteger)& theFaces);
@@ -69,12 +72,19 @@ class GEOMImpl_IHealingOperations : public GEOM_IOperations {
                                  const Handle(TColStd_HArray1OfInteger)& theWires);
                                       
   Standard_EXPORT Handle(GEOM_Object) Sew( Handle(GEOM_Object) theObject,
-                           double theTolerance );
+                           double theTolerance,
+                           bool isAllowNonManifold);
+
+  Standard_EXPORT Handle(GEOM_Object) RemoveInternalFaces (Handle(GEOM_Object) theObject);
 
   Standard_EXPORT Handle(GEOM_Object) DivideEdge( Handle(GEOM_Object) theObject,
                                   int theIndex,  
                                   double theValue,
                                   bool isByParameter );
+
+  Standard_EXPORT Handle(GEOM_Object) FuseCollinearEdgesWithinWire
+                                     (Handle(GEOM_Object) theWire,
+                                      std::list<Handle(GEOM_Object)> theVertices);
 
   //! this function does not use Function-Driver mechanism, it just computes the free
   //! boundary edges and returns them in the sequence.  It is called just for information reasons

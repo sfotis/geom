@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 //
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either
 // version 2.1 of the License.
 //
-// This library is distributed in the hope that it will be useful
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 // Lesser General Public License for more details.
@@ -17,7 +19,6 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#include "utilities.h"
 
 #include <Standard_Stream.hxx>
 
@@ -35,6 +36,8 @@
 #include <GEOMImpl_IPartition.hxx>
 
 #include <TDF_Tool.hxx>
+
+#include "utilities.h"
 
 #include <Standard_Failure.hxx>
 #include <Standard_ErrorHandler.hxx> // CAREFUL ! position of this file is critic : see Lucien PIGNOLONI / OCC
@@ -144,6 +147,215 @@ Handle(GEOM_Object) GEOMImpl_IBooleanOperations::MakeBoolean (Handle(GEOM_Object
   pd << theShape1 << ", " << theShape2 << ", " << theOp << ")";
 
   SetErrorCode(GEOM_OK);
+  return aBool;
+}
+
+//=============================================================================
+/*!
+ *  MakeFuseList
+ */
+//=============================================================================
+Handle(GEOM_Object) GEOMImpl_IBooleanOperations::MakeFuseList
+                  (const Handle(TColStd_HSequenceOfTransient)& theShapes,
+                   const Standard_Boolean IsCheckSelfInte)
+{
+  SetErrorCode(KO);
+
+  if (theShapes.IsNull()) return NULL;
+
+  //Add a new Boolean object
+  Handle(GEOM_Object) aBool = GetEngine()->AddObject(GetDocID(), GEOM_BOOLEAN);
+
+  //Add a new Boolean function
+  Handle(GEOM_Function) aFunction =
+    aBool->AddFunction(GEOMImpl_BooleanDriver::GetID(), BOOLEAN_FUSE_LIST);
+
+  if (aFunction.IsNull()) return NULL;
+
+  //Check if the function is set correctly
+  if (aFunction->GetDriverGUID() != GEOMImpl_BooleanDriver::GetID()) return NULL;
+
+  GEOMImpl_IBoolean aCI (aFunction);
+
+  TCollection_AsciiString aDescription;
+  Handle(TColStd_HSequenceOfTransient) aShapesSeq =
+    getShapeFunctions(theShapes, aDescription);
+
+  if (aShapesSeq.IsNull()) return NULL;
+
+  aCI.SetShapes(aShapesSeq);
+  aCI.SetCheckSelfIntersection(IsCheckSelfInte);
+
+  //Compute the Boolean value
+  try {
+#if OCC_VERSION_LARGE > 0x06010000
+    OCC_CATCH_SIGNALS;
+#endif
+    if (!GetSolver()->ComputeFunction(aFunction)) {
+      SetErrorCode("Boolean driver failed");
+      return NULL;
+    }
+  }
+  catch (Standard_Failure) {
+    Handle(Standard_Failure) aFail = Standard_Failure::Caught();
+    SetErrorCode(aFail->GetMessageString());
+    return NULL;
+  }
+
+  //Make a Python command
+  GEOM::TPythonDump pd (aFunction);
+
+  pd << aBool <<
+    " = geompy.MakeFuseList([" << aDescription.ToCString() << "]";
+
+  if (IsCheckSelfInte) {
+    pd << ", True";
+  }
+
+  pd << ")";
+
+  SetErrorCode(OK);
+  return aBool;
+}
+
+//=============================================================================
+/*!
+ *  MakeCommonList
+ */
+//=============================================================================
+Handle(GEOM_Object) GEOMImpl_IBooleanOperations::MakeCommonList
+                  (const Handle(TColStd_HSequenceOfTransient)& theShapes,
+                   const Standard_Boolean IsCheckSelfInte)
+{
+  SetErrorCode(KO);
+
+  if (theShapes.IsNull()) return NULL;
+
+  //Add a new Boolean object
+  Handle(GEOM_Object) aBool = GetEngine()->AddObject(GetDocID(), GEOM_BOOLEAN);
+
+  //Add a new Boolean function
+  Handle(GEOM_Function) aFunction =
+    aBool->AddFunction(GEOMImpl_BooleanDriver::GetID(), BOOLEAN_COMMON_LIST);
+
+  if (aFunction.IsNull()) return NULL;
+
+  //Check if the function is set correctly
+  if (aFunction->GetDriverGUID() != GEOMImpl_BooleanDriver::GetID()) return NULL;
+
+  GEOMImpl_IBoolean aCI (aFunction);
+
+  TCollection_AsciiString aDescription;
+  Handle(TColStd_HSequenceOfTransient) aShapesSeq =
+    getShapeFunctions(theShapes, aDescription);
+
+  if (aShapesSeq.IsNull()) return NULL;
+
+  aCI.SetShapes(aShapesSeq);
+  aCI.SetCheckSelfIntersection(IsCheckSelfInte);
+
+  //Compute the Boolean value
+  try {
+#if OCC_VERSION_LARGE > 0x06010000
+    OCC_CATCH_SIGNALS;
+#endif
+    if (!GetSolver()->ComputeFunction(aFunction)) {
+      SetErrorCode("Boolean driver failed");
+      return NULL;
+    }
+  }
+  catch (Standard_Failure) {
+    Handle(Standard_Failure) aFail = Standard_Failure::Caught();
+    SetErrorCode(aFail->GetMessageString());
+    return NULL;
+  }
+
+  //Make a Python command
+  GEOM::TPythonDump pd (aFunction);
+
+  pd << aBool <<
+    " = geompy.MakeCommonList([" << aDescription.ToCString() << "]";
+
+  if (IsCheckSelfInte) {
+    pd << ", True";
+  }
+
+  pd << ")";
+
+  SetErrorCode(OK);
+  return aBool;
+}
+
+//=============================================================================
+/*!
+ *  MakeCutList
+ */
+//=============================================================================
+Handle(GEOM_Object) GEOMImpl_IBooleanOperations::MakeCutList
+                  (Handle(GEOM_Object) theMainShape,
+                   const Handle(TColStd_HSequenceOfTransient)& theShapes,
+                   const Standard_Boolean IsCheckSelfInte)
+{
+  SetErrorCode(KO);
+
+  if (theShapes.IsNull()) return NULL;
+
+  //Add a new Boolean object
+  Handle(GEOM_Object) aBool = GetEngine()->AddObject(GetDocID(), GEOM_BOOLEAN);
+
+  //Add a new Boolean function
+  Handle(GEOM_Function) aFunction =
+    aBool->AddFunction(GEOMImpl_BooleanDriver::GetID(), BOOLEAN_CUT_LIST);
+
+  if (aFunction.IsNull()) return NULL;
+
+  //Check if the function is set correctly
+  if (aFunction->GetDriverGUID() != GEOMImpl_BooleanDriver::GetID()) return NULL;
+
+  GEOMImpl_IBoolean aCI (aFunction);
+  Handle(GEOM_Function) aMainRef = theMainShape->GetLastFunction();
+
+  if (aMainRef.IsNull()) return NULL;
+
+  TCollection_AsciiString aDescription;
+  Handle(TColStd_HSequenceOfTransient) aShapesSeq =
+    getShapeFunctions(theShapes, aDescription);
+
+  if (aShapesSeq.IsNull()) return NULL;
+
+  aCI.SetShape1(aMainRef);
+  aCI.SetShapes(aShapesSeq);
+  aCI.SetCheckSelfIntersection(IsCheckSelfInte);
+
+  //Compute the Boolean value
+  try {
+#if OCC_VERSION_LARGE > 0x06010000
+    OCC_CATCH_SIGNALS;
+#endif
+    if (!GetSolver()->ComputeFunction(aFunction)) {
+      SetErrorCode("Boolean driver failed");
+      return NULL;
+    }
+  }
+  catch (Standard_Failure) {
+    Handle(Standard_Failure) aFail = Standard_Failure::Caught();
+    SetErrorCode(aFail->GetMessageString());
+    return NULL;
+  }
+
+  //Make a Python command
+  GEOM::TPythonDump pd (aFunction);
+
+  pd << aBool << " = geompy.MakeCutList("
+    << theMainShape << ", [" << aDescription.ToCString() << "]";
+
+  if (IsCheckSelfInte) {
+    pd << ", True";
+  }
+
+  pd << ")";
+
+  SetErrorCode(OK);
   return aBool;
 }
 
@@ -385,3 +597,45 @@ Handle(GEOM_Object) GEOMImpl_IBooleanOperations::MakeHalfPartition
   return aPart;
 }
 
+//=============================================================================
+/*!
+ *  getShapeFunctions
+ */
+//=============================================================================
+Handle(TColStd_HSequenceOfTransient)
+  GEOMImpl_IBooleanOperations::getShapeFunctions
+                  (const Handle(TColStd_HSequenceOfTransient)& theObjects,
+                         TCollection_AsciiString &theDescription)
+{
+  Handle(TColStd_HSequenceOfTransient) aResult =
+    new TColStd_HSequenceOfTransient;
+  Standard_Integer aNbObjects = theObjects->Length();
+  Standard_Integer i;
+  TCollection_AsciiString anEntry;
+  Handle(GEOM_Object) anObj;
+  Handle(GEOM_Function) aRefObj;
+
+  // Shapes
+  for (i = 1; i <= aNbObjects; i++) {
+    anObj = Handle(GEOM_Object)::DownCast(theObjects->Value(i));
+    aRefObj = anObj->GetLastFunction();
+
+    if (aRefObj.IsNull()) {
+      aResult.Nullify();
+      break;
+    }
+
+    aResult->Append(aRefObj);
+
+    // For Python command
+    TDF_Tool::Entry(anObj->GetEntry(), anEntry);
+
+    if (i > 1) {
+      theDescription += ", ";
+    }
+
+    theDescription += anEntry;
+  }
+
+  return aResult;
+}

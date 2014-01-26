@@ -1,4 +1,4 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 //  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 //  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
@@ -19,6 +19,7 @@
 //
 //  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+
 #ifndef _GEOMImpl_IMeasureOperations_HXX_
 #define _GEOMImpl_IMeasureOperations_HXX_
 
@@ -45,13 +46,11 @@ class GEOMImpl_IMeasureOperations : public GEOM_IOperations {
 
   enum ShapeKind {
 	SK_NO_SHAPE,
-
     // COMPOSITEs
     SK_COMPOUND,
     SK_COMPSOLID,
     SK_SHELL,
 	SK_WIRE,
-
     // SOLIDs
     SK_SPHERE,       // full sphere
     SK_CYLINDER,     // cylinder
@@ -61,7 +60,6 @@ class GEOMImpl_IMeasureOperations : public GEOM_IOperations {
     SK_CONE,         // cone
     SK_POLYHEDRON,   // solid, bounded by polygons
 	SK_SOLID,        // other solid
-
     // FACEs
     SK_SPHERE2D,     // spherical face (closed)
     SK_CYLINDER2D,   // cylindrical face with defined height
@@ -73,7 +71,6 @@ class GEOMImpl_IMeasureOperations : public GEOM_IOperations {
     SK_PLANE,        // infinite planar
     SK_PLANAR,       // other planar
 	SK_FACE,         // other face
-
     // EDGEs
     SK_CIRCLE,       // full circle
     SK_ARC_CIRCLE,   // arc of circle
@@ -82,7 +79,6 @@ class GEOMImpl_IMeasureOperations : public GEOM_IOperations {
     SK_LINE,         // infinite segment
     SK_SEGMENT,      // segment
 	SK_EDGE,         // other edge
-	
     // VERTEX
     SK_VERTEX,
     // ADVANCED shapes
@@ -118,9 +114,13 @@ class GEOMImpl_IMeasureOperations : public GEOM_IOperations {
                                    Standard_Real& Ix , Standard_Real& Iy , Standard_Real& Iz);
 
   Standard_EXPORT void GetBoundingBox (Handle(GEOM_Object) theShape,
+                                       const Standard_Boolean precise,
                                        Standard_Real& Xmin, Standard_Real& Xmax,
                                        Standard_Real& Ymin, Standard_Real& Ymax,
                                        Standard_Real& Zmin, Standard_Real& Zmax);
+
+  Standard_EXPORT Handle(GEOM_Object) GetBoundingBox (Handle(GEOM_Object) theShape,
+                                                      const Standard_Boolean precise);
 
   Standard_EXPORT void GetTolerance (Handle(GEOM_Object) theShape,
                                      Standard_Real& FaceMin, Standard_Real& FaceMax,
@@ -130,6 +130,9 @@ class GEOMImpl_IMeasureOperations : public GEOM_IOperations {
   Standard_EXPORT bool CheckShape (Handle(GEOM_Object)      theShape,
                                    const Standard_Boolean   theIsCheckGeom,
                                    TCollection_AsciiString& theDump);
+
+  Standard_EXPORT bool CheckSelfIntersections (Handle(GEOM_Object) theShape,
+                                               Handle(TColStd_HSequenceOfInteger)& theIntersections);
 
   Standard_EXPORT TCollection_AsciiString IsGoodForSolid (Handle(GEOM_Object) theShape);
 
@@ -143,6 +146,10 @@ class GEOMImpl_IMeasureOperations : public GEOM_IOperations {
                                                 Handle(GEOM_Object) theShape2,
                                                 Standard_Real& X1, Standard_Real& Y1, Standard_Real& Z1,
                                                 Standard_Real& X2, Standard_Real& Y2, Standard_Real& Z2);
+
+  Standard_EXPORT Standard_Integer ClosestPoints (Handle(GEOM_Object) theShape1,
+                                                  Handle(GEOM_Object) theShape2,
+                                                  Handle(TColStd_HSequenceOfReal)& theDoubles);
 
   Standard_EXPORT void PointCoordinates (Handle(GEOM_Object) theShape,
                                          Standard_Real& theX, Standard_Real& theY, Standard_Real& theZ);
@@ -168,9 +175,6 @@ class GEOMImpl_IMeasureOperations : public GEOM_IOperations {
                                                             Standard_Real& theVParam);
   Standard_EXPORT Standard_Real MinSurfaceCurvatureByPoint (Handle(GEOM_Object) theSurf,
                                                             Handle(GEOM_Object) thePoint);
-
- public:
-  Standard_EXPORT static gp_Ax3 GetPosition (const TopoDS_Shape& theShape);
 
  private:
   void StructuralDump (const BRepCheck_Analyzer& theAna,

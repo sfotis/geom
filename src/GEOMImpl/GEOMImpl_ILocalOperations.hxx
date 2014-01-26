@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -35,44 +37,31 @@ class GEOMImpl_ILocalOperations : public GEOM_IOperations {
   Standard_EXPORT ~GEOMImpl_ILocalOperations();
 
   Standard_EXPORT Handle(GEOM_Object) MakeFilletAll   (Handle(GEOM_Object) theShape, const GEOM_Parameter& theR);
-
   Standard_EXPORT Handle(GEOM_Object) MakeFilletEdges (Handle(GEOM_Object) theShape, const GEOM_Parameter& theR,
-									   std::list<int> theEdges);
-									   
+									   std::list<int> theEdges);							   
   Standard_EXPORT Handle(GEOM_Object) MakeFilletEdgesR1R2 (Handle(GEOM_Object) theShape,
 														   const GEOM_Parameter& theR1, const GEOM_Parameter& theR2,
 														   std::list<int> theEdges);
-
   Standard_EXPORT Handle(GEOM_Object) MakeFilletFaces (Handle(GEOM_Object) theShape, const GEOM_Parameter& theR,
 									   std::list<int> theFaces);
-
   Standard_EXPORT Handle(GEOM_Object) MakeFilletFacesR1R2 (Handle(GEOM_Object) theShape,
 														   const GEOM_Parameter& theR1, const GEOM_Parameter& theR2,
                                                            std::list<int> theFaces);
-
-  Standard_EXPORT Handle(GEOM_Object) MakeVariableFillet (Handle(GEOM_Object) theShape, std::list<GEOM_Parameter> theEdgesParams,
-										std::list<GEOM_Parameter> theRadiusAtParam, std::list<int> theEdges);
-
-  Standard_EXPORT Handle(GEOM_Object) MakeFillet2DVertices(Handle(GEOM_Object) theShape, const GEOM_Parameter& theR,
-										std::list<int> theVertices);
-
-  Standard_EXPORT Handle(GEOM_Object) MakeFillet1D (Handle(GEOM_Object) theShape, const GEOM_Parameter& theR,
+  Standard_EXPORT Handle(GEOM_Object) MakeFillet2D (Handle(GEOM_Object) theShape, const GEOM_Parameter& theR,
                                                                         std::list<int> theVertexes);
+  Standard_EXPORT Handle(GEOM_Object) MakeFillet1D (Handle(GEOM_Object) theShape, const GEOM_Parameter& theR,
+                                                    std::list<int> theVertexes, bool doIgnoreSecantVertices);
 
   Standard_EXPORT Handle(GEOM_Object) MakeChamferAll   (Handle(GEOM_Object) theShape, const GEOM_Parameter& theD);
-
   Standard_EXPORT Handle(GEOM_Object) MakeChamferEdge  (Handle(GEOM_Object) theShape,
 										const GEOM_Parameter& theD1, const GEOM_Parameter& theD2,
 										int theFace1, int theFace2);
-
+Standard_EXPORT Handle(GEOM_Object) MakeChamferEdgeAD  (Handle(GEOM_Object) theShape,
+                                        const GEOM_Parameter& theD, const GEOM_Parameter& theAngle,
+                                        int theFace1, int theFace2);
   Standard_EXPORT Handle(GEOM_Object) MakeChamferFaces (Handle(GEOM_Object) theShape,
 										const GEOM_Parameter& theD1, const GEOM_Parameter& theD2,
 										std::list<int> theFaces);
-
-  Standard_EXPORT Handle(GEOM_Object) MakeChamfer2DEdges (Handle(GEOM_Object) theShape,
-										const GEOM_Parameter& theD1, const GEOM_Parameter& theD2,
-										int theEdge1, int theEdge2);
-
   Standard_EXPORT Handle(GEOM_Object) MakeChamferFacesAD (Handle(GEOM_Object) theShape,
 										const GEOM_Parameter& theD, const GEOM_Parameter& theAngle,
 										std::list<int> theFaces);
@@ -85,19 +74,6 @@ class GEOMImpl_ILocalOperations : public GEOM_IOperations {
 										const GEOM_Parameter& theD, const GEOM_Parameter& theAngle,
 										std::list<int> theEdges);
 
-  Standard_EXPORT Handle(GEOM_Object) MakeChamferEdgeAD  (Handle(GEOM_Object) theShape,
-										const GEOM_Parameter& theD, const GEOM_Parameter& theAngle,
-										int theFace1, int theFace2);
-
-  Standard_EXPORT Handle(GEOM_Object) MakeThickSolid (Handle(GEOM_Object) theShape,
-										const GEOM_Parameter& theOffset, std::list<int> theFaces);
-
-  Standard_EXPORT Handle(GEOM_Object) MakeDraftFacesAngle (Handle(GEOM_Object) theShape,
-										Handle(GEOM_Object) theNeutralPlane, const GEOM_Parameter& theAngle, std::list<int> theFaces);
-
-  Standard_EXPORT Handle(GEOM_Object) MakeDraftFacesAngleWithStationaryFace (Handle(GEOM_Object) theShape,
-										int theNeutralPlane, const GEOM_Parameter& theAngle, std::list<int> theFaces);
-
   Standard_EXPORT Handle(GEOM_Object) MakeArchimede (Handle(GEOM_Object) theShape,
 									 const GEOM_Parameter& theWeight, const GEOM_Parameter& theWaterDensity,
                                      const GEOM_Parameter& theMeshingDeflection);
@@ -108,6 +84,23 @@ class GEOMImpl_ILocalOperations : public GEOM_IOperations {
   Standard_EXPORT static bool GetSubShape (const TopoDS_Shape& theShape,
                            const int theIndex,
                            TopoDS_Shape& theSubShape);
+
+  Standard_EXPORT Handle(GEOM_Object) MakeVariableFillet (Handle(GEOM_Object) theShape, std::list<GEOM_Parameter> theEdgesParams,
+										std::list<GEOM_Parameter> theRadiusAtParam, std::list<int> theEdges);
+  Standard_EXPORT Handle(GEOM_Object) MakeFillet2DVertices(Handle(GEOM_Object) theShape, const GEOM_Parameter& theR,
+										std::list<int> theVertices);
+  Standard_EXPORT Handle(GEOM_Object) MakeChamfer2DEdges (Handle(GEOM_Object) theShape,
+										const GEOM_Parameter& theD1, const GEOM_Parameter& theD2,
+										int theEdge1, int theEdge2);
+  Standard_EXPORT Handle(GEOM_Object) MakeChamferEdgeAD  (Handle(GEOM_Object) theShape,
+										const GEOM_Parameter& theD, const GEOM_Parameter& theAngle,
+										int theFace1, int theFace2);
+  Standard_EXPORT Handle(GEOM_Object) MakeThickSolid (Handle(GEOM_Object) theShape,
+										const GEOM_Parameter& theOffset, std::list<int> theFaces);
+  Standard_EXPORT Handle(GEOM_Object) MakeDraftFacesAngle (Handle(GEOM_Object) theShape,
+										Handle(GEOM_Object) theNeutralPlane, const GEOM_Parameter& theAngle, std::list<int> theFaces);
+  Standard_EXPORT Handle(GEOM_Object) MakeDraftFacesAngleWithStationaryFace (Handle(GEOM_Object) theShape,
+										int theNeutralPlane, const GEOM_Parameter& theAngle, std::list<int> theFaces);
 };
 
 #endif

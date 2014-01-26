@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -38,6 +40,19 @@ class GEOMImpl_IBooleanOperations : public GEOM_IOperations {
                                                    Handle(GEOM_Object) theShape2,
                                                    Standard_Integer    theOp);
 
+  Standard_EXPORT Handle(GEOM_Object) MakeFuseList
+                  (const Handle(TColStd_HSequenceOfTransient)& theShapes,
+                   const Standard_Boolean IsCheckSelfInte);
+
+  Standard_EXPORT Handle(GEOM_Object) MakeCommonList
+                  (const Handle(TColStd_HSequenceOfTransient)& theShapes,
+                   const Standard_Boolean IsCheckSelfInte);
+
+  Standard_EXPORT Handle(GEOM_Object) MakeCutList
+                  (Handle(GEOM_Object) theMainShape,
+                   const Handle(TColStd_HSequenceOfTransient)& theShapes,
+                   const Standard_Boolean IsCheckSelfInte);
+
   Standard_EXPORT Handle(GEOM_Object) MakePartition
                   (const Handle(TColStd_HSequenceOfTransient)& theShapes,
                    const Handle(TColStd_HSequenceOfTransient)& theTools,
@@ -47,10 +62,19 @@ class GEOMImpl_IBooleanOperations : public GEOM_IOperations {
                    const Standard_Boolean                      theRemoveWebs,
 				   const Handle(TColStd_HArray1OfInteger)&     theMaterials,
 				   const Standard_Integer 					   theKeepNonlimitShapes,
-                   const Standard_Boolean                      thePerformSelfIntersections);
+                   const Standard_Boolean                      thePerformSelfIntersections,
+                   const Standard_Boolean IsCheckSelfInte);
 
   Standard_EXPORT Handle(GEOM_Object) MakeHalfPartition (Handle(GEOM_Object) theShape,
-                                                         Handle(GEOM_Object) thePlane);
+                                                         Handle(GEOM_Object)    thePlane,
+                                                         const Standard_Boolean IsCheckSelfInte);
+
+private:
+
+  Handle(TColStd_HSequenceOfTransient) getShapeFunctions
+                  (const Handle(TColStd_HSequenceOfTransient)& theObjects,
+                         TCollection_AsciiString &theDescription);
+
 };
 
 #endif

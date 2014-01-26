@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -31,7 +33,6 @@
 class GEOM_Engine;
 class Handle(GEOM_Object);
 class Handle(TColStd_HArray1OfInteger);
-
 
 //!Interface class fot block operations
 class GEOMImpl_IBlocksOperations : public GEOM_IOperations {
@@ -74,7 +75,6 @@ class GEOMImpl_IBlocksOperations : public GEOM_IOperations {
 								
   Standard_EXPORT Handle(GEOM_Object) GetVertexNearPoint (Handle(GEOM_Object) theShape,
                                                           Handle(GEOM_Object) thePoint);
-
 
   Standard_EXPORT Handle(GEOM_Object) GetEdge (Handle(GEOM_Object) theShape,
                                Handle(GEOM_Object) thePoint1,

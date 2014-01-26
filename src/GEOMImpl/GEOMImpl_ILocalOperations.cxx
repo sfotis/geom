@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,19 +19,16 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#include "utilities.h"
 
 #include <Standard_Stream.hxx>
 
 #include <GEOMImpl_ILocalOperations.hxx>
 
-#include <GEOM_Function.hxx>
-#include <GEOM_PythonDump.hxx>
-
 #include <GEOMImpl_Types.hxx>
 
 #include <GEOMImpl_FilletDriver.hxx>
 #include <GEOMImpl_Fillet1dDriver.hxx>
+#include <GEOMImpl_Fillet2dDriver.hxx>
 #include <GEOMImpl_ChamferDriver.hxx>
 #include <GEOMImpl_ThickSolidDriver.hxx>
 #include <GEOMImpl_VariableFilletDriver.hxx>
@@ -37,6 +36,7 @@
 
 #include <GEOMImpl_IFillet.hxx>
 #include <GEOMImpl_IFillet1d.hxx>
+#include <GEOMImpl_IFillet2d.hxx>
 #include <GEOMImpl_IVariableFillet.hxx>
 #include <GEOMImpl_IChamfer.hxx>
 #include <GEOMImpl_IThickSolid.hxx>
@@ -48,11 +48,14 @@
 #include <GEOMImpl_Gen.hxx>
 #include <GEOMImpl_IShapesOperations.hxx>
 
-#define SETPARAM(aFUNC,aVAL)  \
-  if (aVAL.IsString())         \
-	aFUNC( aVAL.GetString() ); \
-  else                         \
-	aFUNC( aVAL.GetDouble() );
+#include <GEOM_Function.hxx>
+#include <GEOM_PythonDump.hxx>
+
+//#include <Basics_OCCTVersion.hxx>
+
+#include "utilities.h"
+//#include <OpUtil.hxx>
+//#include <Utils_ExceptHandlers.hxx>
 
 #include <TFunction_DriverTable.hxx>
 #include <TFunction_Driver.hxx>
@@ -109,8 +112,7 @@ Handle(GEOM_Object) GEOMImpl_ILocalOperations::MakeFilletAll
   Handle(GEOM_Object) aFillet = theShape;
  #endif
 
-  Handle(GEOM_Function) aRefShape = theShape->GetLastFunction();
-  if (aRefShape.IsNull()) return NULL;
+
 
   //Add a new Fillet function
   Handle(GEOM_Function) aFunction =
@@ -122,12 +124,15 @@ Handle(GEOM_Object) GEOMImpl_ILocalOperations::MakeFilletAll
 
   GEOMImpl_IFillet aCI (aFunction);
 
+  Handle(GEOM_Function) aRefShape = theShape->GetLastFunction();
+  if (aRefShape.IsNull()) return NULL;
+
   aCI.SetShape(aRefShape);
   SETPARAM(aCI.SetR,theR);
 
   //Compute the Fillet value
   try {
-#if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
+#if OCC_VERSION_LARGE > 0x06010000
     OCC_CATCH_SIGNALS;
 #endif
     if (!GetSolver()->ComputeFunction(aFunction)) {
@@ -166,9 +171,6 @@ Handle(GEOM_Object) GEOMImpl_ILocalOperations::MakeFilletEdges
   Handle(GEOM_Object) aFillet = theShape;
  #endif
 
-  Handle(GEOM_Function) aRefShape = theShape->GetLastFunction();
-  if (aRefShape.IsNull()) return NULL;
-
   //Add a new Fillet function
   Handle(GEOM_Function) aFunction =
     aFillet->AddFunction(GEOMImpl_FilletDriver::GetID(), FILLET_SHAPE_EDGES);
@@ -178,6 +180,9 @@ Handle(GEOM_Object) GEOMImpl_ILocalOperations::MakeFilletEdges
   if (aFunction->GetDriverGUID() != GEOMImpl_FilletDriver::GetID()) return NULL;
 
   GEOMImpl_IFillet aCI (aFunction);
+
+  Handle(GEOM_Function) aRefShape = theShape->GetLastFunction();
+  if (aRefShape.IsNull()) return NULL;
 
   aCI.SetShape(aRefShape);
   SETPARAM(aCI.SetR,theR);

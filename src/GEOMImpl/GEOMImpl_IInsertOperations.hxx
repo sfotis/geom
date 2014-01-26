@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -21,10 +23,15 @@
 #ifndef _GEOMImpl_IInsertOperations_HXX_
 #define _GEOMImpl_IInsertOperations_HXX_
 
-//#include "Utils_SALOME_Exception.hxx"
 #include "GEOM_IOperations.hxx"
 #include "GEOM_Engine.hxx"
 #include "GEOM_Object.hxx"
+#include "GEOM_Field.hxx"
+
+//#include <Basics_OCCTVersion.hxx>
+
+//#include "Utils_SALOME_Exception.hxx"
+
 #include <TDocStd_Document.hxx>
 #include <TColStd_HSequenceOfAsciiString.hxx>
 #include <TCollection_HAsciiString.hxx>
@@ -32,7 +39,15 @@
 
 #include <list>
 
-class Handle_TDataStd_HArray1OfByte;
+class GEOMImpl_IShapesOperations;
+class GEOMImpl_IGroupOperations;
+class GEOMImpl_IFieldOperations;
+
+//#if OCC_VERSION_LARGE > 0x06040000 // Porting to OCCT6.5.1
+class Handle_TColStd_HArray1OfByte;
+//#else
+//class Handle_TDataStd_HArray1OfByte;
+//#endif
 
 
 class GEOMImpl_IInsertOperations : public GEOM_IOperations {
@@ -45,6 +60,10 @@ class GEOMImpl_IInsertOperations : public GEOM_IOperations {
 
   Standard_EXPORT Handle(GEOM_Object) Import (const TCollection_AsciiString& theFileName,
                                               const TCollection_AsciiString& theFormatType);
+
+  Standard_EXPORT TCollection_AsciiString ReadValue (const TCollection_AsciiString& theFileName,
+                                                     const TCollection_AsciiString& theFormatType,
+                                                     const TCollection_AsciiString& theParameterName);
 
   Standard_EXPORT void Export (const Handle(GEOM_Object)      theOriginal,
                                const TCollection_AsciiString& theFileName,
@@ -60,6 +79,8 @@ class GEOMImpl_IInsertOperations : public GEOM_IOperations {
                                                 const TCollection_AsciiString& theFormat,
                                                 Handle(TCollection_HAsciiString)& theLibName);
 
+  Standard_EXPORT Handle(GEOM_Object) RestoreShape (std::istringstream& theStream);
+  
   Standard_EXPORT int LoadTexture(const TCollection_AsciiString& theTextureFile);
   
   Standard_EXPORT int AddTexture(int theWidth, int theHeight, 
@@ -76,6 +97,9 @@ class GEOMImpl_IInsertOperations : public GEOM_IOperations {
  private:
   Handle(Resource_Manager) myResMgr;
   Handle(Resource_Manager) myResMgrUser;
+  GEOMImpl_IShapesOperations* myShapesOperations;
+  GEOMImpl_IGroupOperations* myGroupOperations;
+  GEOMImpl_IFieldOperations* myFieldOperations;
 };
 
 #endif

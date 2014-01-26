@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -17,51 +19,76 @@
 //
 // See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
-#include "utilities.h"
-
-#include <stdio.h>
 
 #include <Standard_Stream.hxx>
 
 #include <GEOMImpl_IInsertOperations.hxx>
 
+#include <GEOMImpl_CopyDriver.hxx>
+#include <GEOMImpl_ExportDriver.hxx>
+#include <GEOMImpl_ImportDriver.hxx>
+#include <GEOMImpl_ICopy.hxx>
+#include <GEOMImpl_IImportExport.hxx>
+#include <GEOMImpl_Types.hxx>
+#include "GEOMImpl_IShapesOperations.hxx"
+#include "GEOMImpl_IGroupOperations.hxx"
+#include "GEOMImpl_IFieldOperations.hxx"
+#include "GEOMImpl_XAODriver.hxx"
+#include "GEOMImpl_IImportExportXAO.hxx"
+
+#include <GEOM_Function.hxx>
+#include <GEOM_PythonDump.hxx>
+#include "GEOM_ISubShape.hxx"
+
+#include <Basics_OCCTVersion.hxx>
+
+#include "utilities.h"
+#include <OpUtil.hxx>
+#include <Utils_ExceptHandlers.hxx>
+
 #include <TFunction_DriverTable.hxx>
 #include <TFunction_Driver.hxx>
 #include <TFunction_Logbook.hxx>
 #include <TDF_Tool.hxx>
-
-#include <GEOM_Function.hxx>
-#include <GEOM_PythonDump.hxx>
-
-#include <GEOMImpl_CopyDriver.hxx>
-#include <GEOMImpl_ExportDriver.hxx>
-#include <GEOMImpl_ImportDriver.hxx>
-
-#include <GEOMImpl_ICopy.hxx>
-#include <GEOMImpl_IImportExport.hxx>
-
-#include <GEOMImpl_Types.hxx>
+#include <TDataStd_Integer.hxx>
 
 #include <TopoDS.hxx>
 #include <TopoDS_Vertex.hxx>
 #include <BRep_Tool.hxx>
+#include <BRepTools.hxx>
 #include <gp_Pnt.hxx>
 #include <TColStd_HArray1OfByte.hxx>
 
 #include <Standard_Failure.hxx>
-#include <Standard_NullObject.hxx>
 #include <Standard_ErrorHandler.hxx> // CAREFUL ! position of this file is critic : see Lucien PIGNOLONI / OCC
+
+/**
+ * This function returns the input format name from the original format name.
+ */
+static TCollection_AsciiString GetImportFormatName
+        (const TCollection_AsciiString& theFormatName)
+{
+  Standard_Integer aLastInd = 4;
+
+  if (theFormatName.Search("STL") == 1) {
+    aLastInd = 3;
+  }
+
+  return theFormatName.SubString(1, aLastInd);
+}
 
 //=============================================================================
 /*!
  *   constructor:
  */
 //=============================================================================
-
 GEOMImpl_IInsertOperations::GEOMImpl_IInsertOperations(GEOM_Engine* theEngine, int theDocID)
 : GEOM_IOperations(theEngine, theDocID)
 {
   //MESSAGE("GEOMImpl_IInsertOperations::GEOMImpl_IInsertOperations");
+  myShapesOperations = new GEOMImpl_IShapesOperations(GetEngine(), GetDocID());
+  myGroupOperations = new GEOMImpl_IGroupOperations(GetEngine(), GetDocID());
+  myFieldOperations = new GEOMImpl_IFieldOperations(GetEngine(), GetDocID());
 }
 
 //=============================================================================
@@ -69,10 +96,12 @@ GEOMImpl_IInsertOperations::GEOMImpl_IInsertOperations(GEOM_Engine* theEngine, i
  *  destructor
  */
 //=============================================================================
-
 GEOMImpl_IInsertOperations::~GEOMImpl_IInsertOperations()
 {
   //MESSAGE("GEOMImpl_IInsertOperations::~GEOMImpl_IInsertOperations");
+  delete myShapesOperations;
+  delete myGroupOperations;
+  delete myFieldOperations;
 }
 
 
@@ -211,7 +240,8 @@ Handle(GEOM_Object) GEOMImpl_IInsertOperations::Import
   if (aFunction->GetDriverGUID() != GEOMImpl_ImportDriver::GetID()) return result;
 
   Handle(TCollection_HAsciiString) aHLibName;
-  if (!IsSupported(Standard_True, theFormatName, aHLibName)) {
+  if (!IsSupported
+          (Standard_True, GetImportFormatName(theFormatName), aHLibName)) {
     return result;
   }
   TCollection_AsciiString aLibName = aHLibName->String();
@@ -246,6 +276,7 @@ Handle(GEOM_Object) GEOMImpl_IInsertOperations::Import
     SetErrorCode(GEOM_OK);
   }
   else {
+    // OLD CODE: begin
     TopoDS_Shape S = aFunction->GetValue();
     TopoDS_Vertex V = TopoDS::Vertex(S);
     gp_Pnt P = BRep_Tool::Pnt(V);
@@ -255,11 +286,44 @@ Handle(GEOM_Object) GEOMImpl_IInsertOperations::Import
       aUnitName = "UNIT_CM";
     else if( fabs(scale-0.001) < 1.e-6 )
       aUnitName = "UNIT_MM";
-
+    //cout<<"IIO: aUnitName = "<<aUnitName.ToCString()<<endl;
     SetErrorCode(aUnitName);
   }
+  // OLD CODE: end
   
   return result;
+}
+
+//=============================================================================
+/*!
+ *  ReadValue
+ */
+//=============================================================================
+TCollection_AsciiString GEOMImpl_IInsertOperations::ReadValue
+                                 (const TCollection_AsciiString& theFileName,
+                                  const TCollection_AsciiString& theFormatName,
+                                  const TCollection_AsciiString& theParameterName)
+{
+  SetErrorCode(KO);
+
+  TCollection_AsciiString aValue, anError;
+
+  if (theFileName.IsEmpty() || theFormatName.IsEmpty() || theParameterName.IsEmpty()) return aValue;
+
+  Handle(TCollection_HAsciiString) aHLibName;
+  if (!IsSupported
+          (Standard_True, GetImportFormatName(theFormatName), aHLibName)) {
+    return aValue;
+  }
+  TCollection_AsciiString aLibName = aHLibName->String();
+
+  aValue = GEOMImpl_ImportDriver::ReadValue(theFileName, aLibName, theParameterName, anError);
+  if (anError.IsEmpty())
+    SetErrorCode(OK);
+  else
+    SetErrorCode(anError.ToCString());
+
+  return aValue;
 }
 
 //=============================================================================
@@ -432,7 +496,6 @@ Standard_Boolean GEOMImpl_IInsertOperations::IsSupported
   if (isImport) aMode = "Import";
   else aMode = "Export";
 
-  
   // Read supported formats for the certain mode from install directory
   if (myResMgr->Find(aMode.ToCString())) {
     TCollection_AsciiString aFormats (myResMgr->Value(aMode.ToCString()));
@@ -443,6 +506,13 @@ Standard_Boolean GEOMImpl_IInsertOperations::IsSupported
       aKey += aMode;
       if (myResMgr->Find(aKey.ToCString())) {
         TCollection_AsciiString aLibName (myResMgr->Value(aKey.ToCString()));
+#ifndef WIN32
+	if ( aLibName.Length() > 3 && aLibName.SubString(1,3) != "lib" )
+	  aLibName.Prepend("lib");
+        aLibName += ".so";
+#else
+        aLibName += ".dll";
+#endif
         theLibName = new TCollection_HAsciiString (aLibName);
         return Standard_True;
       }
@@ -459,6 +529,13 @@ Standard_Boolean GEOMImpl_IInsertOperations::IsSupported
       aKey += aMode;
       if (myResMgrUser->Find(aKey.ToCString())) {
         TCollection_AsciiString aLibName (myResMgrUser->Value(aKey.ToCString()));
+#ifndef WIN32
+	if ( aLibName.Length() > 3 && aLibName.SubString(1,3) != "lib" )
+	  aLibName.Prepend("lib");
+        aLibName += ".so";
+#else
+        aLibName += ".dll";
+#endif
         theLibName = new TCollection_HAsciiString (aLibName);
         return Standard_True;
       }
@@ -548,9 +625,46 @@ Standard_Boolean GEOMImpl_IInsertOperations::InitResMgr()
 
 //=============================================================================
 /*!
- *  LoadTexture
+ *  RestoreShape
  */
 //=============================================================================
+Handle(GEOM_Object) GEOMImpl_IInsertOperations::RestoreShape (std::istringstream& theStream)
+{
+  SetErrorCode(KO);
+
+  //Add a new result object
+  Handle(GEOM_Object) result = GetEngine()->AddObject(GetDocID(), GEOM_COPY);
+
+  //Add a Copy function
+  Handle(GEOM_Function) aFunction = result->AddFunction(GEOMImpl_CopyDriver::GetID(), COPY_WITHOUT_REF);
+  if (aFunction.IsNull()) return NULL;
+
+  //Check if the function is set correctly
+  if (aFunction->GetDriverGUID() != GEOMImpl_CopyDriver::GetID()) return NULL;
+
+  //Read a shape from the stream
+  TopoDS_Shape aShape;
+  BRep_Builder B;
+  BRepTools::Read(aShape, theStream, B);
+  if (aShape.IsNull()) {
+    SetErrorCode("RestoreShape error: BREP reading failed");
+  }
+
+  //Set function value
+  aFunction->SetValue(aShape);
+
+  //Special dump to avoid restored shapes publication.
+  //See correcponding code in GEOM_Engine.cxx (method ProcessFunction)
+  //GEOM::TPythonDump(aFunction) << "#";
+
+  GEOM::TPythonDump(aFunction) << result
+    << " = geompy.RestoreShape(\"\") # the shape string has not been dump for performance reason";
+
+  SetErrorCode(OK);
+
+  return result;
+}
+
 int GEOMImpl_IInsertOperations::LoadTexture(const TCollection_AsciiString& theTextureFile)
 {
   SetErrorCode(GEOM_KO);
@@ -610,11 +724,6 @@ int GEOMImpl_IInsertOperations::LoadTexture(const TCollection_AsciiString& theTe
   return aTextureId;
 }
 
-//=============================================================================
-/*!
- *  AddTexture
- */
-//=============================================================================
 int GEOMImpl_IInsertOperations::AddTexture(int theWidth, int theHeight,
 					   const Handle(TColStd_HArray1OfByte)& theTexture)
 {
@@ -624,11 +733,6 @@ int GEOMImpl_IInsertOperations::AddTexture(int theWidth, int theHeight,
   return aTextureId;
 }
 
-//=============================================================================
-/*!
- *  GetTexture
- */
-//=============================================================================
 Handle(TColStd_HArray1OfByte) GEOMImpl_IInsertOperations::GetTexture(int theTextureId,
 								      int& theWidth, int& theHeight)
 {
@@ -648,15 +752,10 @@ Handle(TColStd_HArray1OfByte) GEOMImpl_IInsertOperations::GetTexture(int theText
   return aTexture;
 }
 
-//=============================================================================
-/*!
- *  GetAllTextures
- */
-//=============================================================================
 std::list<int> GEOMImpl_IInsertOperations::GetAllTextures()
 {
-  SetErrorCode(GEOM_KO);
-  std::list<int> id_list = GetEngine()->GetAllTextures(GetDocID());
-  SetErrorCode(GEOM_OK);
+  SetErrorCode(KO);
+  std::list<int> id_list = GetEngine()->getAllTextures(GetDocID());
+  SetErrorCode(OK);
   return id_list;
 }

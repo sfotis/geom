@@ -1,4 +1,6 @@
-// Copyright (C) 2005  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
+//
+// Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 // CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
 // 
 // This library is free software; you can redistribute it and/or
@@ -6,7 +8,7 @@
 // License as published by the Free Software Foundation; either 
 // version 2.1 of the License.
 // 
-// This library is distributed in the hope that it will be useful 
+// This library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of 
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
 // Lesser General Public License for more details.
@@ -25,12 +27,10 @@
 #include "GEOM_IOperations.hxx"
 #include "GEOM_Engine.hxx"
 #include "GEOM_Object.hxx"
-
 #include <TDocStd_Document.hxx>
 
 //!Interface class for basic geometric operations
 class GEOMImpl_IBasicOperations : public GEOM_IOperations {
-
  public:
   Standard_EXPORT GEOMImpl_IBasicOperations(GEOM_Engine* theEngine, int theDocID);
   Standard_EXPORT ~GEOMImpl_IBasicOperations();
@@ -153,4 +153,5 @@ class GEOMImpl_IBasicOperations : public GEOM_IOperations {
                                        const PointLocation theLocation,
                                        Handle(GEOM_Object) theRefPoint = 0);
 };
+
 #endif

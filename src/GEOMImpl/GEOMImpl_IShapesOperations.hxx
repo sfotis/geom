@@ -1,4 +1,4 @@
-//  Copyright (C) 2007-2008  CEA/DEN, EDF R&D, OPEN CASCADE
+// Copyright (C) 2007-2013  CEA/DEN, EDF R&D, OPEN CASCADE
 //
 //  Copyright (C) 2003-2007  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
 //  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
@@ -19,12 +19,12 @@
 //
 //  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 //
+
 //=============================================================================
 // File      : GEOMImpl_IShapesOperations.hxx
 // Created   : 
 // Author    : modified by Lioka RAZAFINDRAZAKA (CEA) 22/06/2007
 // Project   : SALOME
-// $Header: /home/server/cvs/GEOM/GEOM_SRC/src/GEOMImpl/GEOMImpl_IShapesOperations.hxx,v 1.13.2.3 2008/11/27 10:36:56 abd Exp $
 //=============================================================================
 
 #ifndef _GEOMImpl_IShapesOperations_HXX_
