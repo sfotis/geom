@@ -122,7 +122,7 @@ IMPLEMENT_STANDARD_RTTIEXT(GEOMAlgo_ClsfBox, GEOMAlgo_Clsf)
     aS=BRep_Tool::Surface(aF);
     myGAS[i-1].Load(aS);
     aType=myGAS[i-1].GetType();
-    if (!aType==GeomAbs_Plane) {
+    if (aType!=GeomAbs_Plane) {
       myErrorStatus=13; // unallowed surface type
       return;
     }
