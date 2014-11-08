@@ -111,7 +111,8 @@ FILE(GLOB Derived_XIntTools_source_files drv/XIntTools/*.cxx)
 
 INCLUDE_DIRECTORIES(inc drv/XBooleanOperations drv/XBOP drv/XBOPTColStd drv/XBOPTools drv/XIntTools)
 ADD_LIBRARY(TKXBO SHARED ${XBooleanOperations_source_files} ${XBOP_source_files} ${XBOPTColStd_source_files} ${XBOPTools_source_files} ${XIntTools_source_files} ${Derived_XBooleanOperations_source_files} ${Derived_XBOP_source_files} ${Derived_XBOPTColStd_source_files} ${Derived_XBOPTools_source_files} ${Derived_XIntTools_source_files})
-TARGET_LINK_LIBRARIES(TKXBO TKernel TKBRep TKMath TKG3d TKG2d TKGeomAlgo TKGeomBase TKTopAlgo TKService TKBool TKMesh TKLCAF TKCAF TKCDF TKAdvTools TKXSBase TKPrim TKFillet TKOffset TKShHealing)
+TARGET_LINK_LIBRARIES(TKXBO TKernel TKBRep TKMath TKG3d TKG2d TKGeomAlgo TKGeomBase TKTopAlgo TKService TKBool TKMesh TKLCAF TKCAF TKCDF TKAdvTools TKXSBase TKPrim TKFillet TKOffset TKShHealing
+TKV3d TKBO)
 
 ##########
 # TKGeom #
