@@ -69,9 +69,9 @@ XBOP_BlockBuilder::XBOP_BlockBuilder()
   myBlocks.Clear();
   myBlocksIsRegular.Clear();
   //
-  Standard_Boolean IsRegular, CurNei, Mextent, Eindex,
+  Standard_Boolean IsRegular, Mextent,
                    EnewinM, searchneighbours, condregu;
-  Standard_Integer iiregu;
+  Standard_Integer Eindex, CurNei, iiregu;
   //
   //
   SS.InitStartElements();
