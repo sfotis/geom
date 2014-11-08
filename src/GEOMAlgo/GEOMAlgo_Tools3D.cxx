@@ -196,7 +196,7 @@ Standard_Boolean GEOMAlgo_Tools3D::IsInternalFace(const TopoDS_Face& theFace,
                                                     const Handle(XIntTools_Context)& theContext)
 {
   Standard_Boolean bRet;
-  Standard_Boolean aNbF;
+  Standard_Integer aNbF;
   //
   bRet=Standard_False;
   //
