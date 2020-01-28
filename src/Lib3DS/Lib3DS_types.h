@@ -18,7 +18,7 @@
  *
  * You should  have received  a copy of the GNU Lesser General Public License
  * along with  this program;  if not, write to the  Free Software Foundation,
- * Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * $Id: Lib3DS_types.h,v 1.25 2007/06/21 08:36:41 jeh Exp $
  */
