@@ -438,7 +438,7 @@ void Sketcher_CommandTrim::RedrawOld()
 void Sketcher_CommandTrim::DelTrimmedObject()
 {
   if (Redraw())
-    myContext->Erase(curTrimmedObj,Standard_True,Standard_False);
+    myContext->Erase(curTrimmedObj,Standard_True);
 
   if (isInputMouse) {
     data->Remove(NearestCurveIndex);
@@ -458,7 +458,7 @@ void Sketcher_CommandTrim::EditLine(Standard_Real u1,Standard_Real u2)
     Handle(Geom_CartesianPoint) Geom_Point1 = new Geom_CartesianPoint(ElCLib::To3d(curCoordinateSystem.Ax2(),myFirstgp_Pnt2d));
     Handle(Geom_CartesianPoint) Geom_Point2 = new Geom_CartesianPoint(ElCLib::To3d(curCoordinateSystem.Ax2(),mySecondgp_Pnt2d));
     Handle(AIS_Line) myAIS_Line = new AIS_Line(Geom_Point1,Geom_Point2);
-    myContext->Erase(curTrimmedObj,Standard_True,Standard_False);
+    myContext->Erase(curTrimmedObj,Standard_True);
     myContext->Display(myAIS_Line);
     FirstObj = myAIS_Line;
     RedrawFlag = Standard_True;
@@ -520,7 +520,7 @@ void Sketcher_CommandTrim::EditCircle()
     myAIS_Circle->SetFirstParam(tempSketcher_Arc->FirstParameter());//(trimmedgp_Circ2d,myFirstgp_Pnt2d));
     myAIS_Circle->SetLastParam(tempSketcher_Arc->LastParameter()); //ElCLib::Parameter(trimmedgp_Circ2d,mySecondgp_Pnt2d));
     //myAIS_Circle->SetAttributes(myDrawer);
-    myContext->Erase(curTrimmedObj,Standard_True,Standard_False);
+    myContext->Erase(curTrimmedObj,Standard_True);
     myContext->Display(myAIS_Circle);
     FirstObj = myAIS_Circle;
   }
@@ -551,7 +551,7 @@ void Sketcher_CommandTrim::EditArc(Standard_Real u1,Standard_Real u2)
     myAIS_Circle->SetFirstParam(tempSketcher_Arc->FirstParameter());
     myAIS_Circle->SetLastParam(tempSketcher_Arc->LastParameter());
     //myAIS_Circle->SetAttributes(myDrawer);
-    myContext->Erase(curTrimmedObj,Standard_True,Standard_False);
+    myContext->Erase(curTrimmedObj,Standard_True);
     myContext->Display(myAIS_Circle);
     FirstObj = myAIS_Circle;
     RedrawFlag = Standard_True;
