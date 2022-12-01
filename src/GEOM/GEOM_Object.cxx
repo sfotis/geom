@@ -22,6 +22,7 @@
 #include <GEOM_Object.hxx>
 #include <GEOM_Engine.hxx>
 #include <GEOM_Solver.hxx>
+#include <TDF_Label.hxx>
 #include <TDF_Tool.hxx>
 #include <TDF_Data.hxx>
 #include <TDF_Reference.hxx>
@@ -41,7 +42,7 @@
 #include <TCollection_ExtendedString.hxx>
 #include <TopTools_IndexedMapOfShape.hxx>
 #include <TopExp.hxx>
-
+#include <TDataStd_ExtStringArray.hxx>
 #define FUNCTION_LABEL	 1
 #define TYPE_LABEL  	 2
 #define FREE_LABEL  	 3
@@ -51,7 +52,6 @@
 #define AUTO_COLOR_LABEL 7
 #define USER_DATA_LABEL  8
 #define MARKER_LABEL     9
-
 #define MARKER_LABEL_TYPE 1
 #define MARKER_LABEL_SIZE 2
 #define MARKER_LABEL_ID   3
@@ -686,12 +686,14 @@ Handle(GEOM_Function) GEOM_Object::GetFunction(int theFunctionNumber)
   Standard_Integer nb = 0;
   Handle(GEOM_Function) theResult;
   for(TDataStd_ChildNodeIterator CI(_root); CI.More(); CI.Next()) {
-	nb++;
-	if (nb==theFunctionNumber) {
-	  TDF_Label aChild = CI.Value()->Label();
-	  theResult = GEOM_Function::GetFunction(aChild);
-      break;
-	}
+    TDF_Label aChild = CI.Value()->Label();
+    if (!aChild.IsNull()) {
+      nb++;
+      if (nb==theFunctionNumber) {
+        theResult = GEOM_Function::GetFunction(aChild);
+        break;
+      }
+    }
   }
   return theResult;
 }
@@ -818,7 +820,148 @@ TDF_Label GEOM_Object::GetUserDataLabel()
 {
   return _label.FindChild(USER_DATA_LABEL);
 }
+//=======================================================================
+//function : SetMetadata TColStd_Array1OfExtendedString
+//purpose  :
+//=======================================================================
+void GEOM_Object::SetMetadata(Standard_Integer theMetadataID, const TColStd_Array1OfExtendedString& theDataArray)
+{
+  TDF_Label aLab = GetUserDataLabel();
+  TDF_Label theMetadataLab = aLab.FindChild(theMetadataID, Standard_True);
 
+  if( theMetadataLab.IsAttribute(TDataStd_ExtStringArray::GetID()) ) {
+	  theMetadataLab.ForgetAttribute( TDataStd_ExtStringArray::GetID() );
+  }
+  Handle(TDataStd_ExtStringArray) aTDFStringArray = new TDataStd_ExtStringArray;
+  aTDFStringArray->Init(theDataArray.Lower(), theDataArray.Upper());
+  for (int itr = theDataArray.Lower(); itr <= theDataArray.Upper(); itr ++) {
+    aTDFStringArray->SetValue(itr, theDataArray.Value(itr));
+  }
+  theMetadataLab.AddAttribute(aTDFStringArray);
+}
+//=======================================================================
+//function : SetMetadata Standard_Integer
+//purpose  :
+//=======================================================================
+void GEOM_Object::SetMetadata(Standard_Integer theMetadataID, Standard_Integer theData)
+{
+  TDF_Label aLab = GetUserDataLabel();
+  TDF_Label theMetadataLab = aLab.FindChild(theMetadataID, Standard_True);
+
+  if( theMetadataLab.IsAttribute(TDataStd_Integer::GetID()) ) {
+	  theMetadataLab.ForgetAttribute(TDataStd_Integer::GetID() );
+  }
+
+  TDataStd_Integer::Set(theMetadataLab, theData);
+}
+//=======================================================================
+//function : SetMetadata Standard_Real
+//purpose  :
+//=======================================================================
+void GEOM_Object::SetMetadata(Standard_Integer theMetadataID, Standard_Real theData)
+{
+  TDF_Label aLab = GetUserDataLabel();
+  TDF_Label theMetadataLab = aLab.FindChild(theMetadataID, Standard_True);
+
+  if( theMetadataLab.IsAttribute(TDataStd_Real::GetID()) ) {
+	  theMetadataLab.ForgetAttribute(TDataStd_Real::GetID() );
+  }
+
+  TDataStd_Real::Set(theMetadataLab, theData);
+}
+//=======================================================================
+//function : SetMetadata TCollection_ExtendedString
+//purpose  :
+//=======================================================================
+void GEOM_Object::SetMetadata(Standard_Integer theMetadataID, const TCollection_ExtendedString& theData)
+{
+  TColStd_Array1OfExtendedString theDataArray(0, 0);
+  theDataArray.SetValue(0, theData);
+  SetMetadata(theMetadataID, theDataArray);
+}
+//=======================================================================
+//function : GetMetadataArrExt
+//purpose  :
+//=======================================================================
+Handle(TColStd_HArray1OfExtendedString) GEOM_Object::GetMetadataArrExt(Standard_Integer theMetadataID)
+{
+  Handle(TColStd_HArray1OfExtendedString) aRetVal;
+
+  TDF_Label aLab = GetUserDataLabel();
+  TDF_Label theMetadataLab = aLab.FindChild(theMetadataID);
+  if (theMetadataLab.IsNull()) {
+    return aRetVal;
+  }
+  Handle(TDataStd_ExtStringArray) aTDFStringArray;
+  if(theMetadataLab.FindAttribute(TDataStd_ExtStringArray::GetID(), aTDFStringArray)) {
+    aRetVal = new TColStd_HArray1OfExtendedString(aTDFStringArray->Lower(), aTDFStringArray->Upper());
+    for (int itr = aTDFStringArray->Lower(); itr <= aTDFStringArray->Upper(); itr ++) {
+      aRetVal->SetValue(itr, aTDFStringArray->Value(itr));
+    }
+  }
+  return aRetVal;
+}
+//=======================================================================
+//function : GetMetadataExt
+//purpose  :
+//=======================================================================
+TCollection_ExtendedString GEOM_Object::GetMetadataExt(Standard_Integer theMetadataID)
+{
+  TCollection_ExtendedString theRet;
+  Handle(TColStd_HArray1OfExtendedString) myDataArr = GetMetadataArrExt(theMetadataID);
+  if (!myDataArr.IsNull()) {
+    theRet = myDataArr->Value(0);
+  }
+  return theRet;
+}
+//=======================================================================
+//function : GetMetadataInt
+//purpose  :
+//=======================================================================
+Standard_Integer GEOM_Object::GetMetadataInt(Standard_Integer theMetadataID)
+{
+  Standard_Integer aRetVal = 0;
+
+  TDF_Label aLab = GetUserDataLabel();
+  TDF_Label theMetadataLab = aLab.FindChild(theMetadataID);
+  if (theMetadataLab.IsNull()) {
+    return aRetVal;
+  }
+
+  Handle(TDataStd_Integer) anIdAttr;
+
+  if(theMetadataLab.FindAttribute(TDataStd_Integer::GetID(), anIdAttr)) {
+    if (!anIdAttr.IsNull()) {
+      aRetVal = anIdAttr->Get();
+    }
+  }
+
+  return aRetVal;
+}
+//=======================================================================
+//function : GetMetadataReal
+//purpose  :
+//=======================================================================
+Standard_Real GEOM_Object::GetMetadataReal(Standard_Integer theMetadataID)
+{
+  Standard_Real aRetVal = 0;
+
+  TDF_Label aLab = GetUserDataLabel();
+  TDF_Label theMetadataLab = aLab.FindChild(theMetadataID);
+  if (theMetadataLab.IsNull()) {
+    return aRetVal;
+  }
+
+  Handle(TDataStd_Real) anIdAttr;
+
+  if(theMetadataLab.FindAttribute(TDataStd_Real::GetID(), anIdAttr)) {
+    if (!anIdAttr.IsNull()) {
+      aRetVal = anIdAttr->Get();
+    }
+  }
+
+  return aRetVal;
+}
 //=======================================================================
 //function :  GEOM_Object_Type_
 //purpose  :

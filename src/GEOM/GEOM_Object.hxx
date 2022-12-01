@@ -323,6 +323,30 @@ class GEOM_Object : public MMgt_TShared
   //!Returns a label which could be used to store user data
   Standard_EXPORT TDF_Label GetUserDataLabel();
 
+  //!Sets a TColStd_Array1OfExtendedString as metadata to an Object
+  Standard_EXPORT void SetMetadata(Standard_Integer theMetadataID, const TColStd_Array1OfExtendedString& theDataArray);
+
+  //!Sets a Standard_Integer as metadata to an Object
+  Standard_EXPORT void SetMetadata(Standard_Integer theMetadataID, Standard_Integer theData);
+
+  //!Sets a Standard_Real as metadata to an Object
+  Standard_EXPORT void SetMetadata(Standard_Integer theMetadataID, Standard_Real theData);
+
+  //!Sets a TCollection_ExtendedString as metadata to an Object
+  Standard_EXPORT void SetMetadata(Standard_Integer theMetadataID, const TCollection_ExtendedString& theData);
+
+  //!Gets the metadata as TColStd_HArray1OfExtendedString if it exists
+  Standard_EXPORT Handle(TColStd_HArray1OfExtendedString) GetMetadataArrExt(Standard_Integer theMetadataID);
+
+  //!Gets the metadata as TCollection_ExtendedString if it exists
+  Standard_EXPORT TCollection_ExtendedString GetMetadataExt(Standard_Integer theMetadataID);
+
+  //!Gets the metadata as Standard_Integer if it exists
+  Standard_EXPORT Standard_Integer GetMetadataInt(Standard_Integer theMetadataID);
+
+  //!Gets the metadata as Standard_Real if it exists
+  Standard_EXPORT Standard_Real GetMetadataReal(Standard_Integer theMetadataID);
+
  private:
   Handle(TDataStd_TreeNode) _root;
   TDF_Label                 _label;
