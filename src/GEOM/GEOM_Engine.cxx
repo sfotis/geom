@@ -64,6 +64,8 @@
 #include <TColStd_DataMapIteratorOfDataMapOfIntegerTransient.hxx>
 #include <Resource_DataMapIteratorOfDataMapOfAsciiStringAsciiString.hxx>
 
+#include <ExprIntrp_GenExp.hxx>
+
 #include <set>
 #include <map>
 #include <string>
