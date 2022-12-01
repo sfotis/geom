@@ -237,7 +237,7 @@ Standard_Integer GEOMImpl_BlockDriver::Execute(TFunction_Logbook& log) const
         Standard_ConstructionError::Raise
           ("Impossible to build a connected wire from the given edges");
       }
-      TopoDS_Wire aWire = *MW;
+      TopoDS_Wire aWire = MW->Wire();
       delete MW;
 
       // check the wire closure
@@ -352,7 +352,7 @@ Standard_Integer GEOMImpl_BlockDriver::Execute(TFunction_Logbook& log) const
         Standard_ConstructionError::Raise("Wire construction failed");
       }
 
-      TopoDS_Wire aWire = *MW;
+      TopoDS_Wire aWire = MW->Wire();
       delete MW;
 
       TopoDS_Vertex aV1, aV2;

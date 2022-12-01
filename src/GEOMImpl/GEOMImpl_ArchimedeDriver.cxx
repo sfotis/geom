@@ -124,7 +124,7 @@ Standard_Integer GEOMImpl_ArchimedeDriver::Execute(TFunction_Logbook& log) const
 
   Standard_Real u1,u2,v1,v2;
   SurfaceTrimmee->Bounds(u1,u2,v1,v2);
-  TopoDS_Face tirant = BRepBuilderAPI_MakeFace(SurfaceTrimmee, u1, u2, v1, v2, Precision::Confusion());
+  TopoDS_Face tirant = BRepBuilderAPI_MakeFace(SurfaceTrimmee, u1, u2, v1, v2, Precision::Confusion()).Face();
 
   if (tirant.IsNull()) {
     StdFail_NotDone::Raise("Failed to build secant face");

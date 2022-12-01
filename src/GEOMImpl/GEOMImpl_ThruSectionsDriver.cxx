@@ -113,7 +113,7 @@ Standard_Integer GEOMImpl_ThruSectionsDriver::Execute(TFunction_Logbook& log) co
 
     else if(aTypeSect == TopAbs_EDGE) {
       TopoDS_Edge anEdge = TopoDS::Edge(aShapeSection);
-      TopoDS_Wire aWire = BRepBuilderAPI_MakeWire(anEdge);
+      TopoDS_Wire aWire = BRepBuilderAPI_MakeWire(anEdge).Wire();
       aBuilder.AddWire(aWire);
     }
     else if(aTypeSect == TopAbs_VERTEX) {

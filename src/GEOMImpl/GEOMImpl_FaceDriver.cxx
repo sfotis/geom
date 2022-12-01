@@ -104,11 +104,11 @@ Standard_Integer GEOMImpl_FaceDriver::Execute(TFunction_Logbook& log) const
       Standard_ConstructionError::Raise("Face creation aborted: coincident points given");
     if (gp_Vec(aP1, aP2).IsParallel(gp_Vec(aP1, aP3), Precision::Angular()))
       Standard_ConstructionError::Raise("Face creation aborted: points lay on one line");
-	TopoDS_Edge e1 = BRepBuilderAPI_MakeEdge( aP1, aP2 );
-	TopoDS_Edge e2 = BRepBuilderAPI_MakeEdge( aP2, aP3 );
-	TopoDS_Edge e3 = BRepBuilderAPI_MakeEdge( aP3, aP1 );
+	TopoDS_Edge e1 = BRepBuilderAPI_MakeEdge( aP1, aP2 ).Edge();
+	TopoDS_Edge e2 = BRepBuilderAPI_MakeEdge( aP2, aP3 ).Edge();
+	TopoDS_Edge e3 = BRepBuilderAPI_MakeEdge( aP3, aP1 ).Edge();
 
-	TopoDS_Wire w = BRepBuilderAPI_MakeWire( e1, e2, e3 );
+	TopoDS_Wire w = BRepBuilderAPI_MakeWire( e1, e2, e3 ).Wire();
 
     aShape = BRepBuilderAPI_MakeFace(w).Shape();
   }
@@ -148,7 +148,7 @@ Standard_Integer GEOMImpl_FaceDriver::Execute(TFunction_Logbook& log) const
 		TopoDS_Edge e34 = BRepBuilderAPI_MakeEdge( aP3, aP4 ).Edge();
 		TopoDS_Edge e41 = BRepBuilderAPI_MakeEdge( aP4, aP1 ).Edge();
 		
-		TopoDS_Wire w = BRepBuilderAPI_MakeWire( e12, e23, e34, e41 );
+		TopoDS_Wire w = BRepBuilderAPI_MakeWire( e12, e23, e34, e41 ).Wire();
 		aShape = BRepBuilderAPI_MakeFace( w );
 	}
 	else

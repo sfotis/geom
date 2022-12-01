@@ -136,8 +136,8 @@ static TopoDS_Wire getHelicalSpine( gp_Pnt p, gp_Ax1 ax, Standard_Real angle, St
 
 	//create the 2d line on the surface
 	Handle(Geom2d_TrimmedCurve) aSegment = GCE2d_MakeSegment(gp_Pnt2d(0.0,0.0), gp_Pnt2d(angle,offset) );
-	TopoDS_Edge anEdge = BRepBuilderAPI_MakeEdge(aSegment , aSurf);
-	TopoDS_Wire aWire = BRepBuilderAPI_MakeWire(anEdge);
+	TopoDS_Edge anEdge = BRepBuilderAPI_MakeEdge(aSegment , aSurf).Edge();
+	TopoDS_Wire aWire = BRepBuilderAPI_MakeWire(anEdge).Wire();
 	BRepLib::BuildCurves3d(aWire);
 
 	return aWire;

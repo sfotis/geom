@@ -303,7 +303,7 @@ TopoDS_Shape GEOMImpl_PrismDriver::MakeScaledPrism (const TopoDS_Shape& theShape
   // 5. Vector = geompy.MakeVector(aCDG, aCDG_2)
   TopoDS_Shape aShapeVec = BRepBuilderAPI_MakeEdge(aCDG, aCDG_2).Shape();
   TopoDS_Edge anEdge = TopoDS::Edge(aShapeVec);
-  TopoDS_Wire aWirePath = BRepBuilderAPI_MakeWire(anEdge);
+  TopoDS_Wire aWirePath = BRepBuilderAPI_MakeWire(anEdge).Wire();
 
   // 6. aPrism = geompy.MakePipeWithDifferentSections([theBase, aBase2], [aCDG, aCDG_2], Vector, False, False)
   Handle(TopTools_HSequenceOfShape) aBases = new TopTools_HSequenceOfShape;
