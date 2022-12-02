@@ -122,6 +122,31 @@ Handle(GEOM_Function) GEOM_Function::GetFunction(const TDF_Label& theEntry)
 
 //=============================================================================
 /*!
+ *  GetFunctionFromDescendant:
+ */
+//=============================================================================
+Handle(GEOM_Function) GEOM_Function::GetFunctionFromDescendant(const TDF_Label& theEntry)
+{
+  Handle(GEOM_Function) aFunc;
+
+  TDF_Label aLocalLabel(theEntry);
+
+  bool isFound = false;
+  bool isRoot = false;
+
+  while (!isFound && !isRoot) {
+    aFunc = GetFunction(aLocalLabel);
+    if (!aFunc.IsNull())
+      isFound = true;
+    if (aLocalLabel.IsRoot())
+      isRoot = true;
+    aLocalLabel = aLocalLabel.Father();
+  }
+  return aFunc;
+}
+
+//=============================================================================
+/*!
  *  Constructor:
  */
 //=============================================================================

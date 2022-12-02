@@ -161,6 +161,9 @@ public:
 
   //!Finds and returns a function located on a label theEntry
   Standard_EXPORT static Handle(GEOM_Function) GetFunction(const TDF_Label& theEntry);
+  
+  //!Finds and returns a function located on any parent of  label theEntry
+  Standard_EXPORT static Handle(GEOM_Function) GetFunctionFromDescendant(const TDF_Label& theEntry);
 
 
   Standard_EXPORT GEOM_Function(const TDF_Label& theEntry, const Standard_GUID& theGUID, int theType); 

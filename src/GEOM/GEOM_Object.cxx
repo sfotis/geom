@@ -103,6 +103,31 @@ Handle(GEOM_Object) GEOM_Object::GetObject(TDF_Label& theLabel)
   return retVal;
 }
 
+//=======================================================================
+//function : GetObjectFromDescendant
+//purpose  :
+//=======================================================================
+Handle(GEOM_Object) GEOM_Object::GetObjectFromDescendant(const TDF_Label& theLabel)
+{
+  Handle(GEOM_Object) anObj;
+
+  TDF_Label aLocalLabel(theLabel);
+
+  bool isFound = false;
+  bool isRoot = false;
+
+  while (!isFound && !isRoot) {
+    anObj = GEOM_Object::GetObject(aLocalLabel);
+    if (!anObj.IsNull())
+      isFound = true;
+    if (aLocalLabel.IsRoot())
+      isRoot = true;
+    aLocalLabel = aLocalLabel.Father();
+  }
+
+  return anObj;
+}
+
 //=============================================================================
 /*!
  *  GetReferencedObject

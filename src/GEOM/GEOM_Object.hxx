@@ -176,6 +176,9 @@ class GEOM_Object : public MMgt_TShared
   //!Finds a GEOM_Object on the label theLabel
   Standard_EXPORT static Handle(GEOM_Object) GetObject(TDF_Label& theLabel);
 
+  //!Finds a GEOM_Object located on any parent of label theLabel
+  Standard_EXPORT static Handle(GEOM_Object) GetObjectFromDescendant(const TDF_Label& theLabel);
+
   //!Finds a GEOM_Object by a reference, stored on the label theLabel
   Standard_EXPORT static Handle(GEOM_Object) GetReferencedObject(TDF_Label& theLabel);
 
