@@ -151,7 +151,7 @@
 GEOMImpl_IShapesOperations::GEOMImpl_IShapesOperations (GEOM_Engine* theEngine, int theDocID)
 : GEOM_IOperations(theEngine, theDocID)
 {
-  MESSAGE("GEOMImpl_IShapesOperations::GEOMImpl_IShapesOperations");
+  //MESSAGE("GEOMImpl_IShapesOperations::GEOMImpl_IShapesOperations");
 }
 
 //=============================================================================
@@ -161,7 +161,7 @@ GEOMImpl_IShapesOperations::GEOMImpl_IShapesOperations (GEOM_Engine* theEngine, 
 //=============================================================================
 GEOMImpl_IShapesOperations::~GEOMImpl_IShapesOperations()
 {
-  MESSAGE("GEOMImpl_IShapesOperations::~GEOMImpl_IShapesOperations");
+  //MESSAGE("GEOMImpl_IShapesOperations::~GEOMImpl_IShapesOperations");
 }
 
 
