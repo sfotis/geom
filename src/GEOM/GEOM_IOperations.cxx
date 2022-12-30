@@ -61,8 +61,12 @@ GEOM_IOperations::~GEOM_IOperations()
 void GEOM_IOperations::StartOperation()
 {
   Handle(TDocStd_Document) aDoc = _engine->GetDocument(_docID);
-  if(aDoc->GetUndoLimit() > 0) 
+  if(aDoc->GetUndoLimit() > 0) { 
+    if (aDoc->GetAvailableRedos () > 0) {
+      aDoc->ClearRedos();
+    }
     aDoc->NewCommand();
+  }
 }
 
 //=============================================================================
