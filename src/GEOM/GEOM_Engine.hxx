@@ -179,6 +179,9 @@ class GEOM_Engine
 
   //!Returns a label which could be used to store user data on documents
   Standard_EXPORT TDF_Label GetUserDataLabel(int theDocID);
+  
+  //!Returns a label that stores document metadata
+  Standard_EXPORT TDF_Label GetMetadataLabel(int theDocID);
 
   //!Adds a texture to be saved in the OCAF DF
   Standard_EXPORT int AddTexture(int theDocID, int theWidth, int theHeight,

@@ -325,6 +325,9 @@ class GEOM_Object : public MMgt_TShared
 
   //!Returns a label which could be used to store user data
   Standard_EXPORT TDF_Label GetUserDataLabel();
+  
+  //!Returns a label which stores object metadata
+  Standard_EXPORT TDF_Label GetMetadataLabel();
 
   //!Sets a TColStd_Array1OfExtendedString as metadata to an Object
   Standard_EXPORT void SetMetadata(Standard_Integer theMetadataID, const TColStd_Array1OfExtendedString& theDataArray);

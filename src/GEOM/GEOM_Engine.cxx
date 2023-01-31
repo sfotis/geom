@@ -75,8 +75,9 @@
 
 #define GEOM_LABEL       1
 #define CONSTANTS_LABEL  2
-#define USER_DATA_LABEL  3
+#define APP_USER_DATA_LABEL  3
 #define BITMAP_LABEL     4
+#define METADATA_LABEL     5
 
 #define COMMA ','
 #define O_BRACKET '('
@@ -736,7 +737,18 @@ void GEOM_Engine::SetInterpreterConstantArray(int theDocID, Handle(TColStd_HArra
 TDF_Label GEOM_Engine::GetUserDataLabel(int theDocID)
 {
   Handle(TDocStd_Document) aDoc = GetDocument(theDocID);
-  return aDoc->Main().FindChild(USER_DATA_LABEL);
+  return aDoc->Main().FindChild(APP_USER_DATA_LABEL);
+}
+
+//=============================================================================
+/*!
+ *  GetMetadataLabel
+ */
+//=============================================================================
+TDF_Label GEOM_Engine::GetMetadataLabel(int theDocID)
+{
+  Handle(TDocStd_Document) aDoc = GetDocument(theDocID);
+  return aDoc->Main().FindChild(METADATA_LABEL);
 }
 
 //=============================================================================
