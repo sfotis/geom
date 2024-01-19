@@ -223,17 +223,24 @@ TopoDS_Shape GEOM_Function::GetValue()
 
   TopoDS_Shape aShape;
   TDF_Label aLabel = GetOwnerEntry();
-  if (aLabel.IsRoot()) return aShape;
+
+  if (aLabel.IsRoot()) {
+    return aShape;
+  }
+
   Handle(GEOM_Object) anObject = GEOM_Object::GetObject(aLabel);
-  if (anObject.IsNull()) return aShape;
+  if (anObject.IsNull()) {
+    return aShape;
+  }
 
   if (!anObject->IsMainShape()) {
     bool isResult = false;
     TDF_Label aResultLabel = _label.FindChild(RESULT_LABEL);
     if (!aResultLabel.IsNull()) {
       Handle(TNaming_NamedShape) aNS;
-      if (aResultLabel.FindAttribute(TNaming_NamedShape::GetID(), aNS))
+      if (aResultLabel.FindAttribute(TNaming_NamedShape::GetID(), aNS)) {
         isResult = true;
+      }
     }
 
     // compare tics
@@ -241,38 +248,49 @@ TopoDS_Shape GEOM_Function::GetValue()
       // tic of this
       Standard_Integer aTic = anObject->GetTic();
 
-	  // tic of main shape
+      // tic of main shape
       // Check if the current function is a modification of a subshape
-	  Handle(GEOM_Function) mySubShapeFunction;
-	  if (this->GetType() == 28) 	//this func is a subshape
-		mySubShapeFunction = this;
-	  else						//this func is a modification of a subshape
-		mySubShapeFunction = anObject->GetFunction(1);
-	  GEOM_ISubShape aCI (mySubShapeFunction);
+      Handle(GEOM_Function) mySubShapeFunction;
+      if (this->GetType() == 28)   //this func is a subshape
+      mySubShapeFunction = this;
+      else            //this func is a modification of a subshape
+      mySubShapeFunction = anObject->GetFunction(1);
+      GEOM_ISubShape aCI (mySubShapeFunction);
 
-      TDF_Label aLabelObjMainSh = aCI.GetMainShape()->GetOwnerEntry();
-      if (aLabelObjMainSh.IsRoot()) return aShape;
-      Handle(GEOM_Object) anObjMainSh = GEOM_Object::GetObject(aLabelObjMainSh);
-      if (anObjMainSh.IsNull()) return aShape;
-      Standard_Integer aTicMainSh = anObjMainSh->GetTic();
+      Handle(GEOM_Function) anShFunc = aCI.GetMainShape();
 
-      // compare
-      isResult = ((aTic == aTicMainSh) ? true : false);
+      if (!anShFunc.IsNull()) {
+        TDF_Label aLabelObjMainSh = anShFunc->GetOwnerEntry();
+        if (aLabelObjMainSh.IsRoot()) {
+          return aShape;
+        }
+        Handle(GEOM_Object) anObjMainSh = GEOM_Object::GetObject(aLabelObjMainSh);
+        if (anObjMainSh.IsNull()) {
+          return aShape;
+        }
+        Standard_Integer aTicMainSh = anObjMainSh->GetTic();
+
+        // compare
+        isResult = ((aTic == aTicMainSh) ? true : false);
+      }
+      else {
+        isResult = true; //keep local value, main shape does not exist
+      }
     }
 
     if (!isResult) {
       try {
 #if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
-		OCC_CATCH_SIGNALS;
+        OCC_CATCH_SIGNALS;
 #endif
-		GEOM_Solver aSolver(GEOM_Engine::GetEngine());
+        GEOM_Solver aSolver(GEOM_Engine::GetEngine());
         if (!aSolver.ComputeFunction(this)) {
           MESSAGE("GEOM_Object::GetValue Error : Can't build a sub shape");
           return aShape;
         }
       }
       catch (Standard_Failure) {
-		Handle(Standard_Failure) aFail = Standard_Failure::Caught();
+        Handle(Standard_Failure) aFail = Standard_Failure::Caught();
         MESSAGE("GEOM_Function::GetValue Error: " << aFail->GetMessageString());
         return aShape;
       }
@@ -281,7 +299,10 @@ TopoDS_Shape GEOM_Function::GetValue()
 
   TDF_Label aResultLabel = _label.FindChild(RESULT_LABEL);
   Handle(TNaming_NamedShape) aNS;
-  if (!aResultLabel.FindAttribute(TNaming_NamedShape::GetID(), aNS)) return aShape;
+
+  if (!aResultLabel.FindAttribute(TNaming_NamedShape::GetID(), aNS)) {
+    return aShape;
+  }
 
   aShape = aNS->Get();
 
@@ -327,14 +348,14 @@ void GEOM_Function::SetValue(TopoDS_Shape& theShape)
     anObject->IncrementTic();
   }
   else {
-	// update modifications counter of this (sub-) shape to be the same as on main shape
-	// Check if the current function is a modification of a subshape
-	Handle(GEOM_Function) mySubShapeFunction;
-	if (this->GetType() == 28) 	//this func is a subshape
-	  mySubShapeFunction = this;
-	else						//this func is a modification fo a subshape
-	  mySubShapeFunction = anObject->GetFunction(1);
-	GEOM_ISubShape aCI (mySubShapeFunction);
+  // update modifications counter of this (sub-) shape to be the same as on main shape
+  // Check if the current function is a modification of a subshape
+  Handle(GEOM_Function) mySubShapeFunction;
+  if (this->GetType() == 28)   //this func is a subshape
+    mySubShapeFunction = this;
+  else            //this func is a modification fo a subshape
+    mySubShapeFunction = anObject->GetFunction(1);
+  GEOM_ISubShape aCI (mySubShapeFunction);
 
     TDF_Label aLabelObjMainSh = aCI.GetMainShape()->GetOwnerEntry();
     if (aLabelObjMainSh.IsRoot()) return;
