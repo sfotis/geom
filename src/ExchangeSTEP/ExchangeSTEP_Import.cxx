@@ -152,7 +152,7 @@ extern "C"
 
     STEPControl_Reader aReader;
     //VSR: 16/09/09: Convert to METERS
-    Interface_Static::SetCVal("xstep.cascade.unit","M");
+    Interface_Static::SetCVal("xstep.cascade.unit","MM");
     Interface_Static::SetIVal("read.step.ideas", 1);
     Interface_Static::SetIVal("read.step.nonmanifold", 1);
 
@@ -195,7 +195,7 @@ extern "C"
         else {
           //cout<<"need re-scale a model"<<endl;
           // set UnitFlag to 'meter'
-          Interface_Static::SetCVal("xstep.cascade.unit","M");
+          Interface_Static::SetCVal("xstep.cascade.unit","MM");
         }
 
 	Standard_Boolean failsonly = Standard_False ;
