@@ -233,6 +233,7 @@ TopoDS_Shape GEOM_Function::GetValue()
     return aShape;
   }
 
+/*
   if (!anObject->IsMainShape()) {
     bool isResult = false;
     TDF_Label aResultLabel = _label.FindChild(RESULT_LABEL);
@@ -240,6 +241,7 @@ TopoDS_Shape GEOM_Function::GetValue()
       Handle(TNaming_NamedShape) aNS;
       if (aResultLabel.FindAttribute(TNaming_NamedShape::GetID(), aNS)) {
         isResult = true;
+        aShape = aNS->Get();
       }
     }
 
@@ -251,10 +253,12 @@ TopoDS_Shape GEOM_Function::GetValue()
       // tic of main shape
       // Check if the current function is a modification of a subshape
       Handle(GEOM_Function) mySubShapeFunction;
-      if (this->GetType() == 28)   //this func is a subshape
-      mySubShapeFunction = this;
-      else            //this func is a modification of a subshape
-      mySubShapeFunction = anObject->GetFunction(1);
+      if (this->GetType() == 28) {   //this func is a subshape
+        mySubShapeFunction = this;
+      }
+      else {  //this func is a modification of a subshape
+        mySubShapeFunction = anObject->GetFunction(1);
+      }
       GEOM_ISubShape aCI (mySubShapeFunction);
 
       Handle(GEOM_Function) anShFunc = aCI.GetMainShape();
@@ -296,6 +300,7 @@ TopoDS_Shape GEOM_Function::GetValue()
       }
     }
   }
+*/
 
   TDF_Label aResultLabel = _label.FindChild(RESULT_LABEL);
   Handle(TNaming_NamedShape) aNS;
