@@ -1,0 +1,126 @@
+-- File:	ShapeInterference.cdl
+-- Created:	Mon Jan 27 09:55:18 1997
+-- Author:	Prestataire Xuan PHAM PHU
+--		<xpu@tornadox.paris1.matra-dtv.fr>
+---Copyright:	 Matra Datavision 1997
+
+
+package ShapeInterference
+
+    --Purpose: This package provides methods to compute and store
+    --         Interference data structure.
+    --         
+    --         There is interference between two shapes when :
+    --           - the shapes are tangent,
+    --           - the shapes have common solid part : it can be a
+    --           collision or a inclusion of one of the shapes in 
+    --           the other.
+    --           
+    --         Topological operator SECTION helps us to detect an 
+    --         interference.
+    --         We use the topological operator COMMON to compute 
+    --         a collision.
+
+uses
+    Standard,
+    TCollection,
+    TColStd,
+    TopoDS,
+    TopTools,
+    TopExp,
+    TopOpeBRepBuild,
+    TopOpeBRepDS,
+    BRep,
+    BRepBuilderAPI,
+    BRepClass3d,
+    Bnd,
+    BRepBndLib
+    
+is
+    enumeration TypeOfInterf is
+    	--Purpose: Type of interference.    
+    	TOI_TGCY,
+	TOI_COLLISION
+	
+    end TypeOfInterf;
+	
+    enumeration TypeOfTgcy is
+    	--Purpose: Type of Tangency.	
+    	TOT_TGCYONEDGE,
+	TOT_TGCYONFACE
+	
+    end TypeOfTgcy;	
+	
+    --
+    --	The Data Structure :
+    --		
+	
+    class InterfObj;
+	--Purpose: This class describes an elementary interference
+	--         between two shapes.
+	--         An InterfObj contains the section representation
+	--         of a tangency or a collision.
+	
+    	class Tangency;
+	    --Purpose: This class describes a tangency between two shapes.
+	    --         It contains information about the data structure 
+	    --         attached to this elementary interference.
+	    --         
+	    --         Tangency inherits from InterfObj.
+
+	class Collision;
+	    --Purpose: This class describes a collision between two shapes.
+	    --         It contains a common part between the shapes.
+	    --         
+	    --         Collision inherits from InterfObj. 
+	 
+    class Interference;	
+    	--Purpose: This class describes an interference's Data Structure.
+    	--         Interference is used to store and manage a list of two shapes'
+    	--         elementary interferences.
+    	--         If there is no interference, the object is empty.
+
+    class SequenceOfInterfObj instantiates Sequence from TCollection
+    	(InterfObj from ShapeInterference);
+ 
+    --     
+    --  Methods to fill the Data Structure :
+    --     
+
+   ComputeFirstCollision( aShape1, aShape2 : Shape from TopoDS;
+    	    	    	   anInterf : out Interference from ShapeInterference)
+    	returns Boolean from Standard; 
+     	--Purpose: Starts interference's detection, and ends when first
+     	--         collision detected, else, computes all sections.
+
+	     
+    ComputeInterference( aShape1, aShape2 : Shape from TopoDS; 
+    	    	    	 anInterf : out Interference from ShapeInterference;
+    	    	    	 withApprox : Boolean from Standard;
+    	    	    	 stopatfirstcoll : Boolean from Standard)
+    	returns Boolean from Standard;
+	
+     	--Purpose: Detects all interference cases : tangency cases or
+     	--         collision cases.
+     	--         Stores the result in the interference <anInterf>
+    	
+     	--         If <withApprox> is False, the approximated section
+     	--         curves are of type BSPLINE1.
+     	--         
+     	--         If <stopatfirstcoll>  is   true, the   method  will
+     	--         return true when first collision is found.  
+     	--         In this case, if a collision happens, <anInterf> binds
+     	--         one object collision, described with all section edges.
+     	--         Else, <anInterf> binds one object tangency, described
+     	--         with all section edges. 
+     
+     
+    ComputeCommon( aShape1, aShape2 : Shape from TopoDS; 
+    	    	   anInterf : out Interference from ShapeInterference )
+    	returns Boolean from Standard; 	
+	
+     	--Purpose: This method computes collisions between the two shapes.
+     	--         It does not compute tangency cases.
+ 
+ 
+end ShapeInterference;

@@ -1,0 +1,85 @@
+-- File:	ShapeInterference_Interference.cdl
+-- Created:	Mon Jan 27 10:32:31 1997
+-- Author:	Prestataire Xuan PHAM PHU
+--		<xpu@tornadox.paris1.matra-dtv.fr>
+---Copyright:	 Matra Datavision 1997
+
+class Interference from ShapeInterference
+
+    	--Purpose:  Class Interference describes the Interference data
+    	--          structure.  It is used to  store and manage a sequence
+    	--          of two shapes' elementary interferences.  
+
+uses
+    InterfObj           from ShapeInterference,
+    SequenceOfInterfObj from ShapeInterference,
+    Shape               from TopoDS
+
+is
+    -- Contructors:
+
+    Create returns Interference from ShapeInterference;
+    	---Purpose: Empty constructor.
+
+    Empty( me : in out );
+    	---Purpose: Empties field mySeqOfInterfObj.
+ 
+    -- Methods to fill InterfObj's fields : 
+    
+    AddInterfObj( me : in out;
+    	          anInterfObject : InterfObj from ShapeInterference );
+    	---Purpose: Stores the interference's elementary object in 
+    	--          the the data structure.
+ 
+    SetInclusion( me : in out );
+    	---Purpose: Sets field <hasInclusion> to True.
+ 
+    -- Methods to return the data structure.  	    
+
+    GetInterfNbr( me ) returns Integer from Standard; 
+    	---Purpose: Returns the number of interference objects. 	     
+	
+    GetInterfObj( me;
+    	    	  anIndex : Integer from Standard )
+    	 returns InterfObj from ShapeInterference;
+    	---Purpose: Returns the interference object of given index.
+    	--          Raises out of range if <anIndex> is not in range
+    	--          <1 .. InterfNbr>. 
+
+    HasTangency( me ) returns Boolean from Standard; 
+    	---Purpose: Returns True if there is at least one contact.	
+
+    HasCollision( me ) returns Boolean from Standard; 
+    	---Purpose: Returns True if there is at least one collision.
+       
+    HasInclusion( me ) returns Boolean from Standard; 	 
+    	---Purpose: Returns True if one of the parents is contained 
+    	--          in the other.    	  	
+	
+	
+   -- To get more information about the data structure : 	
+	
+    GetTangencyNbr( me ) returns Integer from Standard; 
+    	---Purpose: Returns the number of tangencies. 	
+	
+    GetCollisionNbr( me	) returns Integer from Standard; 
+    	---Purpose: Returns the number of collisions.
+
+    GetSeqOfTangencies( me;
+    	    	    	aSequence : out SequenceOfInterfObj from ShapeInterference ) ;
+    	---Purpose: Returns in <aSequence> the sequence of tangencies.      
+	
+    GetSeqOfCollisions( me;
+    	    	    	aSequence : out SequenceOfInterfObj from ShapeInterference ) ;
+    	---Purpose: Returns in <aSequence> the sequence of collisions.  
+	
+    GetAllSections( me )
+    	    returns Shape from TopoDS;	
+    	---Purpose: Returns the compound of sections computed for
+    	--          the interference.
+
+fields
+    hasInclusion      : Boolean             from Standard;
+    mySeqOfInterfObj : SequenceOfInterfObj from ShapeInterference;
+			     
+end Interference;

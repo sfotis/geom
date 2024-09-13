@@ -1,0 +1,36 @@
+-- File:	ShapeInterference_Collision.cdl
+-- Created:	Mon Jan 27 12:54:15 1997
+-- Author:	Prestataire Xuan PHAM PHU
+--		<xpu@tornadox.paris1.matra-dtv.fr>
+---Copyright:	 Matra Datavision 1997
+
+
+class Collision from ShapeInterference inherits InterfObj from ShapeInterference
+
+        --Purpose: This class describes a collision between two shapes.
+        --         It contains the interference's common result.
+
+
+uses
+    TypeOfInterf from ShapeInterference,
+    Shape        from TopoDS
+
+is     
+    Create returns mutable Collision from ShapeInterference; 
+    	---Purpose: Empty constructor.
+
+    SetCommon( me : mutable;
+    	       aCommonResult : Shape from TopoDS );
+    	---Purpose: Stores the common result.
+			
+    GetInterfType( me )
+    	 returns TypeOfInterf from ShapeInterference is redefined;  
+    	---Purpose: Returns ShapeInterference_TOI_COLISION.
+      
+    GetCommon( me ) returns Shape from TopoDS;	
+    	---Purpose: Get field myCommon.			    				    
+								  
+fields
+    myCommon  : Shape from TopoDS;
+    
+end Collision;

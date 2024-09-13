@@ -1,0 +1,60 @@
+-- File:	ShapePlacement.cdl
+-- Created:	Fri Mar  8 11:56:18 1996
+-- Author:	Christian MATHY
+--		<cmy@mastox>
+---Copyright:	 Matra Datavision 1996
+package ShapePlacement 
+
+	---Purpose: 
+
+uses
+    TopoDS, 
+    TCollection, 
+    TColStd, 
+    gp, 
+    TopTools
+is
+    enumeration TypeOfConstraint is 
+	---Purpose: Type of a Constraint.
+    	ALIGN,
+	IN_ALIGN,
+	OUT_ALIGN,
+	PARALLELE,
+	IN_PARALLELE,
+	OUT_PARALLELE,
+	ANGLE,
+	IN_ANGLE,
+	OUT_ANGLE
+	
+    end TypeOfConstraint;
+    
+    enumeration TypeOfEquation is 
+    	---Purpose: Type of a Equation
+    	PLANE_PLACEMENT,
+	AXIS_AXIS_PLACEMENT,
+	LINE_PLACEMENT,
+       	P_ANGULAR_PLACEMENT,
+	A_ANGULAR_PLACEMENT,
+        CONE_PLACEMENT,
+	PLANE_AXIS_PLACEMENT
+    end TypeOfEquation ;
+    
+    enumeration TypeOfAxisConstraint is 
+	---Purpose: Type of a Constraint.
+    	AXIS,
+	NONE
+	
+    end TypeOfAxisConstraint;
+
+    class Constraint;
+    
+    class Equation ;
+
+    class ConstraintAlgo;
+
+    class ListOfConstraint instantiates 
+    	List from TCollection (Constraint from ShapePlacement) ;
+
+end ShapePlacement;
+
+

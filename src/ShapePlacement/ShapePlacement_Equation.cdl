@@ -1,0 +1,175 @@
+-- File:	ShapePlacement_Equation.cdl
+-- Created:	Tue Mar 26 18:07:29 1996
+-- Author:	Xavier BENVENISTE
+--		<xab@mentox>
+---Copyright:	 Matra Datavision 1996
+
+class Equation from ShapePlacement 
+
+	---Purpose: 
+
+uses
+      TypeOfConstraint     from ShapePlacement,
+      TypeOfAxisConstraint from ShapePlacement,
+      TypeOfEquation       from ShapePlacement,
+      Face  from TopoDS,
+      Edge  from TopoDS,
+      Shape from TopoDS,
+      Pnt from gp,
+      Dir from gp
+is
+
+    Create returns Equation from ShapePlacement;
+    
+    Create(aKey       : TypeOfConstraint from ShapePlacement;
+	   aSubShape  : Shape from TopoDS;
+           aSubAxis   : TypeOfAxisConstraint   from ShapePlacement;
+  	   aFixShape  : Shape from TopoDS;
+	   aFixedAxis : TypeOfAxisConstraint from ShapePlacement;
+    	   aValue     : Real from Standard ;
+    	   IsaValue   : Boolean from Standard)
+    returns Equation from ShapePlacement;
+    
+    Create(anAngularTolerance : Real from Standard ;
+           aKey               : TypeOfConstraint from ShapePlacement;
+	   aSubShape          : Shape from TopoDS;
+           aSubAxis           : TypeOfAxisConstraint   from ShapePlacement;
+  	   aFixShape          : Shape from TopoDS;
+	   aFixedAxis         : TypeOfAxisConstraint from ShapePlacement;
+    	   aValue             : Real from Standard ;
+    	   IsaValue           : Boolean from Standard)
+    returns Equation from ShapePlacement;
+	    
+    InitFaceFace(me : in out ;
+    	         anAngularTol  : Real from Standard ;
+    	    	 aFace         : Face from TopoDS ;
+    	    	 aFixedFace    : Face from TopoDS ;
+		 aKey          : TypeOfConstraint from ShapePlacement;
+		 aValue        : Real from Standard ;
+    	         IsaValue      : Boolean from Standard) 
+    is   private ;
+    --
+    --     deals with a moving face constraint to a fixed face
+    --     
+    
+    InitEdgeFace(me : in out ;
+    	    	 anEdge     : Edge from TopoDS ;
+    	    	 aFixedFace : Face from TopoDS ;
+		 aKey       : TypeOfConstraint from ShapePlacement;
+		 aValue     : Real from Standard ;
+    	         IsaValue   : Boolean from Standard) 
+    is   private ;
+    --
+    --   deals with a moving edge constraint to a fixed face
+    -- 
+    -- 
+    InitEdgeEdge(me : in out ;
+    	    	 anEdge     : Edge from TopoDS ;
+    	    	 aFixedFace : Face from TopoDS ;
+		 aKey       : TypeOfConstraint from ShapePlacement;
+		 aValue     : Real from Standard ;
+    	         IsaValue   : Boolean from Standard) 
+    is   private ;
+    
+    InitAxisFace(me : in out ;
+    	    	 aFace      : Face from TopoDS ;
+    	    	 aFixedFace : Face from TopoDS ;
+		 aKey       : TypeOfConstraint from ShapePlacement;
+		 aValue     : Real from Standard ;
+    	         IsaValue   : Boolean from Standard) 
+    is   private ;
+    
+    --
+    --   deals with a moving Axis constraint to a fixed Face
+    -- 
+    InitFaceAxis (me : in out ;
+    	    	 aFace      : Face from TopoDS ;
+    	    	 aFixedFace : Face from TopoDS ;
+		 aKey       : TypeOfConstraint from ShapePlacement;
+		 aValue     : Real from Standard ;
+    	         IsaValue   : Boolean from Standard) 
+    is   private ;
+    --
+    --     deals with a moving Face constraint to a fixed Axis
+    --     
+    InitAxisAxis( me : in out ;
+    	    	aFace      : Face from TopoDS ;
+    	    	aFixedFace : Face from TopoDS ;
+		aKey       : TypeOfConstraint from ShapePlacement;
+		aValue     : Real from Standard ;
+    	        IsaValue   : Boolean from Standard) 
+    is   private ;
+    --
+    -- 	   deals with a moving Axis constraint to a fixed Axis
+    -- 	   
+		 
+    Init(me: in out;anAngularTolerance  : Real from Standard ; 
+    	    	    aKey                : TypeOfConstraint from ShapePlacement;
+	    	    aSubShape           : Shape from TopoDS;
+		    aSubAxis            : TypeOfAxisConstraint from ShapePlacement;
+    	    	    aFixShape           : Shape from TopoDS;
+		    aFixedAxis          : TypeOfAxisConstraint from ShapePlacement;
+    	    	    aValue              : Real from Standard ;
+    	    	    IsaValue            : Boolean from Standard); 
+		     
+  Print(me; S : in out OStream) is static;
+    	---Purpose: This methode prints the set of equation
+  FixedPoint(me) returns Pnt from gp ;
+   --- C++: inline 
+  MovingPoint(me) returns Pnt from gp ;
+   --- C++: inline 
+  FixedNormal(me) returns Dir from gp ;
+  
+  --- C++: inline 
+  ---Purpose: applies when the fixed part of the constraint is a plane
+  --           
+ MovingNormal(me) returns Dir from gp ;
+  --- C++: inline 
+  ---Purpose: applies when the moving part of the constraint is a plane
+  --          
+  FixedDirection(me) returns Dir from gp ;
+  --- C++: inline 
+  ---Purpose: applies when the fixed part of the constraint is a line
+  --          
+  --            
+  MovingDirection(me) returns Dir from gp ;
+  --- C++: inline 
+  ---Purpose: applies when the moving part of the constraint is a line
+  --          
+  SignedDistance(me) returns Real from Standard ;
+  --- C++: inline 
+  --- C++: return const &
+  --  
+  Angle(me) returns Real from Standard ;
+  ---  C++: inline
+  ---  C++: return const &
+  Type(me) returns  TypeOfEquation from ShapePlacement;
+  --- C++: inline 
+  --- C++: return const &
+
+
+  fields
+ -- when the type of equation is ShapePlacement_PLANE_PLACEMENT we are
+ -- looking to get a rigid motion in 3D space u such that :
+ -- 
+ --   (u(myMovingPoint) - myFixedPoint).myFixedNormal = 0
+ --   v(myMovingNormal) = myFixedNormal 
+ --   
+ --   where v is the linear orthogonal transformation associated to
+ --   u
+ --   
+	myKeyWord         : TypeOfEquation from ShapePlacement;
+	myFixedPoint      : Pnt from gp ;
+	myFixedNormal     : Dir from gp ;
+        myFixedDirection  : Dir from gp ;
+        myMovingPoint     : Pnt from gp ;
+	myMovingNormal    : Dir from gp ;
+	myMovingDirection : Dir from gp ;
+    	myDistance        : Real from Standard;
+	myAngle           : Real from Standard;
+
+end Equation;
+
+
+
+

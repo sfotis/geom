@@ -14,6 +14,8 @@ p XBOP
 p XBOPTColStd
 p XBOPTools
 p XIntTools
+p ShapeInterference
+p ShapePlacement
 r GEOMResources
 t TKGeom
 t TKXBO

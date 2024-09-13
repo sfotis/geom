@@ -1,0 +1,61 @@
+-- File:	ShapePlacement_Constraint.cdl
+-- Created:	Fri Mar  8 12:13:42 1996
+-- Author:	Christian MATHY
+--		<cmy@mastox>
+---Copyright:	 Matra Datavision 1996
+
+
+class Constraint from ShapePlacement 
+
+	---Purpose: 
+
+uses
+    TypeOfConstraint     from ShapePlacement,
+    TypeOfAxisConstraint from ShapePlacement,
+    Equation             from ShapePlacement,
+    Shape from TopoDS
+is
+
+    Create returns Constraint from ShapePlacement;
+    Create(aKey      : TypeOfConstraint from ShapePlacement;
+	   aSubShape : Shape from TopoDS;
+	   aSubAxis  : TypeOfAxisConstraint from ShapePlacement;
+    	   aFixShape : Shape from TopoDS;
+	   aFixedAxis: TypeOfAxisConstraint from ShapePlacement;
+    	   aValue    : Real from Standard ;
+    	   IsaValue : Boolean from Standard) 
+    returns Constraint from ShapePlacement;
+
+    Create(anAngularTolerance : Real from Standard ;
+           aKey               : TypeOfConstraint from ShapePlacement;
+	   aSubShape          : Shape from TopoDS;
+	   aSubAxis           : TypeOfAxisConstraint from ShapePlacement;
+    	   aFixShape          : Shape from TopoDS;
+	   aFixedAxis         : TypeOfAxisConstraint from ShapePlacement;
+    	   aValue             : Real from Standard ;
+    	   IsaValue           : Boolean from Standard) 
+    returns Constraint from ShapePlacement;
+ 
+    Set(me: in out; aKey : TypeOfConstraint from ShapePlacement;
+	    	    aSubShape : Shape from TopoDS;
+		    aSubAxis: TypeOfAxisConstraint from ShapePlacement;
+    	    	    aFixShape : Shape from TopoDS;
+		    aFixedAxis: TypeOfAxisConstraint from ShapePlacement;
+    	    	    aValue    : Real from Standard ;
+    	    	    IsaValue : Boolean from Standard);
+    Equation(me) returns Equation from ShapePlacement ;
+    ---C++ : return const &
+fields
+	myKeyWord           : TypeOfConstraint from ShapePlacement;
+	myFixedShape        : Shape from TopoDS;
+	myFixedAxis         : TypeOfAxisConstraint from ShapePlacement;
+	mySubShape          : Shape from TopoDS;
+	mySubAxis           : TypeOfAxisConstraint from ShapePlacement;
+    	myValue             : Real from Standard;
+	IsSignificatedValue : Boolean from Standard;
+	myEquation          : Equation  from ShapePlacement;
+    	-- extracted information from the shapes :
+    	-- basically a point and a normal for planar faces
+    	-- a point a direction for edges that are lines
+    	-- the type of linear equation we are going to get.
+end Constraint;

@@ -1,0 +1,221 @@
+-- File:	ShapePlacement_ConstraintAlgo.cdl
+-- Created:	Fri Mar  8 13:00:20 1996
+-- Author:	Christian MATHY
+--		<cmy@mastox>
+---Copyright:	 Matra Datavision 1996
+
+
+class ConstraintAlgo from ShapePlacement 
+
+	---Purpose: 
+
+uses
+    Array1OfInteger from TColStd,
+    HArray1OfInteger from TColStd,
+    Trsf from gp,
+    Pnt from gp,
+    Shape from TopoDS,
+    Constraint  from ShapePlacement,
+    TypeOfConstraint from ShapePlacement,
+    TypeOfAxisConstraint from ShapePlacement,
+    ListOfConstraint from ShapePlacement,
+    IndexedMapOfShape from TopTools,
+    OStream
+is
+    Create(AngularTolerance : Real from Standard = 1.0e-6) 
+     returns ConstraintAlgo from ShapePlacement;
+	---Purpose: Undefined Algo.
+	--          
+
+    Create(S : Shape from TopoDS ;
+           AngularTolerance : Real from Standard) 
+    returns ConstraintAlgo from ShapePlacement;
+	---Purpose: Undefined Algo.
+ 	--          
+    Load(me : in out ; S : Shape from TopoDS);
+    ---Purpose: Set the field MyShapeToPosition to S
+    -- this metyhod is only needed for tests with Draw          
+    --                          
+    
+    HasSolution (me) returns Boolean from Standard is static;
+    	---Purpose: This methode returns true when there is a solution 
+    	--          and false in the other cases.
+
+    GetTrsf (me) returns Trsf from gp is static;
+    	---Purpose: This methode returns the transformation associated
+    	--          to the set of constraints.
+
+    Solve (me : in out ) is static ;
+    	---Purpose: This methode tries to  find a solution for the set
+    	--          of   constraints.   
+
+    AddConstraint(me : in out; 
+    	    aKeyWord : TypeOfConstraint from ShapePlacement; 
+    	    aSubShape : Shape from TopoDS; 
+    	    aSubAxis: TypeOfAxisConstraint from ShapePlacement;  
+    	    aFixedShape : Shape from TopoDS; 
+    	    aFixedAxis: TypeOfAxisConstraint from ShapePlacement)  
+    returns Integer from Standard;
+    	---Purpose: This methode add a constraint to the set of constraint.
+    	--          a SubShape is a sub element of the shape to place.
+
+    AddConstraint(me : in out; 
+    	    	  aKeyWord : TypeOfConstraint from ShapePlacement; 
+    	    	  aSubShape : Shape from TopoDS; 
+    	    	  aSubAxis: TypeOfAxisConstraint from ShapePlacement; 
+    	    	  aFixedShape : Shape from TopoDS;  
+    	    	  aFixedAxis: TypeOfAxisConstraint from ShapePlacement;  
+    	    	  aCotation : Real from Standard)  
+    returns Integer from Standard;
+    	---Purpose: This methode add a constraint to the set of constraint.
+    	--          a SubShape is a sub element of the shape to place.
+
+    SetTolerance(me : in out;
+    	         AngularTolerance : Real from Standard) ;
+	---Purpose:
+	--  sets the angular tolerance 
+	--              
+	--              
+    PrintConstraint(me; S : in out OStream) is static;
+    	---Purpose: This methode prints the set of constraint.
+    
+
+    GetShapeToPosition(me) returns Shape from TopoDS ;
+        ---Purpose: returns the shape to position 
+        --          
+        --              	    	           	    	       
+    PositionShape(me : in out; 
+    	ShapeToPosition : Shape from TopoDS) 
+    returns Integer  from  Standard;
+    	---Purpose: This methode stores the shape to position.
+    	--          
+
+          
+    IsoBarycentre(me ;
+                  S : Shape from TopoDS)
+    returns Pnt from gp is static ;
+    ---Purpose:
+    --   compute the isobarycentre of all vertexes of a shape
+    --   
+    --   
+
+
+    AxisAlignedWithPrevious(me : in out;
+	               ReferenceList : ListOfConstraint from ShapePlacement  ;
+	    	       AConstraint  : Constraint from ShapePlacement)   
+			    
+    returns Boolean from Standard is private ; 
+    ---Purpose: Check if an Axis Constraint is already aligned with 
+    --          a previous one defined before
+    --         
+
+    CheckWhichCase(me : in out)  
+    returns Integer from Standard is private ;
+    ---Purpose:  
+    --    makes all the relevant calculations for sorting out the
+    --    case we are in the above cases
+    --     
+    ComputeWhichCase(me ;  
+    	    	    ResultFlag : out Integer from Standard) is private ; 
+    ---Purpose:
+    --   finds out from the constraints in which of the above cases
+    --   we are :
+    --         
+    --   
+    SolveCase1(me : in out) is private ;
+    ---Purpose:
+    --   solves the following case that is : there are at least 2 constraint 
+    --   whose  equation are of type PLANE_PLACEMENT which are compatible
+    --   
+    --      
+    SolveCase2(me : in out) is private ;
+    ---Purpose:
+    --   solves the following case that is : there is  1 constraint 
+    --   whose  equation is of type AXIS_AXIS_PLACEMENT and 
+    --   only other contraint that are of  type PLANE_PLACEMENT 
+    --   which are compatible
+    --   
+    SolveCase3(me : in out) is private ;
+    ---Purpose:
+    --  solves the following case that is : there are at least 2 constraint 
+    --   whose  equation are of type AXIS_AXIS_PLACEMENT which are compatible
+    --   
+    SolveCase4(me : in out) is private ;
+    ---Purpose:
+    --  solves    the  following    case  :   there    is exactly   one
+    --  constraint whose equation is of type PLANE_PLACEMENT 
+    --  and at least one constraint whose equation is of type LINE_PLACEMENT
+    --  
+    SolveCase5(me : in out) is private ;
+    ---Purpose:  
+    --  solves  the following   case : there  is one 
+    --  equation are of type AXIS_AXIS_PLACEMENT  and at least 1 equations
+    --  that are linearly independant that  are of type LINE_PLACEMENT
+    --  or ANGULAR_PLACEMENT  which give at least a solution
+    --  
+    SolveCase6(me : in out) is private ;
+    ---Purpose:
+    --  solves  the  following case :  there  are  no constraint whose
+    --  equation  is of type  PLANE_PLACEMENT  and there are exactly 2
+    --  constraint of type LINE_PLACEMENT or ANGULAR_PLACEMENT 
+    --  
+    SolveCase7(me : in out) is private ;
+    ---Purpose:
+    --  solves  the  following case :  there  are  no constraint whose
+    --  equation  is of type  PLANE_PLACEMENT  and there are exactly 2
+    --  constraint of type LINE_PLACEMENT or ANGULAR_PLACEMENT 
+
+    SolveCase8(me : in out) is private ;
+    ---Purpose:
+    --  solves  the  following case :  there are 1, 2 or 3 constraints whose 
+    --  equation is of type PLANE_AXIS_PLACEMENT 
+    --   
+
+    SolveCase9(me : in out) is private ;
+    ---Purpose:
+    --  solves  the  following case :  there are 1 or 2 constraints whose 
+    --  equation is of type ANGULAR_PLACEMENT 
+    --   
+
+    SolveCase10(me : in out) is private ;
+    ---Purpose:
+    --  solves  the  following case :  there are 1 constraint whose
+    --  equation is of type ANGULAR_PLACEMENT and 1 of type PLAN_PLACEMENT 
+    --  or AXIS_AXIS_PLACEMENT 
+    --   
+
+    SolveCase11(me : in out) is private ;
+    ---Purpose:
+    --  solves  the  following case :  there are 1 constraint whose 
+    --  equation is of type ANGULAR_PLACEMENT and 1 of type PLANE_AXIS_PLACEMENT
+    --   
+
+
+    IsOverConstrained(me) returns Boolean from Standard;
+
+
+    
+fields
+    myHasSolution : Boolean from Standard ;
+    -- tells whether there is or not a solution
+    -- 
+    myTrsf                : Trsf from gp ;
+    myEquationStatus      : HArray1OfInteger from TColStd ;
+    myEquationOrientation : HArray1OfInteger from TColStd ;
+    -- 
+    --  stores 0 if the equation is not used but statisfied
+    --  stores 1 if the equation is satisfied
+    --  stores 2 if the equation is not satisfied
+    --  
+    myAngularTolerance : Real from Standard ;
+    --
+    --     tolerance to compare normals of planes
+    --     
+    myConstraints     : ListOfConstraint from ShapePlacement;  
+    myShapeToPosition : Shape from TopoDS ;
+    mySubShapes       : IndexedMapOfShape from TopTools;
+
+    myIsOverConstrained : Boolean from Standard;
+
+
+end ConstraintAlgo;

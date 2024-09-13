@@ -1,0 +1,75 @@
+-- File:	ShapeInterference_Tangency.cdl
+-- Created:	Mon Jan 27 13:03:37 1997
+-- Author:	Prestataire Xuan PHAM PHU
+--		<xpu@tornadox.paris1.matra-dtv.fr>
+---Copyright:	 Matra Datavision 1997
+
+
+class Tangency from ShapeInterference inherits InterfObj from ShapeInterference
+
+    --Purpose: This class describes a tangency between two shapes.
+    --         
+    --         We can ask for the topology attached to the interference :
+    --         - the two edges generating the tangency on edge described,
+    --         - or the two faces generating the tangency on face described.
+
+uses
+    TypeOfInterf from ShapeInterference,
+    TypeOfTgcy   from ShapeInterference,
+    Shape        from TopoDS
+
+is
+    -- Constructor :
+
+    Create returns mutable Tangency from ShapeInterference;
+    	---Purpose: Empty constructor.
+  	
+	
+    -- Methods to fill Tangency's fields :
+	
+    SetTgcyType( me : mutable;
+    	    	 aType : TypeOfTgcy from ShapeInterference );
+    	---Purpose: Sets field myTgcyType with <aType>. 	  
+			
+    SetGeneratingShapes( me : mutable;
+    	    	    	aShapeOf1, aShapeOf2 : Shape from TopoDS );
+    	---Purpose: Sets fields myShapeOn1 and myShapeOn2 with the
+    	--          given data.
+    	--          If myTypeOfTgcy is TGCYONEDGE, <aShapeOf1> and 
+    	--          <aShapeOf2>, are the two edges generating the
+    	--          elementary interference.
+    	--          If myTypeOfTgcy is TGCYONFACE, <aShapeOf1> and 
+    	--          <aShapeOf2> are the two faces generating the
+    	--          elementary interference.
+    
+    SetSameMatterSide( me : mutable;
+    	    	       aBoolean : Boolean from Standard );	
+    	---Purpose: Fills field areOnSameMatterSide with the given data.
+    
+    
+    -- Methods to get Tangency's fields :
+    
+    GetInterfType( me )
+    	 returns TypeOfInterf from ShapeInterference is redefined; 
+    	---Purpose: Returns ShapeInterference_TOI_TGCY.	
+	
+    GetTgcyType( me ) 
+    	returns TypeOfTgcy from ShapeInterference;
+    	---Purpose: Returns type of tangency TGCYONEDGE or TGCYONFACE.
+		
+    GetGeneratingShapes( me;
+    	    	    	aShapeOf1, aShapeOf2 : out Shape from TopoDS );
+    	---Purpose: Returns fields myShapeOn1 and  myShapeOn2.
+
+    AreOnSameMatterSide( me ) returns Boolean from Standard;
+    	---Purpose: Returns <True> if myShapeOn1 myShapeOn2 are on
+    	--          shapes of same matter side.
+			
+fields
+    myTypeOfTgcy           : TypeOfTgcy from ShapeInterference;
+
+    myShapeOn1, myShapeOn2 : Shape from TopoDS;
+    areOnSameMatterSide    : Boolean from Standard;
+    
+
+end Tangency; 

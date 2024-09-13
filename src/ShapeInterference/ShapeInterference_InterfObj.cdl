@@ -1,0 +1,43 @@
+-- File:	ShapeInterference_InterfObj.cdl
+-- Created:	Mon Jan 27 10:45:44 1997
+-- Author:	Prestataire Xuan PHAM PHU
+--		<xpu@tornadox.paris1.matra-dtv.fr>
+---Copyright:	 Matra Datavision 1997
+
+
+class InterfObj from ShapeInterference inherits TShared from MMgt
+
+	--Purpose: This class describes an elementary interference.
+	--         It contains the interference's section result.
+	--         
+	--         InterfObj can either describe :
+	--         - a case of tangency between the shapes (see class Tangency),
+	--         - or a collision between the them (see class Collision).
+	--         
+	--         We use class InterfObj is used to fill the data structure 
+	--         described in class Interference. 
+
+uses
+   TypeOfInterf from ShapeInterference,
+   Shape        from TopoDS
+   
+is
+    Create returns mutable InterfObj from ShapeInterference;
+    	---Purpose: Empty constructor.
+ 
+    SetSection( me : mutable;
+    	    	aSectionResult : Shape from TopoDS );
+    	---Purpose: Stores the section result.
+     
+    GetInterfType( me )
+    	 returns TypeOfInterf from ShapeInterference is virtual; 
+    	---Purpose: Returns the interference elementary
+    	--          object's type : TOI_COLLISION, or TOI_TGCY.
+	 
+    GetSection( me ) returns  Shape from TopoDS;
+    	---Purpose: Get field mySection.
+								  
+fields
+    mySection : Shape from TopoDS;
+    
+end InterfObj;
